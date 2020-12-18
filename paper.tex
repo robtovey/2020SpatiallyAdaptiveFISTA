@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper,onecolumn]{article} \usepackage[latin1]{inputenc}
+\documentclass[10pt,a4paper,onecolumn]{article}
 \usepackage{amsmath,enumitem,datetime,xfrac,fix-cm,color,multirow,siunitx}
 \usepackage{amsfonts,amssymb,mathtools,stmaryrd,dsfont,tikz,amsthm}
 \usepackage[cm]{fullpage}
@@ -31,7 +31,6 @@
 \newcommand{\xmapsfrom}[1]{\reflectbox{$\xmapsto{\reflectbox{\scalebox{0.87}[0.69]{$#1$}}}$}}
 \newcommand{\splitln}[4]{\begin{cases} #1 & #2 \\ #3 & #4\end{cases}}
 \renewcommand{\P}{\F{P}}\newcommand{\E}{\F{E}}\newcommand{\1}{\F{1}}
-\newcommand{\tab}{\indent}\newcommand{\Tab}{\newline\tab}
 \renewcommand{\circle}[1]{\raisebox{.5pt}{\rm{\textcircled{\raisebox{-.9pt} {#1}}}}}
 \newcommand{\intbar}{-\hspace{-10.5pt}\int}\newcommand{\todo}[1]{{\color{red}#1}}
 \DeclareMathOperator{\st}{\;s.t.\;}\DeclareMathOperator{\as}{\;a.s.\;}\renewcommand{\epsilon}{\varepsilon}
@@ -855,7 +854,7 @@ It is not completely fair to judge CBP with the continuous gap because, although
 \paragraph{Comparison of FISTA variants}
 There are many variants of FISTA which can also be implemented in the form of \Cref{alg:ca: refining FISTA} just by updating the $\spcf0^n$ on each iteration. Although we have not proven convergence for all of these, \Cref{fig:ca: convergence with method} compares many methods with either fixed or adaptive discretisations. Each adaptive scheme is allowed up to 1024 pixels and each uniform discretisation uses exactly 1024. Forward-Backward splitting (FB) uses a sequence $\vart1_n=1$ otherwise for FISTA a general $\vart1_n = \frac{n+a-1}{a}$ is used. The restarting scheme is given in \Cref{alg:ci: restarting FISTA} and `greedy' FISTA is given in \Cref{alg:ci: greedy FISTA}. In this example CBP used the greedy FISTA implementation which gave faster observed convergence. \Cref{fig:ca: convergence with method} compares the discrete gaps because it is the accurate metric for fixed discretisations, and for the adaptive discretisation it should also be an accurate predictor of the continuous gap. 
 
-\pagebreak The key observations are:
+The key observations are:
 \begin{itemize}
 	\item The only algorithm with noticeably different convergence is FB, which is the non-accelerated form of FISTA. Every other algorithm converges at the same approximate rate.
 	\item The fixed discretisation schemes have an initial `slow' convergence before reaching a `fast' rate. The solid green line of FISTA $a=2$ appears to achieve the theoretical $\frac1{n^2}$ rate and other FISTA implementations are much faster for large $n$.
