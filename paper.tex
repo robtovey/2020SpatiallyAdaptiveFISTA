@@ -203,7 +203,7 @@ The Fast Iterative Shrinkage-Thresholding Algorithm (FISTA) was first proposed b
 \begin{equation}\label{eq: min F = fD+fC}
 	u^* \in \argmin_{\varf0\in\F H}\Func0(\varf0)  \qquad\text{such that}\qquad \Func0(\varf0)\coloneqq \func1(\varf0) + \func2(\varf0),
 \end{equation}
-where $\func1\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\func2\colon\F H\to\bar\R$ is a convex function. The iterates of the FISTA algorithm will be denoted $\varf0_n\in\F H$. \citet{Beck2009} showed that $\Func0(\varf0_n) - \Func0(\varf0^*)$ converges at the optimum rate of $n^{-2}$ when $u^*\in \F H$ is finite dimensional and \cite{Chambolle2015} extended this result to the general Hilbert space setting. Many further works have gone on to demonstrate even faster practical convergence rates for slightly modified variants of FISTA in specific scenarios \citep{some references}.
+where $\func1\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\func2\colon\F H\to\bar\R$ is a convex function. The iterates of the FISTA algorithm will be denoted $\varf0_n\in\F H$. \citet{Beck2009} showed that $\Func0(\varf0_n) - \Func0(\varf0^*)$ converges at the optimum rate of $n^{-2}$ when $u^*\in \F H$ is finite dimensional and \cite{Chambolle2015} extended this result to the general Hilbert space setting. Many further works have gone on to demonstrate even faster practical convergence rates for slightly modified variants of FISTA \citep{Tao2016,Liang2017,Alamo2019}.
 
 The contribution of this work is a modified FISTA algorithm which achieves two key properties:
 \begin{itemize}
@@ -347,7 +347,7 @@ for some FISTA stepsize choice $t_N\simeq N$ and $\rho_n\geq0$.
 In this section we follow the recipe motivated in \Cref{sec: recipe} to prove convergence of two variants of \Cref{alg: refining FISTA}. Each of the main theorems and lemmas will be stated with a sketch proof in this section. The details of the proofs are either trivial or very technical and are therefore placed in \Cref{app: FISTA convergence} to preserve the flow of the argument.
 
 \subsection{Computing the convergence bound}
-For \Cref{step: step 1 stability} of \Cref{sec: recipe} we look to replicate the classical bound of the form in \eqref{eq: classical FISTA} for \Cref{alg: refining FISTA}. The proofs in this step follow the classical arguments of \citep{Beck2009,Chambolle2015} very closely. 
+For \Cref{step: step 1 stability} of \Cref{sec: recipe} we look to replicate the classical bound of the form in \eqref{eq: classical FISTA} for \Cref{alg: refining FISTA}. The proofs in this step follow the classical arguments of \citet{Beck2009,Chambolle2015} very closely. 
 
 \subsubsection{Single iterations}
 We first wish to understand a single iteration of \Cref{alg: refining FISTA}. This is done through the following two lemmas.
@@ -360,7 +360,7 @@ We first wish to understand a single iteration of \Cref{alg: refining FISTA}. Th
 		where $\Pi_n\colon\bar{(\spcf0^n)^*}\to\spcf0^n$ is the orthogonal projection.
 	}
 \end{lemma}
-\noindent This is exactly the result of \citep{Chambolle2015} applied to the function $\varf0\mapsto\Func0(\Pi_n\varf0)$. Applying \Cref{thm: descent lemma} to the iterates from \Cref{alg: refining FISTA} gives a more explicit inequality.
+\noindent This is exactly the result of \citet{Chambolle2015} applied to the function $\varf0\mapsto\Func0(\Pi_n\varf0)$. Applying \Cref{thm: descent lemma} to the iterates from \Cref{alg: refining FISTA} gives a more explicit inequality.
 
 \begin{lemma}[analogous to {\cite[Theorem 2]{Chambolle2015}, \cite[Theorem 1]{Beck2009}}]\label{thm: one step FISTA}
 	\Copy{thm: one step FISTA}{
@@ -448,7 +448,7 @@ uniformly in $n$. If this condition is not satisfied, then it indicates that com
 \subsection{Convergence rate}
 In \Cref{thm: sufficiently fast} we show that $\Func0(\varf0_n)$ converges at a rate depending on $k$ and $n$ so long as $k$ grows sufficiently quickly. On the other hand, as $k$ grows, the rate becomes worse and so we need to also put a lower limit on the growth of $n_k$. The following lemma completes \cref{step: step 5 sufficiently slow} by computing the global convergence rate of $\Func0_0(\varf0_n)$ when $k$ grows at the minimum rate which is consistent with \Cref{thm: sufficiently fast}.
 
-As a special case, note that if $\vars3_{\Varf0}=1$ then \Cref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of \citep{Aujol2015}. If $\varf0^*\in\F H$ then it is not possible to refine `too quickly' and the following lemma is not needed.
+As a special case, note that if $\vars3_{\Varf0}=1$ then \Cref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of \citet{Aujol2015}. If $\varf0^*\in\F H$ then it is not possible to refine `too quickly' and the following lemma is not needed.
 
 \begin{lemma}\label{thm: sufficiently slow}
 	\Copy{thm: sufficiently slow}{
@@ -742,7 +742,7 @@ The bounds presented here for continuous Lasso emphasise the twinned properties 
 \subsection{Support detection}\label{sec: support detection}
 The main motivation for using Lasso in applications is because it recovers sparse signals, in the case of compressed sensing the support of $\varf0^*$ is also provably close to the `true' support \citep{Duval2017a,Poon2018}. If $\varf0_n\approx \varf0^*$ in the appropriate sense, then we should also be able to quantify the statement $\op{supp}(\varf0_n)\approx\op{supp}(\varf0^*)$. Such methods are referred to as \emph{safe screening} rules \citep{ElGhaoui2010} which gradually identify the support and allow the optimisation algorithm to constrain parts of the reconstruction to 0. In this subsection we propose a new simple screening rule which is capable of generalising to our continuous subspace approximation setting. It is likely that more advanced methods \citep{Bonnefoy2015,Ndiaye2017} can also be adapted, although that is beyond the scope of this work. The key difference is the allowance of inexact computations resulting from estimates such as \eqref{eq: Taylor approximation}.
 
-The work of \citep{Duval2017a,Poon2018} and many others characterise the support of $\varf0^*$ very precisely. In particular, the support is at most $m$ distinct points and are a subset of $\{ \vvarx0\in\Domain \st |\A^*\vvard0^*|(\vvarx0) = \mu\} $ (an equivalent statement holds for the countable case). Less formally, this can also be seen from the the gradient computations in \Cref{sec: Lasso gap and gradient}, for all $\vvarx0\in\supp(\varf0^*)$ we have
+The work of \citet{Duval2017a,Poon2018} and many others characterise the support of $\varf0^*$ very precisely. In particular, the support is at most $m$ distinct points and are a subset of $\{ \vvarx0\in\Domain \st |\A^*\vvard0^*|(\vvarx0) = \mu\} $ (an equivalent statement holds for the countable case). Less formally, this can also be seen from the the gradient computations in \Cref{sec: Lasso gap and gradient}, for all $\vvarx0\in\supp(\varf0^*)$ we have
 \begin{equation}
 	0\in \partial \Func0(\varf0^*)(\vvarx0) = [\A^*\vvard0^*](\vvarx0) + \mu\sign(\varf0^*(\vvarx0)).
 \end{equation}
@@ -864,7 +864,7 @@ or Gaussian kernels on a regular grid:
 	(\A\varf0)_j = (2\pi\sigma^2)^{-\frac12}\int_0^1\exp\left(-\frac{(\varx0-(j-1)\Delta)^2}{2\sigma^2}\right)\varf0(\varx0), \quad \sigma=0.12,\ \Delta = \tfrac1{29},\ j=1,2,\ldots,30,\ \mu=0.06.
 \end{equation}
 
-Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy} \citep[c.f.][]{Bredies2013,Castro2016,Boyd2017,Catala2019} however, most result in a non-convex discretised problem to solve. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can even be solved efficiently with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. As explained by \citep{Ekanadham2011, Duval2017b}, the idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen. If $\varf0^*$ has only one Dirac spike in each pixel then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
+Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy} \citep[c.f.][]{Bredies2013,Castro2016,Boyd2017,Catala2019} however, most result in a non-convex discretised problem to solve. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can even be solved efficiently with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. As explained by \citet{Ekanadham2011, Duval2017b}, the idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen. If $\varf0^*$ has only one Dirac spike in each pixel then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
 
 As shown in \Cref{sec: Lasso definition}, in 1D we have $\vars3_{\Varf0} = \vars3_{\Func0} = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\Func0_0(\varf0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from \Cref{thm: practical refinement criteria} with guarantee of $\Func0_0(\varf0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in \Cref{sec: Lasso gap and gradient}. We choose subspaces $\spcf0^n$ to approximately enforce
 \begin{equation}
@@ -1366,7 +1366,6 @@ The proof of \Cref{thm: generic a_U and a_E} is the result of the following thre
 \begin{theorem}[\Cref{thm: norm bound examples}]\label{app:thm: norm bound examples}
 	\Paste{thm: norm bound examples}
 \end{theorem}
-\todo{A very boring theorem but needs to be somewhere to justify the numerics. I don't know if the $\Delta\ll\sigma$ case is interesting to anyone else.}
 \begin{proof}[Proof case 1:]
 	From \Cref{thm: norm bound L2} we have 
 	\begin{equation}
