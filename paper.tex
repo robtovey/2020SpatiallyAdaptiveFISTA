@@ -925,11 +925,12 @@ It is clear that the adaptive scheme is able to continue reducing the continuous
 
 \Cref{fig: comparison with time} shows a more practical comparison showing wall-clock computation time and number of pixels (memory usage). Optimisation of the fixed discretisation is faster overall but after around \SI{0.1}{\second}, it is always faster to use the adaptive scheme to achieve a given continuous gap. The reason for this can be seen in the numbers of pixels. At the most extreme, in the same computation time the adaptive scheme can achieve more than a factor of 10 better gap using approximately a factor of 10 fewer pixels. The adaptive scheme re-computes the discrete matrix $\A\Pi_n$ each time there is a refinement, but the fixed schemes only compute it once. The adaptive schemes still seem to converge faster than $\frac1{\op{time}}$, which is the expected rate if time per iteration is constant.
 
-\begin{figure}\centering
+\begin{figure}[H]\centering
 	\includegraphics[width=.84\textwidth]{lasso_reduced_convergence}
 	\caption{Continuous convergence of adaptive (coarse-to-fine pixel size) compared with uniform discretisation (constant pixel size) with respect to number of iterations. }\label{fig: comparison with iteration}
-\end{figure}
-\begin{figure}\centering
+
+	\vspace*{\floatsep}
+
 	\includegraphics[width=.84\textwidth]{lasso_convergence_time}
 	\caption{Continuous convergence of adaptive compared with uniform discretisation with respect to wall-clock time and total number of pixels (memory requirement).}\label{fig: comparison with time}
 \end{figure}
@@ -955,37 +956,32 @@ for all $\F{\Varx0}\supset \supp(w_j)$.
 In the case of the Radon transform, we can compute the left-hand side explicitly for the finitely many $j\in J_n$ but we wish to use the right-hand side in a structured way to avoid computing the infinitely many $j\notin J_n$. To do this, we will take a geometrical perspective on the construction of wavelets to view them in a tree format. 
 
 \paragraph{Tree structure of wavelets}
-Finite elements are constructed with a mesh which provided a useful tool for adaptive refinement in \Cref{sec: bound continuous}. For wavelets, we will associate a tree with every discretisation and the leaves of the tree form a mesh. This perspective comes from the multi-resolution interpretation of wavelets. We will explain the approach for 1D in detail and then comment on how to extend this picture to higher dimensions. We start with a space $\tilde{\spcf0}^0$ and a normalised mother wavelet $\vard1\colon[0,1]\to \R$ then inductively form $\tilde{\spcf0}^k$ by
-$$\tilde{\spcf0}^k = \tilde{\spcf0}^{k-1}\bigcup\left\{w_{j,k}(\varx0) = \sqrt{2}^k\vard1(2^{k}\varx0-j)\st j=0,\ldots 2^k-1\right\}.$$
-If we keep track of the support $w_{j,k}$, then we see a tree structure emerging, as shown in \Cref{fig: wavelet tree}.
+Finite elements are constructed with a mesh which provided a useful tool for adaptive refinement in \Cref{sec: bound continuous}. For wavelets, we will associate a tree with every discretisation and the leaves of the tree form a mesh. This perspective comes from the multi-resolution interpretation of wavelets. An example is seen in \Cref{fig: wavelet tree} for 1D Haar wavelets, $w_{j,k}(\varx0) = \sqrt{2}^k\vard1(2^{k}\varx0-j)$ where $\vard1 = \1_{[0,1)} - \1_{[-1,0)}$. 
 \begin{figure}\begin{center}\begin{tikzpicture}[grow'=right]
 			\tikzstyle{level 1}=[level distance=5em, sibling distance=0em];
 			\tikzstyle{level 2}=[level distance=5em, sibling distance=6em];
 			\tikzstyle{level 3}=[level distance=5em, sibling distance=3em];
 			\tikzstyle{bag} = [text width=3em, text centered];
 			
-			\node[bag] {$\tilde{\spcf0}^0$}
+			\node[text width=7cm] at (-6cm,0) {
+				$\begin{aligned}
+					J_n &= \{(0,0), (0,1), (0,2), (1,2), (1,1)\}
+					\\\op{leaf}(J_n) &= \{(0,2), (1,2), (1,1)\}
+					\\\F M^n &= \left\{[0,\tfrac14),[\tfrac14,\tfrac12),[\tfrac12,1)\right\}
+				\end{aligned}$ };
+			
+			\node[bag] at (0,0) {$\tilde{\spcf0}^0$}
 			child {node[bag] {$w_{0,0}$ $[0,1]$}
 				child {node[bag] {$w_{0,1}$ $[0,\frac12]$}
 					child {node[bag] {$w_{0,2}$ $[0,\frac14]$}
-						child { node {\ldots} }
 					} child {node[bag] {$w_{1,2}$ $[\frac14,\frac12]$}
-						child { node {\ldots} }
 					}
 				} child {node[bag] {$w_{1,1}$ $[\frac12,1]$}
-					child {node[bag] {$w_{2,2}$ $[\frac12,\frac34]$}
-						child { node {\ldots} }
-					} child {node[bag] {$w_{3,2}$ $[\frac34,1]$}
-						child { node {\ldots} }
-			}}};
+			}};
+
 	\end{tikzpicture}\end{center}
 	\caption{Tree representation of 1D wavelets $w_{j,k}$ are arranged in a tree structure with their support underneath.}\label{fig: wavelet tree}
 \end{figure}
-Each time a node splits, the support is partitioned exactly between its two children. If we truncate this tree to $J_n$ such that every node either has zero or two children, then the leaves of this tree form a partition of unity. For example
-\begin{align*}
-	J_n = \{(0,0), (0,1),(1,1), (2,2), (3,2)\} \implies \op{leaf}(J_n) &= \{(0,1), (2,2), (3,2)\}, 
-	\\ [0,1] &= [0,\tfrac12]\cup[\tfrac12,\tfrac34]\cup[\tfrac34,1].
-\end{align*}
 In higher dimensions, the only two things which change are the number of children ($2^d$ for non-leaves) and at each node you store the coefficients of $2^d-1$ wavelets. The support on each node is still a disjoint partition of unity consisting of regular cubes of side length $2^{-k}$ at level $k$. The only change in our own implementation is to translate the support to $[-\tfrac12,\tfrac12]^2$. We briefly remark that the tree structuring of wavelets is not novel and appears more frequently in the Bayesian inverse problems literature, for example see \citet{Castillo2019}.
 
 \paragraph{Continuous gradient estimate}
@@ -993,55 +989,39 @@ In \Cref{sec: 1D Lasso examples} we used the continuous gap as a measure for con
 \begin{align}
 	\Norm{\partial \Func0(\varf0_n)}_* &=\max\left(\Norm{\partial_n\Func0(\varf0_n)}_*, \max_{j\notin J_n} |\IP{w_j}{\A^*\vvard0_n}| -\mu \right) \\&\leq\max\left(\Norm{\partial_n\Func0(\varf0_n)}_*, \max_{j\in \op{leaf}(J_n)} \norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} -\mu \right).\label{eq: wavelet error metric}
 \end{align}
-It is interesting to note that 
-\begin{equation}
-	\sum_{j\in\op{leaf}(J_n)} \norm{\1_{\supp(w_j)}\A^*\vvard0^*}_{L^2}^2 = \norm{\A^*\vvard0^*}_{L^2}^2,
-\end{equation}
-therefore the task of refinement is somehow to partition the domain of $\A^*\vvard0^*$ such that no single component has more than $\mu$ magnitude. Also, by strong convexity of the dual problem,
-\begin{equation}
-	\left|\vars2_0\norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} - \norm{\1_{\supp(w_j)}\A^*\vvard0^*}_{L^2}\right| \leq \sqrt{|\supp(w_j)|}\sqrt{2(\Func0(\varf0_n)+\Func0^*(\vars2_0\vvard0_n))},
-\end{equation}
-therefore the exact discretisation is reached in finite time. After this point, the discretised problem is equal to the continuous problem, and \Cref{alg: refining FISTA} will behave as in the classical setting.
 
 \paragraph{Numerical results}
-We consider two phantoms where $\varf0^\dagger$ is either a binary disc or the Shepp-Logan phantom. No noise is added to the Shepp-Logan data but \SI{5}{\percent} Gaussian white noise is added to the disc data. This is visualised in \Cref{fig: haar data}. All optimisations shown will be spatially adaptive using Haar wavelets and initialised with four degrees of freedom (denoted $\spcf0^1$ in the notation of \Cref{fig: wavelet tree}). The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
+We consider two phantoms where $\varf0^\dagger$ is either a binary disc or the Shepp-Logan phantom. No noise is added to the Shepp-Logan data but \SI{5}{\percent} Gaussian white noise is added to the disc data. This is visualised in \Cref{fig: haar data}. All optimisations shown will be spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
 $$ \norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} -\mu  \leq 10\Norm{\partial_n\Func0(\varf0_n)}_*$$
 for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times the discrete gradient).
 
-\begin{figure}\centering
-	\includegraphics[width=.84\textwidth]{haar_data}
-	\caption{Phantoms and data used for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ Gaussian white noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
-\end{figure}
-
-The first numerical results shown in \Cref{fig: haar convergence} compare the same adaptive algorithms as shown in \Cref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ and the classical FB are significantly slower. The maximum number of wavelet coefficients used was 312,220 and 44,644 for the circle and Shepp-Logan phantoms respectively.
-
-\begin{figure}\centering
-	\includegraphics[width=.84\textwidth]{haar_convergence_short}
-	\caption{Discrete convergence of different implementations of \Cref{alg: refining FISTA} with an unlimited number of pixels.}\label{fig: haar convergence}
-\end{figure}
-
-As before, we focus on the $a=20$ algorithm to which \Cref{thm: practical refinement criteria} applies, and greedy FISTA which we see achieves slightly faster convergence in \Cref{fig: haar convergence zoom}. Looking at the discrete and continuous gradient norms, we see that they are initially distinct then merge after around 50 iterations. From this point onwards, the continuous and discrete problems are equivalent and the iterations are equivalent to classical FISTA.
+The first numerical results shown in \Cref{fig: haar convergence} compare the same adaptive algorithms as shown in \Cref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower.
 
 \begin{figure}[H]\centering
-	\includegraphics[width=.84\textwidth]{haar_reduced_convergence}
-	\caption{Discrete/continuous convergence of adaptive FISTA algorithms on the wavelet Lasso optimisation.}\label{fig: haar convergence zoom}
+	\includegraphics[width=.85\textwidth]{haar_data}
+	\caption{Phantoms and data used for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ Gaussian white noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
+
+	\vspace*{\floatsep}
+	
+	\includegraphics[width=.85\textwidth]{haar_convergence_short}
+	\caption{Discrete convergence of different implementations of \Cref{alg: refining FISTA} with an unlimited number of pixels.}\label{fig: haar convergence}
+
+	\vspace*{\floatsep}
+
+	\includegraphics[width=.85\textwidth]{STORM_data}
+	\caption{Example of images from STORM dataset.}\label{fig: STORM data}
 \end{figure}
 
 \subsection{2D continuous Lasso}
-Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. The resolution of visible light microscopy is fundamentally limited by the wavelength of visible light. Classically, this limit has held around \SI{250}{\nano\meter}, however, in recent years new techniques have emerged improving resolution to around \SIrange{30}{50}{\nano\meter} \citep{Schermelleh2019}. A big component of this shift is a growing reliance on more powerful data processing techniques. \emph{Stochastic Optical Reconstruction Microscopy} (STORM) is an example of \emph{Single Molecule Localisation Microscopy} (SMLM) where a large number of coarse blurred images are recorded, then re-combined to form a single sparse super-resolved image. In the context of STORM, each recorded image is modelled as a sparse signal convolved with a point-spread function, then corrupted with noise. The Lasso formulation has previously been shown to be effective in the context of STORM, see for instance \citet{Huang2017,Denoyelle2019}.
+Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. In mathematical terms, the observed data is a large number of sparse images which are corrupted by blurring and a large amount of noise, examples are seen in \Cref{fig: STORM data}. The task is to compute the centres of the spikes of signal in each image and then re-combine into a single super-resolved image, as in \Cref{fig: STORM results}. This technique is referred to as \emph{Single Molecule Localisation Microscopy} (SMLM), of which we consider the specific example of \emph{Stochastic Optical Reconstruction Microscopy} (STORM). Readers are directed to works such as by \citet{Sage2015,Sage2019,Schermelleh2019} for further details. The Lasso formulation has previously been shown to be effective in the context of STORM, see for instance \citet{Huang2017,Denoyelle2019}.
 
-In this example we use a simulated dataset provided as part of the 2016 SMLM challenge\footnote{\url{http://bigwww.epfl.ch/smlm/challenge2016/datasets/MT4.N2.HD/Data/data.html}} for benchmarking software in this application. It is common to model the point-spread function as a Gaussian, in this example the corresponding Lasso formulation  is 
+Here we use a simulated dataset provided as part of the 2016 SMLM challenge\footnote{\url{http://bigwww.epfl.ch/smlm/challenge2016/datasets/MT4.N2.HD/Data/data.html}} for benchmarking software in this application. The corresponding Lasso formulation is 
 \begin{equation}
 	(\A\varf0)_{i} = (2\pi\sigma^2)^{-1}\int_{[0,6.4]^2} \exp\left(-\frac{1}{2\sigma^2}\left|\vvarx0- \Delta\begin{pmatrix}i_1+\tfrac12 & i_2+\tfrac12\end{pmatrix}^\top \right|^2\right)\varf0(\vvarx0)\,d\vvarx0, \qquad \sigma=\SI{0.2}{\micro\meter},\ \Delta=\SI{0.1}{\micro\meter}
 \end{equation}
 for $i_1,i_2 = 1,2,\ldots,64$ and $\spcf0=\C M([\SI{0}{\micro\meter},\SI{6.4}{\micro\meter}]^2)$. 3020 frames are provided, examples of which are shown in \Cref{fig: STORM data}. To process this dataset, image intensities were normalised to $[0,1]$ then a constant was subtracted to approximate 0-mean noise. The greedy FISTA algorithm was used for optimisation with $\mu=0.15$, $10^3$ iterations, and a maximum of $10^5$ pixels per image. 
 
-\begin{figure}\centering
-	\includegraphics[width=.8\textwidth]{STORM_data}
-	\caption{Example of images from STORM dataset.}\label{fig: STORM data}
-\end{figure}
-
-Finally, all the reconstructions were summed and the result shown in \Cref{fig: STORM results}. The average pixel width after optimisation was approximately \SI{2.4}{\nano\meter}, a factor of 40 super-resolution. If this resolution had been implemented with a uniform discretisation then it would have required $70\times 10^5$ pixels, nearly a factor of 100 greater than achieved with the adaptive discretisation. Lasso is compared with ThunderSTORM \citep{Ovesny2014}, a popular ImageJ plugin \citep{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial competition by \citet{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, Lasso has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
+Finally, all the reconstructions were summed and the result shown in \Cref{fig: STORM results}. The average pixel width after optimisation was approximately \SI{2.4}{\nano\meter}, a factor of 40 super-resolution. If this resolution had been implemented with a uniform discretisation then it would have required $70\times 10^5$ pixels per frame, nearly a factor of 100 greater than achieved with the adaptive discretisation. Lasso is compared with ThunderSTORM \citep{Ovesny2014}, a popular ImageJ plugin \citep{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial competition by \citet{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, Lasso has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
 
 \Cref{fig: STORM convergence} shows the convergence behaviour in this example. The estimates given by \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=2$ predict respectively that the adaptive energy will decay at a rate of $\Func0_0(\varf0_n)\lesssim n^{-\sfrac23}$ so long as the pixel size also decreases at a rate of $\meshsize\sim n^{-\sfrac23}$. This is consistent with the resolution scaling (middle panel) but the energy (left panel in pink) is observed to converge a little faster than predicted. 
 
@@ -1052,7 +1032,7 @@ In this example we also implement the suggestion of \Cref{sec: support detection
 guarantees that $\domain_i^n\cap\op{supp}(\varf0^*) = \emptyset$. Once this threshold becomes greater than 0 (plotted value less than 1), we can start reducing the number of pixels instead of just continual refinement. This is seen in the right-hand panel of \Cref{fig: STORM convergence}, after around 30 iterations the total number pixels starts to reduce and stabilise at approximately $6\times10^3$ pixels per frame, well below the upper limit of $10^5$.
 
 \begin{figure}[H]\centering
-	\includegraphics[width=\textwidth]{lasso2_convergence}
+	\includegraphics[width=.82\textwidth]{lasso2_convergence}
 	\caption{Convergence of adaptive FISTA for STORM dataset. Lines indicate the median value over 3020 STORM frames. Shaded regions indicate the \SIrange{25}{75}{\percent} inter-quartile range.}\label{fig: STORM convergence}
 \end{figure}
 \begin{figure}\centering
@@ -1072,7 +1052,7 @@ An interesting observation over all of the adaptive Lasso examples is that the c
 Moving forward, it would be interesting to see how far the analysis extends to other optimisation algorithms. Other variants of FISTA, such as the `greedy' implementation used here or the traditional Forward-Backward algorithm, should also be receptive to the analysis performed here. Furthermore, it would also interesting to attempt to replicate this refinement argument to extend the primal-dual algorithm proposed by \citet{Chambolle2011} or the Douglas-Rachford algorithm proposed by \citet{Douglas1956}.
 
 \bibliographystyle{apalike}\bibliography{references} % alpha is also a decent style
-\newpage\appendix
+\appendix
 \section{Proofs for FISTA convergence}\label{app: FISTA convergence}
 This section contains all of the statements and proofs of the results contained in \Cref{sec: FISTA convergence}.
 
@@ -1121,9 +1101,7 @@ This section contains all of the statements and proofs of the results contained 
 	Noting that $\varf1_0=\varf0_0$, the previous two equations combine to prove the statement of \Cref{app:thm: mini FISTA convergence}.
 \end{proof}
 
-
-
-\newpage\noindent The following lemma is used to produce a sharper estimate on sequences $\vart1_n$.
+\noindent The following lemma is used to produce a sharper estimate on sequences $\vart1_n$.
 \begin{lemma}\label{app: tn upper bound}
 	If $\rho_n=\vart1_{n}^2-\vart1_{n+1}^2+\vart1_{n+1}\geq0$, $\vart1_n\geq 1$ for all $n\in\F N$ then $\vart1_n\leq n-1 +\vart1_1$.
 \end{lemma}
@@ -1263,7 +1241,6 @@ This section contains all of the statements and proofs of the results contained 
 \begin{lemma}[\Cref{thm: practical refinement criteria}]\label{app:thm: practical refinement criteria}
 	\Paste{thm: practical refinement criteria}
 \end{lemma}
-\todo{This is a very long theorem which I don't really use in the end. The result is a little bit useful but not difficult.}
 \begin{proof}
 	The proof is simply to justify that the conditions of \Cref{app:thm: stronger exponential FISTA convergence} are met for all refinement criteria described here. $\norm{\tilde{\varf2}_k}\lesssim \vars3_{\Varf0}^k$ is enforced at every step and condition (2) guarantees the back-stop condition on $n_k$.
 	
@@ -1459,14 +1436,14 @@ The proof of \Cref{thm: generic a_U and a_E} is the result of the following thre
 	
 	\begin{lemma}\label{app: exp sum bound}
 		Suppose $q>0$. If the polynomial $p(|\vvarx0|) = \sum p_k|\vvarx0|^k$ has non-negative coefficients and $\vvarx0\in[-m,m]^d$, then
-		$$\sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq m}} p(|\vec{j}-\vvarx0|)\exp\left(-\tfrac{q|\vec{j}-\vvarx0|^2}{2}\right)\leq \left[\sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq2m}}p(|\vec{j}|+\delta)\exp\left(-\frac{q\max(0,|\vec{j}|-\delta)^2}{2}\right)\right]$$
-		where $\delta\coloneqq \frac{\sqrt{d}}{2}$.
+		$$\sum_{\norm{\vec{j}}_{\ell^\infty}\leq m} p(|\vec{j}-\vvarx0|)\exp\left(-\tfrac{q|\vec{j}-\vvarx0|^2}{2}\right)\leq \sum_{\norm{\vec{j}}_{\ell^\infty}\leq2m}p(|\vec{j}|+\delta)\exp\left(-\frac{q\max(0,|\vec{j}|-\delta)^2}{2}\right)$$
+		where $\delta\coloneqq \frac{\sqrt{d}}{2}$ and $\vec{j}\in\F Z^d$.
 	\end{lemma}
 	\begin{proof}
 		There exists $\hat{\vvarx0}\in[-\tfrac12,\tfrac12]^d$ such that $\vvarx0 + \hat{\vvarx0}\in\F Z^d$, therefore
 		\begin{align*}
-			\sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq m}} p(|\vec{j}-\vvarx0|)\exp\left(-\tfrac{q|\vec{j}-\vvarx0|^2}{2}\right) &= \sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq m}} p(|\vec{j}-(\vvarx0+\hat{\vvarx0})+\hat{\vvarx0}|)\exp\left(-\tfrac{q|\vec{j}-(\vvarx0+\hat{\vvarx0})+\hat{\vvarx0}|^2}{2}\right)
-			\\&\leq \sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq2m}} p(|\vec{j}+\hat{\vvarx0}|)\exp\left(-\tfrac{q|\vec{j}+\hat{\vvarx0}|^2}{2}\right)
+			\sum_{\norm{\vec{j}}_{\ell^\infty}\leq m} p(|\vec{j}-\vvarx0|)\exp\left(-\tfrac{q|\vec{j}-\vvarx0|^2}{2}\right) &= \sum_{\norm{\vec{j}}_{\ell^\infty}\leq m} p(|\vec{j}-(\vvarx0+\hat{\vvarx0})+\hat{\vvarx0}|)\exp\left(-\tfrac{q|\vec{j}-(\vvarx0+\hat{\vvarx0})+\hat{\vvarx0}|^2}{2}\right)
+			\\&\leq \sum_{\norm{\vec{j}}_{\ell^\infty}\leq2m} p(|\vec{j}+\hat{\vvarx0}|)\exp\left(-\tfrac{q|\vec{j}+\hat{\vvarx0}|^2}{2}\right)
 			\\&\leq \sum_{\substack{\vec{j}\in\F Z^d\\\norm{\vec{j}}_{\ell^\infty}\leq2m}} p(|\vec{j}|+\delta)\exp\left(-\tfrac{q\max(0,|\vec{j}|-\delta)^2}{2}\right)
 		\end{align*}
 		as $|\hat{\vvarx0}|\leq \delta$ and $p$ has non-negative coefficients. 
