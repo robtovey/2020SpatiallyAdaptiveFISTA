@@ -176,6 +176,7 @@
 \newcommand*{\vvard}[1]{\vec{\vard{#1}}}\newcommand*{\vdata}[1]{\vec{\data{#1}}}
 \newcommand*{\vVarf}[1]{\vecf{\Varf{#1}}}\newcommand*{\vvarf}[1]{\vecf{\varf{#1}}}
 
+%\renewcommand{\Paste}[1]{}
 
 \author{Robert Tovey and Antonin Chambolle}
 \date{\longdate\today}
@@ -183,20 +184,6 @@
 \begin{document}
 	\maketitle
 
-%In many variational approaches to inverse problems, optimisation problems are often written in a continuous setting but solved with a discrete optimisation algorithm. Consider what happens when $\sqrt{e^2}$ is computed in your favourite programming language. We have asked a `continuous' question and have been given a `discrete' answer with very well controlled error bounds.
-%
-%The parallel to this for optimisation is that we still do not have infinite computing memory or processing power, but we still want to compute minimisers to a known accuracy with efficient implementations. It is typically much harder to control discretisation errors in optimisation problems, for instance the $\Gamma$-convergence of discrete total variation \citep{Bartels2012,Bartels2015} or the approximation errors for wavelets/curvelets/sheerlets \citep{Mallat1999,Candes2004,Guo2007}. These are typically quite weak guarantees valid for asymptotic resolution/time and are hard to quantify in a specific example. In this work we propose an algorithm with three aims:
-%\begin{itemize}
-%	\item All computations are discrete but the asymptotic reconstruction is exact, even for infinite dimensional reconstructions in a Banach space, with a guaranteed rate.
-%	\item Distance to the infinite dimensional minimiser can be quantified.
-%	\item Discretisation is adaptively optimised for the particular minimiser.
-%\end{itemize}
-%
-%We choose to modify the FISTA algorithm because it is quite general and performs very well in discrete optimisation problems. The strategy will be to follow the standard FISTA algorithm as closely as possible. The only difference is that at each iteration, computations will only be performed on a finite dimensional subspace. 
-%
-%One key issue is that FISTA is intrinsically designed to converge only in $L^2$. In finite dimensions there is no issue, all norms are equal and so convergence rates are equal for all problems up to scaling constants. On the other hand, in infinite dimensions there exist minimisers which are not in $L^2$. In this case, we find that the rate will always be slower than for standard FISTA but still at a guaranteed rate.
-%
-%We perform two numerical experiments where the minimiser is in $L^1\setminus L^2$ which demonstrates the reduced rate. We also show an example where the minimiser is in $\ell^2(\R^m)$ for some $m$ which is not known a priori and observe that the refining FISTA algorithm achieves linear convergence.
 
 \section{Introduction}
 The Fast Iterative Shrinkage-Thresholding Algorithm (FISTA) was first proposed by \citet{Beck2009} and is now a very popular algorithm for minimising the sum of two convex functions. We will write this as the problem of computing 
@@ -247,10 +234,14 @@ Note that the value of $\Func0_0$ is uniquely defined, even if $\varf0^*$ may no
 
 The proposed generalised FISTA algorithm is stated in \Cref{alg: refining FISTA} for an arbitrary choice of refining subspaces $\spcf0^n\subset \spcf0\cap\F H$ for $n=0,1,\ldots$. The only difference is that on iteration $n$, all computations are performed in the subspace $\spcf0^n$. If $\spcf0^n=\spcf0=\F H$ then we recover the standard FISTA algorithm.
 
-Without loss of generality we will assume $L=1$, i.e. $\nabla\func1$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\Func0$ with $\frac{\Func0}{L}$. Implicitly, the only impact of $L$ is scaling the convergence rates which are only given up to a constant factor anyway. A more important distinction is to say that the properties of $\func1$ and $\func2$ are stated with respect to the Hilbert norm. In particular,
-$$\norm{\nabla\func1(\varf0)- \nabla\func1(\varf1)} \leq \norm{\varf0-\varf1}$$
+Without loss of generality we will assume $L=1$, i.e. $\nabla\func1$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\Func0$ with $\frac{\Func0}{L}$. A more important distinction is to say that the properties of $\func1$ and $\func2$ are stated with respect to the Hilbert norm. In particular,
+\begin{equation}
+	\norm{\nabla\func1(\varf0)- \nabla\func1(\varf1)} \leq \norm{\varf0-\varf1}
+\end{equation}
 for all $\varf0,\varf1\in\F H$ and $\func2$ is called `simple' if
-$$\argmin_{\varf0\in\tilde{\spcf0}}\tfrac12\norm{\varf0-\varf1}^2 + \func2(\varf0) $$
+\begin{equation}
+	\argmin_{\varf0\in\tilde{\spcf0}}\tfrac12\norm{\varf0-\varf1}^2 + \func2(\varf0)
+\end{equation}
 is exactly computable for all $\varf1\in\F H$ and all $\tilde{\spcf0}\in\{\spcf0^n\}_{n=0}^\infty$.
 
 One defining property of the FISTA algorithm is an appropriate choice of inertia, dictated by $\vart1_n$. In particular, we will say that $(\vart1_n)_{n=0}^\infty$ is a \emph{FISTA stepsize} if
@@ -432,22 +423,22 @@ uniformly in $n$. If this condition is not satisfied, then it indicates that com
 			\item or $\vars3_{\Varf0}=1$, $\sum_{k=1}^\infty n_k^2\vars3_{\Func0}^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\varf2}_k-\tilde{\varf2}_{k+1}}<\infty,$
 		\end{itemize}
 		then
-		$$ \Func0_0(\varf0_N) \lesssim \frac{\vars3_{\Varf0}^{2K}}{N^2}$$
-		for all $n_K\leq N< n_{K+1}$.}
+		$$ \Func0_0(\varf0_N) \lesssim \frac{\vars3_{\Varf0}^{2K}}{N^2}\qquad \text{for all}\qquad n_K\leq N< n_{K+1}.$$
+		}
 \end{lemma}
 
 \noindent The proof is given in \cref{app:thm: sufficiently fast}. We make two observations of the optimality of \Cref{thm: sufficiently fast}:
 \begin{itemize}
 	\item The convergence guarantee for $N$ iterations of classical FISTA in the space $\spcf0^N$ is 
 	$$ \Func0_0(\varf0_N) \lesssim \frac{\norm{\varf0_0-\argmin_{\varf0\in\spcf0^N}\Func0(\varf0)}^2}{N^2} + \min_{\varf0\in\spcf0^N}\Func0_0(\varf0) \lesssim \frac{\vars3_{\Varf0}^{2K}}{N^2} + \vars3_{\Func0}^{-K}.$$
-	This is equivalent to \Cref{thm: sufficiently fast} under the conditions on $n_k$.
+	This is equivalent to \Cref{thm: sufficiently fast} after the assumptions on $n_k$.
 	\item If $\spcf0$ is finite dimensional then the $\vars3_{\Varf0}=1$ is almost trivially satisfied. Norms in finite dimensions are equivalent and any discretisation can be achieved with a finite number of refinements (i.e. the sums over $k$ are finite). 
 \end{itemize}
 
 \subsection{Convergence rate}
 In \Cref{thm: sufficiently fast} we show that $\Func0(\varf0_n)$ converges at a rate depending on $k$ and $n$ so long as $k$ grows sufficiently quickly. On the other hand, as $k$ grows, the rate becomes worse and so we need to also put a lower limit on the growth of $n_k$. The following lemma completes \cref{step: step 5 sufficiently slow} by computing the global convergence rate of $\Func0_0(\varf0_n)$ when $k$ grows at the minimum rate which is consistent with \Cref{thm: sufficiently fast}.
 
-As a special case, note that if $\vars3_{\Varf0}=1$ then \Cref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of \citet{Aujol2015}. If $\varf0^*\in\F H$ then it is not possible to refine `too quickly' and the following lemma is not needed.
+As a special case, note that if $\vars3_{\Varf0}=1$ then \Cref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of \citet{Aujol2015}. If $\varf0^*\in\F H$, then it is not possible to refine `too quickly' and the following lemma is not needed.
 
 \begin{lemma}\label{thm: sufficiently slow}
 	\Copy{thm: sufficiently slow}{
@@ -472,11 +463,10 @@ We can summarise \Cref{thm: mini exponential FISTA convergence,thm: sufficiently
 			\item or $\vars3_{\Varf0}=1$, $\sum_{k=1}^\infty n_k^2\vars3_{\Func0}^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\varf2}_k-\tilde{\varf2}_{k+1}}<\infty$,
 		\end{itemize}
 		then
-		$$\Func0_0(\varf0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2}$$
-		uniformly for $N\in\F N$.
-	}
+		$$\Func0_0(\varf0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2} \qquad \text{uniformly for } N\in\F N.$$
+		}
 \end{theorem}
-\noindent This theorem is very easy to implement and requires very little knowledge of how to estimate $\Func0_0(\varf0_n)$. So long as $\vars3_{\Varf0}$ and $\vars3_{\Func0}$ can be computed analytically, choosing $\tilde{\spcf0}^k$ to be uniform discretisations and $\tilde{\spcf0}^k = \spcf0^{n_k}=\ldots= \spcf0^{n_{k+1}-1}$ will give the stated convergence rate.
+\noindent This theorem is very easy to implement numerically and requires very little knowledge of how to estimate $\Func0_0(\varf0_n)$. So long as $\vars3_{\Varf0}$ and $\vars3_{\Func0}$ can be computed analytically, choosing $\tilde{\spcf0}^k$ to be uniform discretisations and $\tilde{\spcf0}^k = \spcf0^{n_k}=\ldots= \spcf0^{n_{k+1}-1}$ will give the stated convergence rate.
 
 
 \subsubsection{FISTA convergence with adaptivity}
@@ -486,7 +476,7 @@ There are two properties of the sequence $(\spcf0^n)_0^\infty$ which we may wish
 $$\Func0_0(\varf0_n) \geq \min_{\varf0\in\spcf0^n}\Func0_0(\varf0) = O(\vars3_{\Func0}^{-k}) = O(n^{2(\kappa-1)})$$
 which suggests that to converge faster than $n^{2(\kappa-1)}$ requires choosing smaller $n_k$. As an example, in \Cref{sec: wavelet examples} we will see \cref{alg: refining FISTA} can converge at a linear rate, although this is not possible without adaptive refinement times. On the other hand, choice of spatial adaptivity has no impact on rate but can impact computational efficiency. It will be permitted to use greedy discretisation techniques so long as each collection $\{\spcf0^n \st n_k\leq n<n_{k+1}\}$ satisfies a monotonicity condition.
 
-While \Cref{thm: exponential FISTA convergence} also allows for spatial adaptivity, we will simplify the requirements to a form which seems more practical for implementation and also allows for time adaptivity. We make the assumption that the choice of $n_k$ depends only on the value $\Func0(u^{n_k-1})$ and therefore make $u^{n_k-1}$ the root of our requirements. \cref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\Func0_0(\varf0^{n_k-1})\lesssim \vars3_{\Func0}^{-k}$. However, the value of $\Func0_0$ may be hard to estimate and so we introduce a `backstop' condition which ensures that convergence is no slower than the rate given by \Cref{thm: exponential FISTA convergence}. The only constraint on spatial adaptivity is the piecewise monotone inclusion and that $\spcf0^{n_k} \ni u^{n_k-1}$. This is confirmed by the following theorem.
+While \Cref{thm: exponential FISTA convergence} also allows for spatial adaptivity, we will simplify the requirements to a form which seems more practical for implementation and also allows for time adaptivity. We make the assumption that the choice of $n_k$ depends only on the value $\Func0(u^{n_k-1})$ and therefore make $u^{n_k-1}$ the root of our requirements. \cref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\Func0_0(\varf0^{n_k-1})\lesssim \vars3_{\Func0}^{-k}$. However, the value of $\Func0_0$ may be hard to estimate and so we introduce a `backstop' condition which guarantees that convergence is no slower than the rate given by \Cref{thm: exponential FISTA convergence}. The only constraint on spatial adaptivity is the piecewise monotone inclusion and that $\spcf0^{n_k} \ni u^{n_k-1}$. This is confirmed by the following theorem.
 \begin{theorem}\label{thm: stronger exponential FISTA convergence}
 	\Copy{thm: stronger exponential FISTA convergence}{
 		Let $\{\spcf0^n\subset\F H\cap\spcf0\st n\in\F N\}$ be a sequence of subspaces and $n_k\in\F N$ a monotone increasing sequence such that
@@ -526,7 +516,7 @@ To enable more practical implementation of \Cref{thm: stronger exponential FISTA
 	}
 \end{lemma}
 
-\noindent The proof is given in \cref{app:thm: practical refinement criteria}. The refinement criteria described by \Cref{thm: practical refinement criteria} can be split into two groups. Cases (1), (3), and (4) justify that any choice of $\tilde{\spcf0}^k\ni\varf0_k$ (or $\varf0_{n_k-1}$ in \Cref{thm: stronger exponential FISTA convergence}) satisfies the required conditions. In cases (2) and (5), $\varf0_k$ is sufficient to choose the refinement time $n_k$ but not the subspace $\tilde{\spcf0}^k$. In these cases one could choose $\tilde{\spcf0}^k$ to be a uniform discretisation with apriori estimates, for example.
+\noindent The proof is given in \cref{app:thm: practical refinement criteria}. The refinement criteria described by \Cref{thm: practical refinement criteria} can be split into two groups. Cases (1), (3), and (4) justify that any choice of $\tilde{\spcf0}^k\ni\varf0_k$ (or $\varf0_{n_k-1}$ in \Cref{thm: stronger exponential FISTA convergence}) satisfies the required conditions. In cases (2) and (5), $\varf0_k$ is sufficient to choose the refinement time $n_k$ but not the subspace $\tilde{\spcf0}^k$. In these cases one could, for example, choose $\tilde{\spcf0}^k$ to be a uniform discretisation with apriori estimates.
 
 Another splitting of the criteria is into gap and gradient computations. Typically, gradient norms (in (4) and (5)) should be easier to estimate than function gaps because they only require local knowledge rather than global, i.e. $\partial\Func0(\varf0_n)$ rather than an estimate of $\Func0(\varf0^*)$. Implicitly, the global information comes from an extra condition on $\Func0$ to assert that sublevel sets are bounded.
 
@@ -534,7 +524,7 @@ Another splitting of the criteria is into gap and gradient computations. Typical
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{General examples}\label{sec: general examples}
-In this work we consider the Lasso problem to be both a motivating example and source of numerical examples, however, \Cref{alg: refining FISTA} is much more broadly applicable. The aim of this section is to justify this claim by demonstrating that the constants $\vars3_{\Varf0}$ and $\vars3_{\Func0}$ can be easily computed in many examples. 
+In this work we consider the Lasso problem to be both a motivating example and source of numerical examples, however, \Cref{alg: refining FISTA} is much more broadly applicable. Here we justify this claim by demonstrating that the constants $\vars3_{\Varf0}$ and $\vars3_{\Func0}$ can be easily computed in many examples. 
 
 The cases where $\spcf0$ is finite or countable dimensional are quite straight forward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$) then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in \cref{sec: Lasso definition}. The examples we will consider here are where $\F H = L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$, and $\{\tilde{\spcf0}^n\st n\in\F N\}$ are finite dimensional finite-element--like spaces. We will now clarify exactly what is meant by these properties and then demonstrate that they are sufficient to find simple formulae for the values $\vars3_{\Varf0}$ and $\vars3_{\Func0}$.
 
@@ -552,7 +542,7 @@ The cases where $\spcf0$ is finite or countable dimensional are quite straight f
 	We allow the implicit constant to have any dependence on $\varf0^*$ so long as it is finite. For example, in the case of Sobolev spaces we would expect an inequality of the form
 	$\min_{\varf2\in\tilde{\spcf0}^k}\norm{\varf2-\varf0^*}_{W^{0,q}} \lesssim \meshsize^{kp}\norm{\varf0^*}_{W^{p,q}}$ \citep{Strang1972}.
 \end{definition}
-We note that any piecewise polynomial finite element space can be used to form a $\meshsize$-refining sequence of subspaces. Wavelets almost satisfy this definition but not the support condition, each space contains every scale of wavelet. \todo{Is that true? If the wavelet has compact support then it should admit a basis with disjoint support?} Similarly, a Fourier basis does satisfy the scaling properties but each basis vector has global support. Both of these exceptions are important and could be accounted for with further analysis but we focus on the more standard finite element case. The following theorem shows that all finite element spaces achieve the same basic rates of convergence in \Cref{alg: refining FISTA}, depending on the particular properties of $\Norm\cdot$ and $\Func0$.
+We note that any piecewise polynomial finite element space can be used to form a $\meshsize$-refining sequence of subspaces. Wavelets with a compactly supported basis satisfy this definition but it is hard to specify the value $N$ in general. Similarly, a Fourier basis does satisfy the scaling properties but each basis vector has global support. Both of these exceptions are important and could be accounted for with further analysis but we focus on the more standard finite element case. The following theorem shows that all finite element spaces achieve the same basic rates of convergence in \Cref{alg: refining FISTA}, depending on the particular properties of $\Norm\cdot$ and $\Func0$.
 \begin{theorem}\label{thm: generic a_U and a_E}
 	Suppose $\F H= L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. If $(\tilde{\spcf0}^k)_k$ is a sequence of $\meshsize$-refining finite element spaces of order $p$ then
 	\begin{align*}
@@ -599,10 +589,10 @@ To improve our estimate of $\vars3_{\Func0}$ requires additional assumptions on 
 Choosing $\varf2 = \tilde\Pi_k\varf0^*$ for any bounded linear extension to the orthogonal projection $\tilde\Pi_k\colon\spcf0\to\tilde{\spcf0}^k$ gives
 $$\Func0(\varf2)-\Func0(\varf0^*) \lesssim \norm{\A(\tilde\Pi_k\varf0^*-\varf0^*)} \leq \norm{(\tilde\Pi_k-\id)\A^*}_{\ell^2\to L^\infty}\Norm{\varf0^*}.$$
 Expanding the operator norm further,
-\begin{multline}
+\begin{equation}
 	\norm{(\tilde\Pi_k-\id)\A^*}_{\ell^2\to L^\infty} = \sup_{\vvarx3\in\R^m}\max_{\vvarx0\in\Domain} \frac{|[\tilde\Pi_k\A^*\vvarx3](\vvarx0)-[\A^*\vvarx3](\vvarx0)|}{\norm{\vvarx3}_{\ell^2}} \leq \sup_{\vvarx3\in\R^m} \frac{\sqrt{d}2^{-k}\norm{\nabla[\A^*\vvarx3]}_{L^\infty}}{\norm{\vvarx3}_{\ell^2}} 
-	\\= \sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1}
-\end{multline}
+	= \sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1}
+\end{equation}
 where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. 
 
 This computation confirms two things, firstly that the scaling constant is indeed $\vars3_{\Func0} = 2$, and secondly that the required smoothness to achieve a good rate with \Cref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. In \Cref{sec: smoothing operators} we will show two practical examples were this (semi)norm is accurately computable. 
@@ -611,18 +601,16 @@ Inserting the computed rates into \Cref{thm: exponential FISTA convergence} or \
 \begin{equation}\label{eq: Lasso energy rate}
 	\kappa = \frac{\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2} = \frac{d}{1+d} \quad \implies \quad \Func0_0(\varf0_n) \lesssim n^{-2(1-\kappa)} = n^{-\frac{2}{1+d}}.
 \end{equation}
-This rate can be used to infer the required resolution at each iteration, in particular on iteration $n$ with $n^2\sim (\vars3_{\Func0}\vars3_{\Varf0}^2)^k$ we expect the resolution to be
+This rate can be used to infer the required resolution at each iteration, in particular on iteration $n$ with $n^2\simeq (\vars3_{\Func0}\vars3_{\Varf0}^2)^k$ we expect the resolution to be
 \begin{equation}\label{eq: Lasso resolution rate}
-	2^{-k} = \left(\vars3_{\Func0}\vars3_{\Varf0}^2\right)^{\frac{k}{1+d}} \sim n^{-\frac{2}{1+d}}.
+	2^{-k} = \left(\vars3_{\Func0}\vars3_{\Varf0}^2\right)^{\frac{k}{1+d}} \simeq n^{-\frac{2}{1+d}}.
 \end{equation}
 
 \subsection{Countable and discrete case}
 We now extend the rate computations to the case when $\spcf0=\ell^1(\R)$, or a finite dimensional subspace. The key fact here is that, even when $\spcf0$ is infinite dimensional, it is known (e.g. \cite[Theorem 2]{Unser2016} and \cite[Corollary 2]{Boyer2019}) that $\varf0^*$ can be chosen to have at most $m$ non-zeros. If this is the case, then $\varf0^*\in \ell^2(\R)$; this makes the analysis much simpler than in the continuous case. In this subsection we will ignore the discrete case as a simple sub-case of the countable.
 
 For countable Lasso we consider discretisation subspaces of the form 
-$$\tilde{\spcf0}^k = \{\varf0\in \ell^1(\R) \st i\notin J_k\implies \varf0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is that sparse vectors in $\ell^1(\R)$ are also in $\ell^2(\R)$. Because of this, $\vars3_{\Varf0}=1$ which leads to the expected optimal rate
-$$\min_{n\leq N} \Func0_0(\varf0_n) \lesssim \frac{1}{N^2},$$
-independent of $\vars3_{\Func0}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of \Cref{thm: exponential FISTA convergence,thm: stronger exponential FISTA convergence} hold trivially.
+$$\tilde{\spcf0}^k = \{\varf0\in \ell^1(\R) \st i\notin J_k\implies \varf0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\varf0^*\in\ell^2(\R)$, which leads to $\vars3_{\Varf0}=1$ and the expected optimal rate of $n^{-2}$, independent of $\vars3_{\Func0}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of \Cref{thm: exponential FISTA convergence,thm: stronger exponential FISTA convergence} hold trivially.
 
 \subsection{Refinement metrics}\label{sec: Lasso gap and gradient}
 \Cref{thm: practical refinement criteria} shows that adaptive refinement can be performed based on estimates of the function gap or the gradient. In this subsection we provide estimates for these values which can be easily computed.
@@ -659,7 +647,7 @@ We now move on to the discrete gap, $\Func0(\varf0_n)-\min_{\varf0\in\spcf0^n}\F
 \begin{align}
 	\min_{\varf0\in \spcf0^n} \tfrac12\norm{\A\varf0-\vdata0}_{\ell^2}^2 + \mu\Norm{\varf0} &= \min_{\varf0\in\F H}\max_{\vvard0\in\R^m} \ip{(\A\Pi_n\varf0-\vdata0)}{ \vvard0} +\mu\Norm{\Pi_n\varf0} -\tfrac12\norm{\vvard0}_{\ell^2}^2
 	\\&= \max_{\vvard0\in\R^m}\min_{\varf0\in\F H} \ip{(\A\Pi_n\varf0-\vdata0)}{\vvard0} +\mu\Norm{\Pi_n\varf0} -\tfrac12\norm{\vvard0}_{\ell^2}^2
-	\\&= \max_{\vvard0\in\R^m} \splitln{-\ip{\vdata0}{\vvard0} -\tfrac12\norm{\vvard0}_{\ell^2}^2}{\Norm{\Pi_n\A^*\vvard0}_*\leq \mu}{-\infty}{\text{else}}
+	\\&= \max_{\vvard0\in\R^m} \splitln{-\ip{\vdata0}{\vvard0} -\tfrac12\norm{\vvard0}_{\ell^2}^2}{\qquad\Norm{\Pi_n\A^*\vvard0}_*\leq \mu}{-\infty}{\qquad\text{else}}
 	\\&= -\min_{\vvard0\in\R^m} \underbrace{\tfrac12\norm{\vvard0}_{\ell^2}^2+\ip{\vdata0}{\vvard0}}_{\eqqcolon \Func0^*(\vvard0)}  + \chi(\Norm{\Pi_n\A^*\vvard0}_*\leq \mu).
 \end{align}
 In particular,
@@ -683,7 +671,7 @@ with optimal choice
 To apply \Cref{alg: refining FISTA}, we are assuming that both $\func1(\varf0_n) = \frac12\norm{\vvard0_n}_{\ell^2}^2$ and $\Pi_n\nabla\func1(\varf0_n) = \Pi_n\A^*\vvard0_n$ are easily computable, therefore $\vars2$ and $\Func0(\varf0_n) +\Func0^*(\vars2\vvard0_n)$ are also easy to compute.
 
 \subsubsection{Bounds for countable functionals}
-Extending the results of \Cref{sec: bound discrete} to $\spcf0=\ell^1(\R)$ is analytically very simple but relies heavily on the specific choice of $\A$. The computations of gradients and gaps carry straight over replacing $\Pi_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\spcf0^n = \{\varf0\in\ell^1\st i\notin J_n\implies \varf0_i=0\}$. In particular,
+Extending the results of \Cref{sec: bound discrete} to $\spcf0=\ell^1(\R)$ is analytically very simple but computationally relies heavily on the specific choice of $\A$. The computations of gradients and gaps carry straight over replacing $\Pi_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\spcf0^n = \{\varf0\in\ell^1\st i\notin J_n\implies \varf0_i=0\}$. In particular,
 \begin{align}
 	\Norm{\partial\Func0(\varf0_n)}_* &= \max_{i\in\F N}\begin{cases}
 		|[\A^*\vvard0_n]_i + \mu| & [\varf0_n]_i>0
@@ -753,10 +741,10 @@ First we use the strong convexity of $\Func0^*$, if $\vars2_0\vvard0_n$ and $\vv
 which gives an easily computable bound on $\norm{\vars2_0\vvard0_n-\vvard0^*}_{\ell^2}$. Now we estimate $\A^*\vvard0_n$ on the support of $\varf0^*$:
 \begin{align}
 	\min_{\vvarx0\in\supp(\varf0^*)} |[\Pi_n\A^*\vvard0_n](\vvarx0)| &\geq \min_{\vvarx0\in\supp(\varf0^*)} |[\A^*\vvard0_n](\vvarx0)|
-	\\&= \frac1{\vars2_0}\min_{\vvarx0\in\supp(\varf0^*)} |[\A^*\vars2_0 \vvard0_n](\vvarx0)|
-	\\&\geq \frac1{\vars2_0}\min_{\vvarx0\in\supp(\varf0^*)} |[\A^*\vvard0^*](\vvarx0)| - |[\A^*\vars2_0 \vvard0_n-\A^*\vvard0^*](\vvarx0)|
-	\\&= \frac1{\vars2_0}\min_{\vvarx0\in\supp(\varf0^*)} \mu - |[\A^*\vars2_0 \vvard0_n-\A^*\vvard0^*](\vvarx0)|
-	\\&\geq \frac1{\vars2_0}\left(\mu - |\A^*|_{\ell^2\to L^\infty}\norm{\vars2_0 \vvard0_n-\vvard0^*}_{\ell^2}\right).
+	\\&= \vars2_0^{-1}\min_{\vvarx0\in\supp(\varf0^*)} |[\A^*\vars2_0 \vvard0_n](\vvarx0)|
+	\\&\geq \vars2_0^{-1}\min_{\vvarx0\in\supp(\varf0^*)} |[\A^*\vvard0^*](\vvarx0)| - |[\A^*\vars2_0 \vvard0_n-\A^*\vvard0^*](\vvarx0)|
+	\\&= \vars2_0^{-1}\min_{\vvarx0\in\supp(\varf0^*)} \mu - |[\A^*\vars2_0 \vvard0_n-\A^*\vvard0^*](\vvarx0)|
+	\\&\geq \vars2_0^{-1}\left(\mu - |\A^*|_{\ell^2\to L^\infty}\norm{\vars2_0 \vvard0_n-\vvard0^*}_{\ell^2}\right).
 \end{align}
 Therefore,
 \begin{equation}
@@ -807,12 +795,12 @@ In the continuous case, when $\F H=L^2(\Domain)$ we also need to estimate the sm
 	$$ |\nabla^k[\A^*\vvarx3]|(\vvarx0) = \left|\sum_{j=1}^m\nabla^k\vard1_j(\vvarx0)\varx3_j\right|
 	\leq \left(\sum_{j=1}^m|\nabla^k\vard1_j(\vvarx0)|^{q^*}\right)^{\frac{1}{q^*}}\norm{\vvarx3}_{\ell^q} = \norm{(\nabla^k\vard1_j(\vvarx0))_j}_{\ell^{q^*}}\norm{\vvarx3}_{\ell^q}\;.$$
 	For the second inequality, if $q\geq2$ and $\sum_{j=1}^m \varx3_j^2\leq 1$, then $|\varx3_j|\leq 1$ for all $j$ and $\norm{\vvarx3}_{\ell^q}^q\leq \norm{\vvarx3}_{\ell^2}^2\leq 1$. If $q<2$ and $\norm{\vvarx3}_{\ell^2}\leq 1$, then we again use H\"older's inequality:
-	$$\sum_{j=1}^m \varx3_j^q \leq \left(\sum_{j=1}^m 1^{Q^*}\right)^{\frac1{Q^*}} \left(\sum_{j=1}^m \varx3_j^{qQ}\right)^{\frac1{Q}} \leq m^{\frac{2-q}{2}}$$
+	$$\sum_{j=1}^m \varx3_j^q \leq \Big(\sum_{j=1}^m 1^{Q^*}\Big)^{\frac1{Q^*}} \Big(\sum_{j=1}^m \varx3_j^{qQ}\Big)^{\frac1{Q}} \leq m^{\frac{2-q}{2}}$$
 	for $Q = \frac2q$.
 \end{proof}
 
 \subsubsection{Concrete examples}
-\Cref{thm: norm bound smoothness} demonstrates how the smoothness of $\A$ relates to the smoothness of the kernels $\psi_j$, possibly scaling with respect to $m$. We now present explicit examples of the computations in both \Cref{thm: norm bound smoothness,thm: norm bound L2} for the numerical results in \Cref{sec: numerics}. These examples are common in practical applications and we show the result of \Cref{thm: norm bound examples} in the main text to demonstrate that, while sometimes hard to compute by hand, the constants can estimated accurately in an efficient manner. The Gaussian case is by far the most technical, therefore we will provide a little further explanation at the end of the theorem.
+We now present explicit examples of the computations in both \Cref{thm: norm bound smoothness,thm: norm bound L2} for the numerical results in \Cref{sec: numerics}. These examples are common in practical applications and we show the result of \Cref{thm: norm bound examples} in the main text to demonstrate that, while sometimes hard to compute by hand, the constants can estimated accurately in an efficient manner.
 \begin{theorem}\label{thm: norm bound examples}
 	\Copy{thm: norm bound examples}{
 		Suppose $\A\colon \F H \to \R^m$ has kernels $\vard1_j\in \F H=L^2([0,1]^d)$ for $j\in[m]$.
@@ -828,7 +816,7 @@ In the continuous case, when $\F H=L^2(\Domain)$ we also need to estimate the sm
 			$$\{\vvarx0_j\st j\in[m]\} = \{\vvarx0_0 + (j_1\Delta,\ldots,j_d\Delta)\st j_i\in[\hat m]\}$$
 			for some $\vvarx0_0\in\R^d$, $\hat m\coloneqq\sqrt[d]{m}$. For all $\frac1q + \frac{1}{q^*} = 1$, $q\in(1,\infty]$, we get
 			\begin{align}
-				\norm{\A}_{L^2\to\ell^2} &\leq \bigg((4\pi\sigma^2)^{-\frac d2}\sum_{j=-2\hat m,\ldots,2\hat m}\exp(-\tfrac{\Delta^2}{4\sigma^2}j^2)\bigg)^d,
+				\norm{\A}_{L^2\to\ell^2} &\leq \bigg((4\pi\sigma^2)^{-\frac 12}\sum_{j=-2\hat m,\ldots,2\hat m}\exp(-\tfrac{\Delta^2}{4\sigma^2}j^2)\bigg)^d,
 				\\ |\A^*\vvarx3|_{C^0} &\leq (2\pi\sigma^2)^{-\frac{d}{2}}\bigg(\sum_{\vec j\in J}\exp\left(-\tfrac{q^*\Delta^2}{2\sigma^2}\max(0,|\vec j|-\delta)^2\right)\bigg)^{\frac1{q^*}}\norm{\vvarx3}_q,
 				\\ |\A^*\vvarx3|_{C^1} &\leq \frac{(2\pi\sigma^2)^{-\frac{d}{2}}}{\sigma}\frac{\Delta}{\sigma}\bigg(\sum_{\vec j\in J}(|\vec j|+\delta)^{q^*}\exp\left(-\tfrac{q^*\Delta^2}{2\sigma^2}\max(0,|\vec j|-\delta)^2\right)\bigg)^{\frac1{q^*}}\norm{\vvarx3}_q,
 				\\ |\A^*\vvarx3|_{C^2} &\leq \frac{(2\pi\sigma^2)^{-\frac{d}{2}}}{\sigma^2} \bigg(\sum_{\vec j\in J} \left(1+\tfrac{\Delta^2}{\sigma^2}(|\vec j|+\delta)^2\right)^{q^*}\exp\left(-\tfrac{q^*\Delta^2}{2\sigma^2}\max(0,|\vec j|-\delta)^2\right)\bigg)^{\frac1{q^*}} \norm{\vvarx3}_q,
@@ -842,7 +830,7 @@ The sharpest method for estimating these norms is of course to compute them. Thi
 
 
 \section{Numerical examples}\label{sec: numerics}
-We present four numerical Lasso examples. The first two are in 1D to demonstrate the performance of different variants of \Cref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data; each displays slightly different behaviour in terms of optimisation. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \citep{Ekanadham2011, Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in \Cref{sec: 1D Lasso examples}.
+We present four numerical Lasso examples. The first two are in 1D to demonstrate the performance of different variants of \Cref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \citep{Ekanadham2011, Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in \Cref{sec: 1D Lasso examples}.
 
 The next example is 2D reconstruction from Radon or X-ray data with wavelet-sparsity. As the forward operator is not sufficiently smooth, we must optimise in $\ell^1(\R)$ which naturally leads to the choice of a wavelet basis. 
 
@@ -861,7 +849,7 @@ or Gaussian kernels on a regular grid:
 	(\A\varf0)_j = (2\pi\sigma^2)^{-\frac12}\int_0^1\exp\left(-\frac{(\varx0-(j-1)\Delta)^2}{2\sigma^2}\right)\varf0(\varx0), \quad \sigma=0.12,\ \Delta = \tfrac1{29},\ j=1,2,\ldots,30,\ \mu=0.06.
 \end{equation}
 
-Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy} \citep[c.f.][]{Bredies2013,Castro2016,Boyd2017,Catala2019} however, most result in a non-convex discretised problem to solve. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can even be solved efficiently with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. As explained by \citet{Ekanadham2011, Duval2017b}, the idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen. If $\varf0^*$ has only one Dirac spike in each pixel then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
+Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy} \citep[c.f.][]{Bredies2013,Castro2016,Boyd2017,Catala2019} however, most the solution of a non-convex problem. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. As explained by \citet{Ekanadham2011, Duval2017b}, the idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen. If $\varf0^*$ has only one Dirac spike in each pixel then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
 
 As shown in \Cref{sec: Lasso definition}, in 1D we have $\vars3_{\Varf0} = \vars3_{\Func0} = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\Func0_0(\varf0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from \Cref{thm: practical refinement criteria} with guarantee of $\Func0_0(\varf0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in \Cref{sec: Lasso gap and gradient}. We choose subspaces $\spcf0^n$ to approximately enforce
 \begin{equation}
@@ -871,25 +859,20 @@ i.e. the continuous gap is bounded by twice the discrete gap. In particular, not
 \begin{equation}
 	\Func0^*(\vars2_0\vvard0_n) = \tfrac12\norm{\vars2_0\vvard0_n}^2 + \vars2_0\ip{\vdata0}{\vvard0_n} = \frac{\vars2_0}{\vars2}\left(\frac{\vars2_0}{\vars2}\tfrac12\norm{\vars2\vvard0_n}^2 + \vars2\ip{\vdata0}{\vvard0_n}\right) \approx \frac{\vars2_0}{\vars2} \Func0^*(\vars2\vvard0_n).
 \end{equation}
-Inserting this back into the continuous/discrete gap inequality, it becomes 
+Converting this into a spatial refinement criteria, recall 
 \begin{equation}
-	\frac{\vars2_0}{\vars2} \leq 1 + (2-1)\frac{\Func0(\varf0_n)+\Func0^*(\vars2\vvard0_n)}{\Func0^*(\vars2\vvard0_n)}
+	\frac{\vars2_0}{\vars2} \approx \frac{\Norm{\A^*\vvard0_n}_*}{\Norm{\Pi_n\A^*\vvard0_n}_*} = \frac{\max_{\domain_i^n\in\F M^n} \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{\max_{\domain_i^n\in\F M^n} |\Pi_n\A^*\vvard0_n(\domain_i^n)|} \approx \max_{\domain_i^n\in\F M^n}\frac{ \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{|\Pi_n\A^*\vvard0_n(\domain_i^n)|}
 \end{equation}
-where 2 was our initial chosen ratio. Converting this into a spatial refinement criteria, recall 
-\begin{equation}
-	\frac{\vars2_0}{\vars2} \approx \frac{\Norm{\A^*\vvard0_n}_*}{\Norm{\Pi_n\A^*\vvard0_n}_*} = \frac{\max_{\domain_i^n\in\F M^n} \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{\max_{\domain_i^n\in\F M^n} |\Pi_n\A^*\vvard0_n(\domain_i^n)|} \approx \max_{\domain_i^n\in\F M^n}\frac{ \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{|\Pi_n\A^*\vvard0_n(\domain_i^n)|}.
-\end{equation}
-If $\frac{\vars2_0}{\vars2}$ is large then there must be pixels (values of $i$) in which this ratio is large. Because of the smoothness of $\A^*\vvard0_n$, refining these pixels will halve the difference and therefore contract $\frac{\vars2_0}{\vars2}$ back towards 1. This was found to be an efficient method of selecting pixels for refinement based on quantities which had already been computed. Note briefly that from a heuristic standpoint we are refining for two reasons, aligning with an exploitation/exploration viewpoint. The trigger is always the result of an estimate from the cell-wise Taylor expansion. If the estimate is accurate, then that cell is likely to intersect the support of $\varf0^*$ and refining directly improves the resolution of the support of $\varf0^*$. Otherwise, if the estimate is loose then the refinement improves the accuracy of the Taylor expansion and consequently improves the screening of new pixels from the support of $\varf0^*$. This second point guarantees that we converge to the global minimiser $\varf0^*$, rather than a sub-optimal critical point.
+is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vvard0_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement based on quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\varf0^*$. Such refinement is necessary to avoid critical points of $\Func0$ which are not global minimisers.
 
 \paragraph{Comparison of discretisation methods}
 In \Cref{fig: convergence with ndofs} we compare the three core approaches: fixed uniform
 discretisation, adaptive discretisation, and CBP. In particular, we wish to observe their convergence properties as the number of pixels is allowed to grow. In each case we use a FISTA stepsize of $\vart1_n = \frac{n+19}{20}$. The adaptive discretisation is started with one pixel and limited to 128, 256, or 512 pixels while the fixed and CBP discretisations have uniform discretisations with the maximum number of pixels. We observe:
 \begin{itemize}
-	\item Increasing the number of pixels always increases the accuracy of the optimisation.
 	\item The adaptive scheme is much more efficient, in both examples the adaptive scheme with 128 pixels is at least as good as both fixed discretisations with 512 pixels. In fact, only a maximum of 214 pixels were needed by the adaptive method in either example.
-	\item With Fourier kernels the uniform piecewise constant discretisation is more efficient than CBP but in the Gaussian case this is reversed. This suggests that the CBP \emph{does} achieve super-resolution when $\A$ is sufficiently smooth but may be less accurate when the kernels oscillate on the length-scale of a single pixel.
+	\item With Fourier kernels the uniform piecewise constant discretisation is more efficient than CBP but in the Gaussian case this is reversed. This suggests that the performance of CBP depends highly on the smoothness of $\A$.
 	\item The discrete gaps for non-adaptive optimisation behave as is common for FISTA, initial convergence is polynomial until a locally linear regime activates \citep{Tao2016}. CBP is always slower to converge than the piecewise constant discretisation.
-	\item For the adaptive method, the continuous/discrete gaps are very similar for all $n$, as enforced by the refinement criterion.
+	\item The adaptive refinement criterion succeeds in keeping the continuous/discrete gaps close for all $n$.
 \end{itemize}
 It is not completely fair to judge CBP with the continuous gap because, although it generates a continuous representation, this continuous representation is not necessarily consistent with the discrete gap being optimised, unlike when discretised with finite element methods. On the other hand, this is still the intended interpretation of the algorithm and we have no more appropriate metric for success in this case.
 
@@ -915,15 +898,11 @@ The key observations are:
 \end{figure}
 
 \paragraph{Comparison of fixed and adaptive discretisation}
-Motivated by the findings in \Cref{fig: convergence with method}, we now look more closely at the performance of the $a=20$ and the greedy FISTA schemes. We have analytical results for the former but the latter typically performs the best for non-adaptive optimisation and is never worse than $a=20$ in the adaptive setting. We assume that the numerical aim is to find a function $\varf0_n$ with $\Func0_0(\varf0_n)$ smaller than a given threshold. The question is whether it is faster/more efficient to use the proposed adaptive scheme or to use a classical scheme at sufficiently high uniform resolution. The fixed discretisations use 1024 pixels (i.e. uniform pixel size of $2^{-10}$) and the adaptive discretisation starts with two pixels with an upper limit of 1024. 
+Motivated by the findings in \Cref{fig: convergence with method}, we now look more closely at the performance of the $a=20$ and the greedy FISTA schemes. We have analytical results for the former but the latter typically performs the best for non-adaptive optimisation and is never worse than $a=20$ in the adaptive setting. The question is whether it is faster/more efficient to use the proposed adaptive scheme or to use a classical scheme at sufficiently high uniform resolution. The fixed discretisations use 1024 pixels (i.e. constant pixel size of $2^{-10}$ in \Cref{fig: comparison with iteration}) and the adaptive discretisation starts with two pixels with an upper limit of 1024. As expected, the fixed discretisation starts with a smaller continuous gap before plateauing to a sub-optimal gap around $\Func0_0=0.1$.
 
-\Cref{fig: comparison with iteration} shows the convergence with respect to number of iterations. As expected, the fixed discretisation starts with a smaller continuous gap before plateauing to a sub-optimal gap around $\Func0_0=0.1$. In both examples, the greedy FISTA has much faster convergence around $n=100$ and of course the minimum pixel size is constant for the fixed discretisation. 
+\Cref{fig: comparison with iteration} shows convergence of pixel size and continuous gap with respect to number of iterations. \Cref{fig: comparison with time} shows the more practical attributes of continuous gap and number of pixels against execution time. We see that the adaptive discretisation is consistently capable of computing lower energies with fewer pixels and in less time than the uniform discretisation. The convergence behaviour is very consistent with respect to number of iterations.
 
-The adaptive optimisation matches the predicted rates well, both gap and minimum pixel size (equal to $2^{-k}$) decay at a rate of approximately $\frac1n$. Interestingly, in the Fourier case the energy decays a little faster and the resolution is a little slower. This is consistent with $\Func0$ being a little bit smoother than predicted (i.e. $\vars3_{\Func0}>2$). 
-
-It is clear that the adaptive scheme is able to continue reducing the continuous gap far beyond that of the fixed discretisation. The range $n\in[10^3,10^4]$ is particularly interesting because it is the time when the adaptive and fixed curves intersect in both continuous gap and minimum pixel size. Suppose the stopping criterion is to find $\varf0$ such that $\Func0_0(\varf0)<0.1$. \Cref{fig: comparison with iteration} shows that it is equivalent to `guess' the necessary resolution, or to adaptively refine until reaching the stopping criterion. Both methods would converge after $O(10^3)$ iterations with a minimum pixel size of $2^{-10}$.
-
-\Cref{fig: comparison with time} shows a more practical comparison showing wall-clock computation time and number of pixels (memory usage). Optimisation of the fixed discretisation is faster overall but after around \SI{0.1}{\second}, it is always faster to use the adaptive scheme to achieve a given continuous gap. The reason for this can be seen in the numbers of pixels. At the most extreme, in the same computation time the adaptive scheme can achieve more than a factor of 10 better gap using approximately a factor of 10 fewer pixels. The adaptive scheme re-computes the discrete matrix $\A\Pi_n$ each time there is a refinement, but the fixed schemes only compute it once. The adaptive schemes still seem to converge faster than $\frac1{\op{time}}$, which is the expected rate if time per iteration is constant.
+Suppose that the numerical aim is to find a function $\varf0_n$ with $\Func0_0(\varf0_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms. For $n\in[10^3,10^4]$, in both problems, the adaptive schemes coincide with the fixed schemes in both energy and minimum pixel size. On the other hand, we also see that the adaptive scheme achieves this energy in almost an order of magnitude less time and fewer pixels.
 
 \begin{figure}[H]\centering
 	\includegraphics[width=.84\textwidth]{lasso_reduced_convergence}
@@ -1021,19 +1000,17 @@ Here we use a simulated dataset provided as part of the 2016 SMLM challenge\foot
 \end{equation}
 for $i_1,i_2 = 1,2,\ldots,64$ and $\spcf0=\C M([\SI{0}{\micro\meter},\SI{6.4}{\micro\meter}]^2)$. 3020 frames are provided, examples of which are shown in \Cref{fig: STORM data}. To process this dataset, image intensities were normalised to $[0,1]$ then a constant was subtracted to approximate 0-mean noise. The greedy FISTA algorithm was used for optimisation with $\mu=0.15$, $10^3$ iterations, and a maximum of $10^5$ pixels per image. 
 
-Finally, all the reconstructions were summed and the result shown in \Cref{fig: STORM results}. The average pixel width after optimisation was approximately \SI{2.4}{\nano\meter}, a factor of 40 super-resolution. If this resolution had been implemented with a uniform discretisation then it would have required $70\times 10^5$ pixels per frame, nearly a factor of 100 greater than achieved with the adaptive discretisation. Lasso is compared with ThunderSTORM \citep{Ovesny2014}, a popular ImageJ plugin \citep{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial competition by \citet{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, Lasso has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
+Finally, all the reconstructions were summed and the result shown in \Cref{fig: STORM results}. The adaptive scheme used fewer than $10^4$ pixels per frame, a fixed discretisation with equivalent resolution of \SI{1.3}{\nano\meter} would have required more than $3\cdot10^6$ per frame. Lasso is compared with ThunderSTORM \citep{Ovesny2014}, a popular ImageJ plugin \citep{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial competition by \citet{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, Lasso has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
 
-\Cref{fig: STORM convergence} shows the convergence behaviour in this example. The estimates given by \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=2$ predict respectively that the adaptive energy will decay at a rate of $\Func0_0(\varf0_n)\lesssim n^{-\sfrac23}$ so long as the pixel size also decreases at a rate of $\meshsize\sim n^{-\sfrac23}$. This is consistent with the resolution scaling (middle panel) but the energy (left panel in pink) is observed to converge a little faster than predicted. 
-
-In this example we also implement the suggestion of \Cref{sec: support detection} to remove pixels from the iteration once we can guarantee they are outside of the support. \eqref{eq: support equation} provides a threshold to identify the support of the discrete/continuous minimiser and the value of this is plotted in the first panel of \Cref{fig: STORM convergence}, in particular the normalised value $1-\frac{\op{threshold}}{\mu}$ which converges to 0 for large $n$. Any pixel $\domain_i^n$ satisfying 
+\Cref{fig: STORM convergence} shows slightly faster convergence than $n^{-\sfrac23}$ predicted by \eqref{eq: Lasso resolution rate} in dimension $d=2$. In this example we also implement the suggestion of \Cref{sec: support detection} to remove pixels outside of the support of $\varf0^*$. From \eqref{eq: support equation}, any pixel $\domain_i^n$ satisfying 
 \begin{equation}
-	 \vars2_0\norm{\Pi_n\A^*\vvard0_n}_{L^\infty(\domain_i^n)} \leq \op{threshold}
+	\vars2_0\norm{\Pi_n\A^*\vvard0_n}_{L^\infty(\domain_i^n)} \leq 1-\frac{\op{threshold}}{\mu}
 \end{equation}
-guarantees that $\domain_i^n\cap\op{supp}(\varf0^*) = \emptyset$. Once this threshold becomes greater than 0 (plotted value less than 1), we can start reducing the number of pixels instead of just continual refinement. This is seen in the right-hand panel of \Cref{fig: STORM convergence}, after around 30 iterations the total number pixels starts to reduce and stabilise at approximately $6\times10^3$ pixels per frame, well below the upper limit of $10^5$.
+guarantees that $\domain_i^n\cap\op{supp}(\varf0^*) = \emptyset$. This value is plotted in the first panel of \Cref{fig: STORM convergence}. Once this threshold becomes less than 1, we can start reducing the number of pixels instead of just continual refinement, as seen in the right-hand panel after around 30 iterations.
 
 \begin{figure}[H]\centering
 	\includegraphics[width=.82\textwidth]{lasso2_convergence}
-	\caption{Convergence of adaptive FISTA for STORM dataset. Lines indicate the median value over 3020 STORM frames. Shaded regions indicate the \SIrange{25}{75}{\percent} inter-quartile range.}\label{fig: STORM convergence}
+	\caption{Convergence of adaptive FISTA for STORM dataset. Lines indicate the median value over 3020 STORM frames. Shaded regions indicate the \SIrange{25}{75}{\percent} inter-quartile range. Pixel width is scaled $[0,1]$ rather than $[0,\SI{6.4}{\micro\meter}]$.}\label{fig: STORM convergence}
 \end{figure}
 \begin{figure}\centering
 	\includegraphics[width=.77\textwidth]{STORM_recon}
@@ -1156,8 +1133,7 @@ This section contains all of the statements and proofs of the results contained 
 		\begin{align}
 			\tfrac12\norm{\varf1_{n_{K+1}-1}-\tilde{\varf2}_K}^2 &\leq C_1\left[\vars3_{\Varf0}^{2K+2} + \sum_{k=1}^{K}\vars3_{\Varf0}^{2k} + \vars3_{\Varf0}^{k}\norm{\varf1_{n_k-1}-\tilde{\varf2}_{k-1}}\right]
 			\\&\leq C_1\left[\vars3_{\Varf0}^{2K+2} + (1+C_2)\frac{\vars3_{\Varf0}^{2K+2}}{\vars3_{\Varf0}^2-1}\right]
-			\\&\leq \frac{C_1\vars3_{\Varf0}^{2K+2}}{\vars3_{\Varf0}^2-1}\left(\vars3_{\Varf0}^2+C_2\right)
-			\\&\leq \tfrac12(C_2\vars3_{\Varf0}^{K+1})^2.
+			\\&\leq \frac{C_1\vars3_{\Varf0}^{2K+2}}{\vars3_{\Varf0}^2-1}\left(\vars3_{\Varf0}^2+C_2\right) \leq \tfrac12(C_2\vars3_{\Varf0}^{K+1})^2.
 		\end{align}
 		
 		\item[Case $\vars3_{\Varf0}=1$:] Denote $\vars4_k = \norm{\tilde{\varf2}_k-\tilde{\varf2}_{k+1}}$ and note that $\norm{\tilde{\varf2}_{k-1}} \leq \norm{\tilde{\varf2}_{0}} + \sum_0^\infty \vars4_k\lesssim 1$. We therefore bound
@@ -1192,21 +1168,11 @@ This section contains all of the statements and proofs of the results contained 
 		\log N^2 \geq \log C + K\left(\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2\right)
 	\end{equation}
 	which leads to
-	\begin{align}
-		\vars3_{\Varf0}^{2K} & = \exp(K\log \vars3_{\Varf0}^2)
-		\\&\leq \exp\left(\log N^2\frac{\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2} - \frac{\log C\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2}\right)
-		\\&\lesssim N^{2\kappa}
-	\end{align}
+	\begin{equation}
+		\vars3_{\Varf0}^{2K} = \exp(K\log \vars3_{\Varf0}^2)
+		\leq \exp\left(\log N^2\frac{\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2} - \frac{\log C\log \vars3_{\Varf0}^2}{\log \vars3_{\Func0} + \log \vars3_{\Varf0}^2}\right)
+	\end{equation}
 	as required.
-\end{proof}
-
-
-
-\begin{theorem}[\Cref{thm: exponential FISTA convergence}]
-	\Paste{thm: exponential FISTA convergence}
-\end{theorem}
-\begin{proof}
-	If the conditions of this theorem are satisfied, then so are \Cref{app:thm: mini exponential FISTA convergence,app:thm: sufficiently fast,app:thm: sufficiently slow}. The final result is just the conclusion of \Cref{app:thm: sufficiently slow}.
 \end{proof}
 
 
@@ -1381,36 +1347,6 @@ The proof of \Cref{thm: generic a_U and a_E} is the result of the following thre
 		\\|\A^*|_{\ell^2\to C^k} &\leq \Vars3^k \min_{q\in[1,\infty]}m^{1-\frac1q}\sqrt{m}^{\max(0,2-q)} = \sqrt{m}\Vars3^k.
 	\end{align}
 \end{proof}
-
-%\begin{proof}[Proof of asymptotic case 3:]
-%	In the Gaussian case, we build our approximations around the idea that sums of Gaussians on a regular grid look like a discretised integral. The first example can be used to approximate the operator norm. Computing the inner products gives
-%	\begin{multline}
-%		\IP{\vard1_i}{\vard1_j} = (2\pi\sigma^2)^{-d}\int_{[0,1]^d} \exp\left(-\tfrac{|\vvarx0-\vvarx0_i|^2}{2\sigma^2}-\tfrac{|\vvarx0-\vvarx0_j|^2}{2\sigma^2}\right) \leq (2\pi\sigma^2)^{-d}(\pi\sigma^2)^{\frac{d}{2}}\exp\left(-\tfrac{|\vvarx0_i-\vvarx0_j|^2}{4\sigma^2}\right) 
-%		\\= (4\pi\sigma^2)^{-\frac d2} \exp\left(-\tfrac{|\vvarx0_i-\vvarx0_j|^2}{4\sigma^2}\right).
-%	\end{multline}
-%	Estimating the operator norm,
-%	\begin{align}
-%		\norm{\A\A^*}_{\ell^2\to\ell^2}&\leq \norm{\A\A^*}_{\ell^\infty\to\ell^\infty} = \max_{i\in[m]} \sum_{j=1}^m |\IP{\vard1_i}{\vard1_j}| 
-%		\\&= \max_{i\in[m]}(4\pi\sigma^2)^{-\frac d2}\sum_{j_1,\ldots,j_d\in[\hat m]} \exp\left(-\frac{(j_1\Delta-i_1\Delta)^2+\ldots+(j_d\Delta-i_d\Delta)^2}{4\sigma^2}\right)
-%		\\&\leq (4\pi\sigma^2)^{-\frac d2}\sum_{\vec j\in\F Z^d\cap[-\hat m,\hat m]^d} \exp\left(-\frac{(j_1\Delta)^2+\ldots+(j_d\Delta)^2}{4\sigma^2}\right)
-%		\\&= \frac{(4\pi)^{-\frac d2}}{\Delta^d}\sum_{\vec j\in\F Z^d\cap[-\hat m,\hat m]^d} \exp\left(-\frac14\left|\vec j\frac{\Delta}{\sigma}\right|^2\right)\frac{\Delta^d}{\sigma^d}
-%		\\&\sim \frac{(4\pi\sigma^2)^{-\frac d2}}{\Delta^d}\int_{\R^d} \exp\left(-\tfrac{|\vvarx0|^2}{4\sigma^2}\right) \quad = \Delta^{-d}.
-%	\end{align}
-%	This is a nice approximation because it depends only on $\Delta$, overcoming the $\frac1\sigma$ scaling. To convert this into an upper bound, we just compute the sum explicitly. In particular, as the sum factorises over dimensions,
-%	$$\norm{\A\A^*}_{\ell^2\to\ell^2} \leq (4\pi\sigma^2)^{-\frac d2}\left(\sum_{j=-\hat m,\ldots, \hat m}\exp\left(-\tfrac{\Delta^2}{4\sigma^2}j^2\right)\right)^d.$$
-%	Applying the same ideas to \Cref{thm: norm bound smoothness}, note
-%	$$\begin{array}{rll}
-%			\displaystyle |\vard1_j(\vvarx0)| &\displaystyle= \left|\vard1_j(\vvarx0)\right| &\displaystyle = (2\pi\sigma^2)^{-\frac d2}\exp\left(-\frac{|\vvarx0-\vvarx0_j|^2}{2\sigma^2}\right),
-%			\\\displaystyle |\nabla\vard1_j(\vvarx0)| &\displaystyle= \left|\frac{\vvarx0-\vvarx0_j}{\sigma^2}\vard1_j(\vvarx0)\right| &\displaystyle = \frac{(2\pi\sigma^2)^{-\frac d2}}{\sigma}\frac{|\vvarx0-\vvarx0_j|}{\sigma}\exp\left(-\frac{|\vvarx0-\vvarx0_j|^2}{2\sigma^2}\right),
-%			\\|\nabla^2\vard1_j(\vvarx0)| &\displaystyle =\left|\frac1{\sigma^2} + \frac{(\vvarx0-\vvarx0_j)(\vvarx0-\vvarx0_j)^\top }{\sigma^4}\right|\vard1_j(\vvarx0) &\displaystyle = \frac{(2\pi\sigma^2)^{-\frac d2}}{\sigma^2}\left(1+\frac{|\vvarx0-\vvarx0_j|^2}{\sigma^2}\right)\exp\left(-\frac{|\vvarx0-\vvarx0_j|^2}{2\sigma^2}\right).
-%	\end{array}$$
-%	With the substitution $\vvarx0=\frac{\Delta}{\sigma}\vec j$, the asymptotic bounds on these are clear:
-%	\begin{align*}
-%		\sum_{\vec j\in[\hat m]^d} |\vard1_{\vec j}(\vvarx0)|^{q^*} &\lesssim (2\pi\sigma^2)^{-\frac{dq^*}{2}}\frac{\sigma^d}{\Delta^d}\int_{\R^d}\exp\left(-\frac{q^*|\vvarx0|^2}{2}\right),
-%		\\\sum_{\vec j\in[\hat m]^d} |\nabla\vard1_{\vec j}(\vvarx0)|^{q^*} &\lesssim \frac{(2\pi\sigma^2)^{-\frac{dq^*}{2}}}{\sigma}\frac{\sigma^d}{\Delta^d}\int_{\R^d}|\vvarx0|^{q^*}\exp\left(-\frac{q^*|\vvarx0|^2}{2}\right),
-%		\\\sum_{\vec j\in[\hat m]^d} |\nabla^2\vard1_{\vec j}(\vvarx0)|^{q^*} &\lesssim \frac{(2\pi\sigma^2)^{-\frac{dq^*}{2}}}{\sigma^2}\frac{\sigma^d}{\Delta^d}\int_{\R^d}(1+|\vvarx0|^2)^{q^*}\exp\left(-\frac{q^*|\vvarx0|^2}{2}\right).
-%	\end{align*}
-%\end{proof}
 
 \begin{proof}[Proof case 3:]
 	In the Gaussian case, we build our approximations around the idea that sums of Gaussians should converge very quickly. The first example can be used to approximate the operator norm. Computing the inner products gives
