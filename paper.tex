@@ -199,21 +199,6 @@ The contribution of this work is a modified FISTA algorithm which achieves two k
 \end{itemize}
 \todo{There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for the use outside of Hilbert spaces is the key novelty.} Some other works for FISTA-like algorithms include \citep{Jiang2012,Villa2013}. Of particular note, our stability estimate for FISTA  in \Cref{thm: exponential FISTA convergence} is very similar to \cite[Proposition 2]{Schmidt2011} and \cite[Proposition 3.3]{Aujol2015}. This is then used to analyse the convergence properties in our more general Banach space setting where all sources of inexactness come from subspace approximations. The ideas of \citet{Parpas2017} are similar although in application to the proximal gradient method with an additional smoothing on the functional $\func2$. The permitted refinement steps are also more broad in our work.
 
-\subsection{Canonical example}
-While the analysis of this work is applicable to general choices of $\func1$ and $\func2$, we will refer back to the example of the (Beurling) Lasso model both for motivation and for numerical examples. We state the Lasso energy as
-\begin{equation}\label{eq: Lasso energy intro}
-	\Func0(\varf0) = \tfrac12\norm{\A\varf0-\vdata0}_2^2 + \mu\norm{\varf0}_1,
-\end{equation}
-where $\vdata0\in\R^m$ is some observed data, $\A\colon \C M(\Domain)\to \R^m$ is the forward map and $\mu>0$ is an appropriately chosen scalar. We have $\F H = L^2(\Domain)$ and $\spcf0 = \C M(\Domain)$ the space of measures on $\Domain$ equipped with the $L^1$ norm. In the continuous setting $\Domain = [0,1]^d$ and for discrete we have $\Domain=\F N$, i.e. $\spcf0\cong\ell^1(\R)$.
-
-It is a well-known result of representer theorems for $\Func0$ \citep{Unser2016,Boyer2019} that there exist minimisers of the form 
-\begin{equation}
-	\varf0^* = \sum_{i=1}^{m}\vars0_i\delta_{\vvarx0_i}, 
-\end{equation}
-for some $\vars0_i\in\R$ and where $\delta_{\vvarx0_i}$ is the Dirac delta function centred at $\vvarx0_i\in\R^d$.
-
-This is a practical example where we have the relation $\varf0^*$ does not lie in the Hilbert space $\F H$, and yet it is very easy to approximate with a discrete basis. Our approach will be to use finite elements which can clearly generalise to other examples.
-
 
 \subsection{Outline}
 This chapter is organised as follows. \Cref{sec: prelims} defines notation and the generic form of our proposed refining FISTA algorithm, \Cref{alg: refining FISTA}. The main theoretical contribution of this work is the convergence analysis of \Cref{alg: refining FISTA} which is split into two parts: first we outline the proof structure in \Cref{sec: recipe}, then we state the specific results in the case of FISTA in \Cref{sec: FISTA convergence}. The main results are \Cref{thm: exponential FISTA convergence} and \Cref{thm: practical refinement criteria} which extend the convergence of FISTA to infinite dimensional Banach spaces with uniform/adaptively chosen subspaces $\spcf0^n$ respectively.
@@ -563,7 +548,7 @@ The proof of this theorem is in \Cref{app: generic a_U and a_E}. The main take-h
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Lasso minimisation}\label{sec: Lasso definition}
-We now return to the concrete example of Lasso which will be used for numerical results in \Cref{sec: numerics}. We consider three forms of Lasso which will be referred to as continuous, countable, and discrete Lasso depending on whether the space $\spcf0$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or finite dimensional respectively. In each case, the energy can be written as 
+We now focus on the concrete example of Lasso which will be used for numerical results in \Cref{sec: numerics}. We consider three forms of Lasso which will be referred to as continuous, countable, and discrete Lasso depending on whether the space $\spcf0$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or finite dimensional respectively. In each case, the energy can be written as 
 \begin{equation}\label{eq: Lasso energy}
 	\Func0(\varf0) = \tfrac12\norm{\A\varf0-\vdata0}_{\ell^2}^2 + \mu\Norm{\varf0}
 \end{equation}
@@ -904,7 +889,7 @@ Motivated by the findings in \Cref{fig: convergence with method}, we now look mo
 
 Suppose that the numerical aim is to find a function $\varf0_n$ with $\Func0_0(\varf0_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms. For $n\in[10^3,10^4]$, in both problems, the adaptive schemes coincide with the fixed schemes in both energy and minimum pixel size. On the other hand, we also see that the adaptive scheme achieves this energy in almost an order of magnitude less time and fewer pixels.
 
-\begin{figure}[H]\centering
+\begin{figure}\centering
 	\includegraphics[width=.84\textwidth]{lasso_reduced_convergence}
 	\caption{Continuous convergence of adaptive (coarse-to-fine pixel size) compared with uniform discretisation (constant pixel size) with respect to number of iterations. }\label{fig: comparison with iteration}
 
@@ -912,6 +897,33 @@ Suppose that the numerical aim is to find a function $\varf0_n$ with $\Func0_0(\
 
 	\includegraphics[width=.84\textwidth]{lasso_convergence_time}
 	\caption{Continuous convergence of adaptive compared with uniform discretisation with respect to wall-clock time and total number of pixels (memory requirement).}\label{fig: comparison with time}
+	
+	\vspace*{\floatsep}
+
+	\begin{center}\begin{tikzpicture}[grow'=right]
+		\tikzstyle{level 1}=[level distance=5em, sibling distance=0em];
+		\tikzstyle{level 2}=[level distance=5em, sibling distance=6em];
+		\tikzstyle{level 3}=[level distance=5em, sibling distance=3em];
+		\tikzstyle{bag} = [text width=3em, text centered];
+		
+		\node[text width=7cm] at (-6cm,0) {
+			$\begin{aligned}
+				J_n &= \{(0,0), (0,1), (0,2), (1,2), (1,1)\}
+				\\\op{leaf}(J_n) &= \{(0,2), (1,2), (1,1)\}
+				\\\F M^n &= \left\{[0,\tfrac14),[\tfrac14,\tfrac12),[\tfrac12,1)\right\}
+			\end{aligned}$ };
+		
+		\node[bag] at (0,0) {$\tilde{\spcf0}^0$}
+		child {node[bag] {$w_{0,0}$ $[0,1]$}
+			child {node[bag] {$w_{0,1}$ $[0,\frac12]$}
+				child {node[bag] {$w_{0,2}$ $[0,\frac14]$}
+				} child {node[bag] {$w_{1,2}$ $[\frac14,\frac12]$}
+				}
+			} child {node[bag] {$w_{1,1}$ $[\frac12,1]$}
+		}};
+		
+	\end{tikzpicture}\end{center}
+	\caption{Tree representation of 1D wavelets $w_{j,k}$ are arranged in a tree structure with their support underneath.}\label{fig: wavelet tree}
 \end{figure}
 
 \subsection{2D wavelet Lasso}\label{sec: wavelet examples}
@@ -936,31 +948,7 @@ In the case of the Radon transform, we can compute the left-hand side explicitly
 
 \paragraph{Tree structure of wavelets}
 Finite elements are constructed with a mesh which provided a useful tool for adaptive refinement in \Cref{sec: bound continuous}. For wavelets, we will associate a tree with every discretisation and the leaves of the tree form a mesh. This perspective comes from the multi-resolution interpretation of wavelets. An example is seen in \Cref{fig: wavelet tree} for 1D Haar wavelets, $w_{j,k}(\varx0) = \sqrt{2}^k\vard1(2^{k}\varx0-j)$ where $\vard1 = \1_{[0,1)} - \1_{[-1,0)}$. 
-\begin{figure}\begin{center}\begin{tikzpicture}[grow'=right]
-			\tikzstyle{level 1}=[level distance=5em, sibling distance=0em];
-			\tikzstyle{level 2}=[level distance=5em, sibling distance=6em];
-			\tikzstyle{level 3}=[level distance=5em, sibling distance=3em];
-			\tikzstyle{bag} = [text width=3em, text centered];
-			
-			\node[text width=7cm] at (-6cm,0) {
-				$\begin{aligned}
-					J_n &= \{(0,0), (0,1), (0,2), (1,2), (1,1)\}
-					\\\op{leaf}(J_n) &= \{(0,2), (1,2), (1,1)\}
-					\\\F M^n &= \left\{[0,\tfrac14),[\tfrac14,\tfrac12),[\tfrac12,1)\right\}
-				\end{aligned}$ };
-			
-			\node[bag] at (0,0) {$\tilde{\spcf0}^0$}
-			child {node[bag] {$w_{0,0}$ $[0,1]$}
-				child {node[bag] {$w_{0,1}$ $[0,\frac12]$}
-					child {node[bag] {$w_{0,2}$ $[0,\frac14]$}
-					} child {node[bag] {$w_{1,2}$ $[\frac14,\frac12]$}
-					}
-				} child {node[bag] {$w_{1,1}$ $[\frac12,1]$}
-			}};
 
-	\end{tikzpicture}\end{center}
-	\caption{Tree representation of 1D wavelets $w_{j,k}$ are arranged in a tree structure with their support underneath.}\label{fig: wavelet tree}
-\end{figure}
 In higher dimensions, the only two things which change are the number of children ($2^d$ for non-leaves) and at each node you store the coefficients of $2^d-1$ wavelets. The support on each node is still a disjoint partition of unity consisting of regular cubes of side length $2^{-k}$ at level $k$. The only change in our own implementation is to translate the support to $[-\tfrac12,\tfrac12]^2$. We briefly remark that the tree structuring of wavelets is not novel and appears more frequently in the Bayesian inverse problems literature, for example see \citet{Castillo2019}.
 
 \paragraph{Continuous gradient estimate}
@@ -976,7 +964,7 @@ for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times 
 
 The first numerical results shown in \Cref{fig: haar convergence} compare the same adaptive algorithms as shown in \Cref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower.
 
-\begin{figure}[H]\centering
+\begin{figure}\centering
 	\includegraphics[width=.85\textwidth]{haar_data}
 	\caption{Phantoms and data used for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ Gaussian white noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
 
