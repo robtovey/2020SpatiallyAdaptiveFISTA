@@ -186,21 +186,11 @@
 
 
 \section{Introduction}
-The Fast Iterative Shrinkage-Thresholding Algorithm (FISTA) was proposed by \citet{Beck2009}
-as an extension of Nesterov's fast gradient method (see~\cite{Nesterov2004})
-and is now a very popular algorithm for minimising the sum of two convex functions.
-We write this as the problem of computing 
+The Fast Iterative Shrinkage-Thresholding Algorithm (FISTA) was first proposed by \citet{Beck2009} and is now a very popular algorithm for minimising the sum of two convex functions. We will write this as the problem of computing 
 \begin{equation}\label{eq: min F = fD+fC}
 	u^* \in \argmin_{\varf0\in\F H}\Func0(\varf0)  \qquad\text{such that}\qquad \Func0(\varf0)\coloneqq \func1(\varf0) + \func2(\varf0),
 \end{equation}
-where $\func1\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\func2\colon\F H\to\bar\R$ is a convex function, whose ``proximity operator'' is easy to compute.
-The iterates of the FISTA algorithm will be denoted $\varf0_n\in\F H$. \citet{Beck2009} showed that $\Func0(\varf0_n) - \Func0(\varf0^*)$ converges at the optimum rate of $n^{-2}$.
-% when $u^*\in \F H$ is finite dimensional and
-\cite{Chambolle2015} showed (up to a minor modification) convergence of the iterates in
-a general Hibert space setting.
-% extended this result to the general Hilbert space setting.
-Many further works have gone on to demonstrate %even
-faster practical convergence rates for slightly modified variants of FISTA \citep{Tao2016,Liang2017,Alamo2019}.
+where $\func1\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\func2\colon\F H\to\bar\R$ is a convex function. The iterates of the FISTA algorithm will be denoted $\varf0_n\in\F H$. \citet{Beck2009} showed that $\Func0(\varf0_n) - \Func0(\varf0^*)$ converges at the optimum rate of $n^{-2}$ when $u^*\in \F H$ is finite dimensional and \cite{Chambolle2015} extended this result to the general Hilbert space setting. Many further works have gone on to demonstrate even faster practical convergence rates for slightly modified variants of FISTA \citep{Tao2016,Liang2017,Alamo2019}.
 
 The contribution of this work is a modified FISTA algorithm which achieves two key properties:
 \begin{itemize}
@@ -1394,7 +1384,3 @@ The proof of \Cref{thm: generic a_U and a_E} is the result of the following thre
 
 
 \end{document}
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
