@@ -1,3 +1,11 @@
+## Python files:
+code/.ipynb_checkpoints
+code/__pycache__/
+code/videos/
+code/images/
+code/data/*.npz
+code/data/*.tif
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
