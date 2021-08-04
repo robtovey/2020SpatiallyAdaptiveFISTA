@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+\usepackage[cm]{fullpage}
+\usepackage{amsmath,amsfonts,color}
+\usepackage[normalem]{ulem}
+
+\newcommand*\justify{%
+	\fontdimen2\font=0.4em% interword space
+	\fontdimen3\font=0.2em% interword stretch
+	\fontdimen4\font=0.1em% interword shrink
+	\fontdimen7\font=0.1em% extra space
+	\hyphenchar\font=`\-% allowing hyphenation
+}
+\newcommand{\review}[1]{\texttt{\justify{#1}}}
+\newcommand{\F}[1]{\mathbb{#1}}
+\let\vecf\vec
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\renewcommand{\ULthickness}{1.0pt}
+\newcommand{\edit}[2]{{\ifmmode\text{\color{red}\sout{\ensuremath{#1}}}\else {\color{red} \sout{#1}}\fi} {\color{darkgreen} #2}}
+\newcommand{\todo}[1]{{\color{red} #1}}
+
+\title{Response to reviewer comments:\\``FISTA'' in Banach spaces with adaptive discretisations}
+\author{Antonin Chambolle and Robert Tovey}
+\date{\todo{31st October 2021}}
+
+\begin{document}
+\maketitle
+
+We would like to thank both the reviewers for their time and feedback. All changes are marked in the supplementary pdf and a detailed response to each reviewer is given below.
+
+
+\section{Detailed response to first reviewer}
+
+\begin{enumerate}
+	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $w_n$ converge for the various versions of FISTA.} 
+	
+	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. FISTA is known to converge weakly in the Hilbert-space setting, these guarantees are likely to hold here with the added adaptivity although we have not performed the analysis as it is still a relatively special case. A key component of this is the result $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain convergence in the Banach space.
+
+	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
+	
+	Thank you, we have made the suggested edit.
+
+	\item \review{page 10 line 21 and 38 typos: Sectoin and although although}
+	
+	These typos have been corrected.
+	
+	\item \review{page 10 line 36: In the infinite-dimensional context, I think it is clear what the authors mean with $\lVert\cdot\rVert_1$. They clearly state it as TV in (15), but it is a bit misleading especially later when they use $\lVert\cdot\rVert_\infty$.}
+	
+	This has been clarified in the text, now equations (15) and (21)-(24). The $\lVert\cdot\rVert_\infty$ only appears as the dual-norm of our ${\vert\kern-0.25ex\vert\kern-0.25ex\vert \cdot \vert\kern-0.25ex\vert\kern-0.25ex\vert}$.
+	
+	\item \review{page 12 and elsewhere: $\partial E$ is usually referred to as the subdifferential. I suppose this depends on the literature source you use.}
+	
+	As suggested, we have switched to using the term `subdifferential' throughout the document.
+	
+	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
+	
+	We have avoided non-smooth misfit terms because they are not so convenient for the FISTA framework, one might use a primal-dual or ADMM algorithm to avoid solving a least-squares problem on every iteration. For smooth misfits, you are quite right that most of Sections 6 and 7 can be generalised. The main difference is that the dual problem is very simple for quadratic misfits. If it is hard to compute $E_0(u_n)$, then one has to rely on the subdifferential for the a posteriori refinement strategy.
+	
+	\todo{I'm not sure what is being requested here. Is he asking for another numerical example? We could change the data fidelity for the Wavelet example quite easily? I'm actually struggling to think of another common smooth data fidelity which isn't Entropy-smoothed OT...}
+	
+	\item \review{page 17, line 28: missing word? ``most require''?}
+	
+	Thank you for noticing this mistake.
+	
+	\item \review{On page 18, the authors state: Suppose that the numerical aim is to find a function $u_n$ with $E_0(u_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms}
+	
+	\review{This is used to argue that the adaptive schemes are better as they require smaller problems, less memory and less time to get to this point. However, it would appear that Figure 2 indicates that if a sufficiently accurate solution were desired, instead of a point with $E_0(u_n)\leq 0.1$, then we would still need orders of magnitude of 10 more iterations to get to the same accuracy as the nonadaptive schemes.}
+	
+	The convergence displayed in Figure 2 is relative to the discretised problem, rather than the continuous one. The behaviour for the continuous gap is shown in Figure 3 (for two of the algorithms from Figure 2). Figure 2 shows that the nonadaptive schemes reach high precision very quickly, but Figure 3 indicates that this does not correlate with accuracy.
+	
+	\todo{I could include extra continuous gap (like Figure 1) panels? Or just show continuous gap? At the moment it's perhaps a bit confusing, figures (1,2,3,4,7,9) show (both, discrete, continuous, continuous, discrete, continuous) respectively. It might be simpler just to show the continuous gap after Figure 1 (which compares both).}
+\end{enumerate}
+
+\section{Detailed response to second reviewer}
+We are very sorry that you found our manuscript so difficult to read. We have tried to extrapolate your comments to also make changes to the rest of the document. To address your first comments we have removed much of the emphasis on the Banach space $\F U$ so that most computations are clearly in the Hilbert space. The Banach space setting is reserved for examples discussed in Sections 5 to 7.
+
+\begin{enumerate}
+	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}
+	
+	As suggested, we now state that $\F U^n$ are closed in (9) and re-referenced throughout the document. The mention of $\F U$ on page 1 is now just a reference to the Lasso example introduced in a later section.
+	
+	\item \review{If $H$ is not a subspace of $U$ then it is not clear that such a projection $\Pi_n$ exists at all.}
+	
+	The projections $\Pi_n$ are now defined only on $\F H$.
+	
+	\item \review{I wonder, where in the paper the choice of the Banach space $U$ or the properties of $u^*$ matter. I have the impression that the results are all valid, if $U$ is removed from the paper and $E_0$ is defined as $E_0(u)=E(u)-\inf_{v\in H}E(v)$. Then the resulting algorithm tries to compute the infimum of $E$ on $H$ (which might not be attained).}
+	
+	Thank you for the suggestion. As previously mentioned, the main introduction of $\F U$ is now postponed to around Section 5.
+	
+	\item \review{The line (p2, l 54) defining $\Pi_n$ looks strange: the pairings $\langle\cdot,\cdot\rangle$ cannot both denote the inner product on $H$ as $u\in U_n^*$ might not be in $H$}
+
+	As commented before, we define $\Pi_n$ on $\F H$ to remove the ambiguity.
+	
+	\item \review{p.3: in what topology do you want to consider the closure of $U_n^*$? Why is that necessary at all?}
+	
+	As commented before, we define $\Pi_n$ on $\F H$ instead of $\F U_n^*$.	
+	
+	\item \review{These definitions clash in the proof of Lemma 1 (Thm 6): There $w\in U_n+U_{n-1}$ has to be mapped into $U_n^*$ to be able to apply Lemma 2. This happens by means of an unnamed mapping, lets call it $M$, with the property $\Pi_nMw=w$. Again it is not clear whether this mapping exists (under the very abstract setting without any relation between $U$, $H$ and $U_n$, $U_{n-1}$. I think the claimed inequality (68) is wrong if $U_{n-1}$ is not a subspace of $U_n$, as in that case some projections of $u_{n-1}$ onto $U_n$ have to appear in (68).}
+	
+	Lemma 1 has now been modified to have $w\in \F U^n$. Equation (9) also has the assumption $u_{n-1}\in \F U^n$, instead of the suggested $\F U^{n-1}\subset \F U^n$.
+	
+	\item \review{On page 1, the functions $f,g$ are defined on $H$ only}
+	
+	The optimisation is now performed on $\F H$ only.
+	
+	\item \review{Does (5) imply strong or weak lower semicontinuity of $g$?}
+	
+	$g$ only needs to be weakly lower-semicontinuous for the existence of minimisers. This is now clarified further in the text (now equation (4)).
+	
+	\item \review{Lemma 1: There is no Lemma 1 in [10]}
+	
+	We apologise for the mistake, the numbering has now been updated.
+	
+	\item \review{Lemma 2 (and its proof): There is no Theorem 2 in [10], not even a theorem that somehow resembles the claimed inequality. Also there is no Theorem 1 in [3], at least not in the version of the paper that can be found on Amir Beck's homepage.}
+	
+	Again, we apologise for these mistakes and have corrected the references.
+	
+	\item \review{p. 5, line 47: should be $\lVert u\rVert_{L^2(0,1)}^2$.}
+	
+	This has been modified in the text.
+\end{enumerate}
+
+\end{document}
