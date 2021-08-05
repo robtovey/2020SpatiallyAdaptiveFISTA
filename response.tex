@@ -34,7 +34,9 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \begin{enumerate}
 	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $w_n$ converge for the various versions of FISTA.} 
 	
-	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. FISTA is known to converge weakly in the Hilbert-space setting, these guarantees are likely to hold here with the added adaptivity although we have not performed the analysis as it is still a relatively special case. A key component of this is the result $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain convergence in the Banach space.
+	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. More generally, FISTA is known to converge weakly in the Hilbert-space setting. This is also likely to hold with our algorithm when the minimiser is in $\F H$ but we have not performed the analysis as it is still a relatively special case. A key component of the proof is the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain any convergence in the Banach space.
+	
+	\todo{Not sure if this is the right level of detail.}
 
 	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
 	
@@ -68,7 +70,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	The convergence displayed in Figure 2 is relative to the discretised problem, rather than the continuous one. The behaviour for the continuous gap is shown in Figure 3 (for two of the algorithms from Figure 2). Figure 2 shows that the nonadaptive schemes reach high precision very quickly, but Figure 3 indicates that this does not correlate with accuracy.
 	
-	\todo{I could include extra continuous gap (like Figure 1) panels? Or just show continuous gap? At the moment it's perhaps a bit confusing, figures (1,2,3,4,7,9) show (both, discrete, continuous, continuous, discrete, continuous) respectively. It might be simpler just to show the continuous gap after Figure 1 (which compares both).}
+	\todo{I could include extra continuous gap (like Figure 1) panels? Or just show continuous gap? At the moment it's perhaps a bit confusing, figures (1,2,3,4,7,9) show (both, discrete, continuous, continuous, discrete, continuous) respectively. It might be simpler to show only the continuous gap except in Figure 1 (which compares both).}
 \end{enumerate}
 
 \section{Detailed response to second reviewer}

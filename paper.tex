@@ -925,7 +925,7 @@
 	\paragraph{Tree structure of wavelets}
 	Finite elements are constructed with a mesh which provided a useful tool for adaptive refinement in Section~\ref{sec: bound continuous}. For wavelets, we will associate a tree with every discretisation and the leaves of the tree correspond to a mesh. This perspective comes from the multi-resolution interpretation of wavelets. An example is seen in Figure~\ref{fig: wavelet tree} for 1D Haar wavelets, $w_{j,k}(\varx0) = \sqrt{2}^k\vard1(2^{k}\varx0-j)$ where $\vard1 = \1_{[0,1)} - \1_{[-1,0)}$. 
 	
-	In higher dimensions, the only two things which change are the number of children ($2^d$ for non-leaves) and at each node you store the coefficients of $2^d-1$ wavelets. The support on each node is still a disjoint partition of unity consisting of regular cubes of side length $2^{-k}$ at level $k$. The only change in our own implementation is to translate the support to $[-\tfrac12,\tfrac12]^2$. We briefly remark that the tree structuring of wavelets is not novel and appears more frequently in the Bayesian inverse problems literature \cite{Castillo2019}.
+	In higher dimensions, the only two things which change are the number of children ($2^d$ for non-leaves) and at each node you store the coefficients of $2^d-1$ wavelets. The support on each node is still a disjoint partition of unity consisting of regular cubes of side length $2^{-k}$ at level $k$. The only change in our own implementation is to translate the support to $[-\tfrac12,\tfrac12]^2$. We briefly remark that the tree structuring of wavelets is not novel and appears more frequently in the Bayesian inverse problems literature \cite{Castillo2019,Kekkonen2021}.
 	
 	\paragraph{Continuous gradient estimate}
 	In Section~\ref{sec: 1D Lasso examples} we used the continuous gap as a measure for convergence, for wavelets we will use the continuous \edit{gradient}{subdifferential}. With the tree structure we can easily adapt the results of Section~\ref{sec: Lasso gap and gradient} to estimate \edit{gradients}{subdifferentials} (or function gaps). In particular,
@@ -1249,8 +1249,7 @@
 			\\\implies \frac{\norm{\varf0}_\infty}{\norm{\varf0}} &\leq \mu\max_j\norm{e_j}_\infty\sqrt{C}.
 		\end{align}
 		This inequality holds for all $\mu>1$ therefore also for $\mu=1$. Essentially, with an extra smoothness assumption on $e_j$, we can reduce the dimension of the problem to $\op{dim}(\tilde{\spcf0})=C $ and use the previous result.
-		\qed\end{proof}
-	
+	\qed\end{proof}
 	
 	
 	\begin{lemma}\label{app:thm: specific a_U bound}
