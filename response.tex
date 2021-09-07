@@ -64,13 +64,13 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	Thank you for noticing this mistake.
 	
-	\item \review{On page 18, the authors state: Suppose that the numerical aim is to find a function $u_n$ with $E_0(u_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms}
+	\item \review{On page 18, the authors state: ``Suppose that the numerical aim is to find a function $u_n$ with $E_0(u_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms.''}
 	
 	\review{This is used to argue that the adaptive schemes are better as they require smaller problems, less memory and less time to get to this point. However, it would appear that Figure 2 indicates that if a sufficiently accurate solution were desired, instead of a point with $E_0(u_n)\leq 0.1$, then we would still need orders of magnitude of 10 more iterations to get to the same accuracy as the nonadaptive schemes.}
 	
-	The convergence displayed in Figure 2 is relative to the discretised problem, rather than the continuous one. The behaviour for the continuous gap is shown in Figure 3 (for two of the algorithms from Figure 2). Figure 2 shows that the nonadaptive schemes reach high precision very quickly, but Figure 3 indicates that this does not correlate with accuracy.
+	We have updated Figure 2 to show both discrete and continuous gaps to improve clarity. The old Figure 2 only plotted the discrete gap which showed convergence to stationarity rather than necessarily an `accurate solution'. If we measure accuracy in terms of the continuous gap (the value 0.1 in this case), you are correct that the nonadaptive scheme reaches high precision for the set accuracy level. In practice, this may mean that the adaptive reconstruction has more values which are approximately but not exactly 0.
 	
-	\todo{I could include extra continuous gap (like Figure 1) panels? Or just show continuous gap? At the moment it's perhaps a bit confusing, figures (1,2,3,4,7,9) show (both, discrete, continuous, continuous, discrete, continuous) respectively. It might be simpler to show only the continuous gap except in Figure 1 (which compares both).}
+	\todo{What point is being made here? Have they just been confused about different `accuracy' metrics in the two plots? Should I add a comment on precision in the text?}
 \end{enumerate}
 
 \section{Detailed response to second reviewer}

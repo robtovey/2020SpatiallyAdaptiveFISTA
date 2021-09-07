@@ -18,7 +18,6 @@
 \let\F\mathds\let\C\mathcal\newcommand{\R}{\F{R}}\newcommand{\A}{\tens{A}}
 \newcommand{\norm}[1]{{\left\lVert #1 \right\rVert}}
 \newcommand{\Norm}[1]{{\left\vert\kern-0.25ex\left\vert\kern-0.25ex\left\vert #1 \right\vert\kern-0.25ex\right\vert\kern-0.25ex\right\vert}}
-\renewcommand{\sfrac}[2]{\,^{#1}\!\!/\!_{#2}}
 \newcommand{\IP}[2]{\left\langle #1,#2 \right\rangle}
 \newcommand{\ip}[2]{#1 \vcenter{\hbox{\resizebox{6pt}{!}{\ensuremath\cdot}}} #2}
 \newcommand{\op}[1]{\operatorname{#1}}
@@ -124,7 +123,7 @@
 	\maketitle
 	
 	\begin{abstract}
-		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever the optimisation domain is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a subspace, and that subspace is allowed to change at every iteration. Analytically, this allows us to guarantee convergence in a Banach space setting, although at a reduced rate depending on the conditioning of the specific problem. Numerically we show that a greedy adaptive choice of discretisation can greatly increase the time and memory efficiency in infinite dimensional Lasso optimisation problems.
+		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever the \edit{optimisation domain}{optimiser} is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a subspace, and that subspace is allowed to change at every iteration. Analytically, this allows us to guarantee convergence in a Banach space setting, although at a reduced rate depending on the conditioning of the specific problem. Numerically we show that a greedy adaptive choice of discretisation can greatly increase the time and memory efficiency in infinite dimensional Lasso optimisation problems.
 	\end{abstract}
 	\keywords{Convex optimization \and Multiscale \and Multigrid \and Sparsity \and Lasso}
 	
@@ -138,16 +137,16 @@
 	
 	The contribution of this work is a modified FISTA algorithm which achieves two key properties:
 	\begin{itemize}
-		\item we extend the convergence results to the case \edit{$\varf0^*\in\bar{\F H}\setminus\F H$ where $\spcf0\coloneqq \bar{\F H}$ is a Banach space}{the minimum is not achieved. For example, in Lasso discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\spcf0\supset\F H$ such that $\Emin = \min_{\varf0\in\spcf0}\op{E}(\varf0)$ is achieved in $\spcf0\setminus\F H$}. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.
+		\item we extend the convergence results to the case \edit{$\varf0^*\in\bar{\F H}\setminus\F H$ where $\spcf0\coloneqq \bar{\F H}$ is a Banach space}{where the minimum is not achieved. For example, in Lasso discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\spcf0\supset\F H$ such that $\Emin = \min_{\varf0\in\spcf0}\op{E}(\varf0)$ is achieved in $\spcf0\setminus\F H$}. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.
 		\item we allow for adaptive discretisation such that $\varf0_n\in\spcf0^n\subset\F H$. With simple guarantees on the rates of convergence, we show analytically that applying our FISTA algorithm with inexact discretisation does not reduce the proven rate of convergence. In the Hilbert space setting this is the original $n^{-2}$ rate. In numerical examples we demonstrate that greedy adaptive discretisation strategies can achieve much greater performance than uniform discretisation, both in measures of time and computer memory requirements.
 	\end{itemize}
 	There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for \edit{the use outside of Hilbert spaces}{use with un-attained minima} is the key theoretical novelty. Some other works for FISTA-like algorithms include \cite{Jiang2012,Villa2013}. Of particular note, our stability estimate for FISTA  in Theorem~\ref{thm: mini FISTA convergence} is very similar to \cite[Prop 2]{Schmidt2011} and \cite[Prop 3.3]{Aujol2015}. This is then used to analyse the convergence properties in our more general Banach space setting where all sources of inexactness come from subspace approximations. The ideas in \cite{Parpas2017} are similar although in application to the proximal gradient method with an additional smoothing on the functional $\op{g}$. The permitted refinement steps are also more broad in our work.
 	
 	
 	\subsection{Outline}
-	This chapter is organised as follows. Section~\ref{sec: prelims} defines notation and the generic form of our proposed refining FISTA algorithm, Algorithm~\ref{alg: refining FISTA}. The main theoretical contribution of this work is the convergence analysis of Algorithm~\ref{alg: refining FISTA} which is split into two parts: first we outline the proof structure in Section~\ref{sec: recipe}, then we state the specific results in the case of FISTA in Section~\ref{sec: FISTA convergence}. The main results are Theorems~\ref{thm: exponential FISTA convergence}/~\ref{thm: stronger exponential FISTA convergence} which extend the convergence of FISTA \edit{to infinite dimensional Banach spaces}{to cases with un-attained minima} with uniform/adaptively chosen subspaces $\spcf0^n$ respectively. 
+	This work is organised as follows. Section~\ref{sec: prelims} defines notation and the generic form of our proposed refining FISTA algorithm, Algorithm~\ref{alg: refining FISTA}. The main theoretical contribution of this work is the convergence analysis of Algorithm~\ref{alg: refining FISTA} which is split into two parts: first we outline the proof structure in Section~\ref{sec: recipe}, then we state the specific results in the case of FISTA in Section~\ref{sec: FISTA convergence}. The main results are Theorems~\ref{thm: exponential FISTA convergence}/\ref{thm: stronger exponential FISTA convergence} which extend the convergence of FISTA \edit{to infinite dimensional Banach spaces}{to cases with un-attained minima} with uniform/adaptively chosen subspaces $\spcf0^n$ respectively. 
 	
-	Section~\ref{sec: general examples} presents some general results for the application of Algorithm~\ref{alg: refining FISTA} and Section~\ref{sec: Lasso definition} gives a much more detailed discussion of adaptive refinement for Lasso minimisation. In particular, we describe how to choose efficient refining discretisations to approximate \edit{$\varf0^*$}{$\Emin$}, estimate the convergence of $\op{E}$, and identify the support of \edit{$\varf0^*$}{the minimiser}. The numerical results in Section~\ref{sec: numerics} demonstrate these techniques in four different models demonstrating the apparent sharpness of our convergence rates and the computational efficiency of adaptive discretisations.
+	Section~\ref{sec: general examples} presents some general results for the application of Algorithm~\ref{alg: refining FISTA} \edit{}{in Banach spaces }and Section~\ref{sec: Lasso definition} gives a much more detailed discussion of adaptive refinement for Lasso minimisation. In particular, we describe how to choose efficient refining discretisations to approximate \edit{$\varf0^*$}{$\Emin$}, estimate the convergence of $\op{E}$, and identify the support of \edit{$\varf0^*$}{the minimiser}. The numerical results in Section~\ref{sec: numerics} demonstrate these techniques in four different models demonstrating the apparent sharpness of our convergence rates and the computational efficiency of adaptive discretisations.
 	
 	
 	\section{Definitions and notation}\label{sec: prelims}
@@ -163,7 +162,7 @@
 	\end{equation}
 	}
 	
-	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of \edit{refining }{closed }subspaces $\spcf0^n\subset \edit{\spcf0\cap}{}\F H$ for $n=0,1,\ldots$. The only difference \edit{}{from standard FISTA }is that on iteration $n$, all computations are performed in the subspace $\spcf0^n$. If $\spcf0^n\edit{=\spcf0}{}=\F H$ then we recover the \edit{standard FISTA}{classical} algorithm.
+	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of \edit{refining }{closed }subspaces $\spcf0^n\subset \edit{\spcf0\cap}{}\F H$ for $n=0,1,\ldots$. The only difference \edit{}{from standard FISTA }is that on iteration $n$, all computations are performed in the subspace $\spcf0^n$. If $\spcf0^n\edit{=\spcf0}{}=\F H$ then we recover the \edit{standard FISTA}{original} algorithm.
 	
 	Without loss of generality we will assume $L=1$, i.e. $\nabla\op{f}$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\op{E}$ with $\frac{\op{E}}{L}$.\edit{ A more important distinction is to say that the properties of $\op{f}$ and $\op{g}$ are stated with respect to the Hilbert norm.}{} In particular,
 	\begin{equation}
@@ -193,7 +192,7 @@
 	\begin{equation}
 		\Norm{\partial\op{E}(\varf0)} \coloneqq \inf_{\varf1\in\partial\op{E}(\varf0)}\Norm{\varf1}
 	\end{equation}
-	for any norm $\Norm\cdot$.}
+	for any specified norm $\Norm\cdot$.}
 	
 	\begin{algorithm}\caption{Refining subspace FISTA}\label{alg: refining FISTA}
 		\centering
@@ -224,7 +223,7 @@
 			t_N^2\op{E}_0(\varf0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\varf0_n) + \tfrac12\norm{\varf1_N-\varf2_N}^2 \leq \tfrac12\norm{\varf0_0-\varf2_0}^2 +\tfrac{\norm{\varf2_N}^2-\norm{\varf2_0}^2}2 
 			+ \sum^N_{n=1} t_n\op{E}_0(\varf2_n) + \IP{\varf1_{n-1}}{\varf2_{n-1}-\varf2_n}
 		\end{equation}
-		for $\varf2_n \in \argmin_{\varf0\in\spcf0^n}\op{E}(\varf0)$. The similarities to \eqref{eq: classical FISTA} are clear. If $\spcf0^n=\spcf0$, then we have $\varf2_n=\edit{\varf0^*}{\varf2_0}$ and the two estimates agree. These extra terms quantify the robustness to changing of discretisation.
+		for any $\varf2_n \in \argmin_{\varf0\in\spcf0^n}\op{E}(\varf0)$. The similarities to \eqref{eq: classical FISTA} are clear. If $\spcf0^n=\edit{\spcf0}{\F H}$, then we have $\varf2_n=\edit{\varf0^*}{\varf2_0\in\argmin_{\varf0\in\F H}\op{E}(\varf0)}$ and the two estimates agree. These extra terms quantify the robustness to changing of discretisation.
 	\end{adaptiveStep}
 	
 	
@@ -254,7 +253,7 @@
 	
 	\paragraph{Step 5: Sufficiently slow refinement}
 	\begin{adaptiveStep}\label{step: step 5 sufficiently slow}
-		The result of Step~\ref{step: step 4 sufficiently fast} is sufficient to prove convergence, but not yet a rate. If the subspaces refine too quickly, then the influence of \edit{$\norm{\varf0^*}=\infty$}{$\norm{\varf0_n}\to\infty$} will slow the rate of convergence. If the resolution is too coarse then we are overfitting to the discrete minimiser, but if the resolution is too fine then convergence of the energy is slow. Lemma~\ref{thm: sufficiently slow} balances these two factors in an optimal way for Algorithm~\ref{alg: refining FISTA} resulting in a convergence rate of 
+		The result of Step~\ref{step: step 4 sufficiently fast} is sufficient to prove convergence, but not yet a rate. If the subspaces refine too quickly, then the influence of \edit{$\norm{\varf0^*}=\infty$}{$\norm{\varf0_n}\to\infty$} will slow the rate of convergence. If the resolution is too coarse then we are overfitting to the discretised problem, but if the resolution is too fine then convergence of the energy is slow. Lemma~\ref{thm: sufficiently slow} balances these two factors in an optimal way for Algorithm~\ref{alg: refining FISTA} resulting in a convergence rate of 
 		$$ \op{E}_0(\varf0_N) \lesssim \frac{\vars3_{\Varf0}^{2K}}{N^2} \lesssim \frac{N^{2\kappa}}{N^2}$$
 		for all $N\in\F N$, some $\kappa\in[0,1)$ depending on $\vars3_{\Varf0},\vars3_{\op{E}}$. In particular, if \edit{$\varf0^*\in\F H$}{the minimum is attained in $\F H$,} then we recover the classical rate with $\kappa=0$.
 	\end{adaptiveStep}
@@ -264,7 +263,7 @@
 		Up to this point we have implicitly focused on the case where $\spcf0^n$ (and $n_k$) are chosen a priori. Here we emphasise some of the challenges which are faced when extending results to allow for greedy adaptivity.
 		
 		Spatial adaptivity is robust, so long as the scaling properties of Step~\ref{step: step 2 smoothness} are satisfied. The only other constraint is to ensure that the partial telescoping of Step~\ref{step: step 3 convergence bound} still holds. Lemma~\ref{thm: mini exponential FISTA convergence} shows that a sufficient condition is
-		$$\edit{}{\varf0_{n_k-1}}\in\spcf0^{n_k}\subset\spcf0^{n_k+1}\subset\ldots\subset\spcf0^{n_{k+1}-1}.$$
+		$$\edit{}{\varf0_{n_k-1}\in}\spcf0^{n_k}\subset\spcf0^{n_k+1}\subset\ldots\subset\spcf0^{n_{k+1}-1}.$$
 		Convergence is most stable if the approximation spaces $\spcf0^n$ satisfy a monotone inclusion, breaking the monotonicity requires more care.
 		
 		Adaptively choosing the time of refinement is more challenging due to the non-descent property of FISTA. The idea is that $\spcf0^n$ should be refined as soon as the value $\op{E}(\varf0_n)$ is sufficiently close to $\op{E}(\varf2_n)$. This is analysed in Theorem~\ref{thm: stronger exponential FISTA convergence} (sufficient conditions in Lemma~\ref{thm: practical refinement criteria}) which shows convergence results of the form
@@ -314,8 +313,7 @@
 	
 	\begin{theorem}[\edit{}{analogous to {\cite[Thm 3.2]{Chambolle2015}, \cite[Thm 4.1]{Beck2009}}}]\label{thm: mini FISTA convergence}
 		\Copy{thm: mini FISTA convergence}{
-			Fix a sequence of subspaces $(\spcf0^n\edit{\subset\spcf0\cap\F H}{})_{n\in\F N}$ \edit{}{satisfying \eqref{eq: refining subspace definition}}, arbitrary $\varf0_0\in \spcf0^0$, and FISTA stepsize choice $(t_n)_{n\in\F N}$. Let $\varf0_n$ and $\varf1_n$ be generated by Algorithm~\ref{alg: refining FISTA}. 
-			Then, for any choice of $\varf2_n\in\spcf0^n$ and $N\in\F N$ we have
+			Fix a sequence of subspaces $(\spcf0^n\edit{\subset\spcf0\cap\F H}{})_{n\in\F N}$ \edit{}{satisfying \eqref{eq: refining subspace definition}}, arbitrary $\varf0_0\in \spcf0^0$, and FISTA stepsize choice $(t_n)_{n\in\F N}$. Let $\varf0_n$ and $\varf1_n$ be generated by Algorithm~\ref{alg: refining FISTA}, then, for any choice of $\varf2_n\in\spcf0^n$ and $N\in\F N$ we have
 		}
 		\begin{equation}\label{eq: FISTA inequality}\Copy{thm:eq: mini FISTA convergence}{
 			t_N^2\op{E}_0(\varf0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\varf0_n) + \frac{\norm{\varf1_N-\varf2_N}^2}{2} \leq \frac{\norm{\varf0_0-\varf2_0}^2-\norm{\varf2_0}^2+\norm{\varf2_N}^2}{2}
@@ -325,7 +323,7 @@
 	\noindent The proof is given in Theorem~\ref{app:thm: mini FISTA convergence}. This result is the key approximation for showing convergence of FISTA with refining subspaces. In the classical setting, we have $\spcf0^n\edit{=\spcf0}{}=\F H$, $\varf2_n\edit{=\varf0^*}{\in\argmin_{\varf0\in\F H}\op{E}(\varf0)}$ and the extra terms on the right-hand side collapse to 0. 
 	
 	\edit{The}{If there exists a minimiser $\varf0^*\in\argmin_{\varf0\in\F H}\op{E}(\varf0)$, then the } natural choice in \eqref{eq: FISTA inequality} is $\varf2_n=\tens{\Pi}_n\varf0^*$, however, there are simple counter-examples which give $\op{E}(\tens{\Pi}_n\varf0^*)=\infty$ and so this inequality becomes useless. For example, if $\op{f}(\varf0) = \norm{\varf0}_{\edit{2}{L^2([0,1])}}^2$, $\op{g}$ is the indicator on the set $\F D=\{\varf0\in L^1([0,1])\st \varf0(\varx0) \geq \varx0\}$, and $\spcf0^n$ is a set of piecewise constant functions, then $\varf0^*=\varx0\mapsto \varx0$. On the other hand, suppose one of the pixels of the discretisation is $[\varx0_0-\meshsize,\varx0_0+\meshsize]$, then 
-	$$\tens{\Pi}_n\varf0^*\left(\varx0_0+\sfrac\meshsize2\right) = \argmin_{\vars5\in\R}\int_{\varx0_0-\meshsize}^{\varx0_0+\meshsize}(\varf0^*(\varx0)-\vars5)^2d\varx0 = \argmin_{\vars5\in\R}\int_{\varx0_0-\meshsize}^{\varx0_0+\meshsize}(\varx0-\vars5)^2d\varx0 = \varx0_0 < \varx0_0+\sfrac\meshsize2.$$
+	$$\tens{\Pi}_n\varf0^*\left(\varx0_0+\tfrac\meshsize2\right) = \argmin_{\vars5\in\R}\int_{\varx0_0-\meshsize}^{\varx0_0+\meshsize}(\varf0^*(\varx0)-\vars5)^2d\varx0 = \argmin_{\vars5\in\R}\int_{\varx0_0-\meshsize}^{\varx0_0+\meshsize}(\varx0-\vars5)^2d\varx0 = \varx0_0 < \varx0_0+\tfrac\meshsize2.$$
 	In particular $\tens{\Pi}_n\varf0^* \notin\F D$ therefore $\op{E}(\tens{\Pi}_n\varf0^*) = \infty$. The choice $\varf2_n=\argmin_{\varf0\in\spcf0^n}\op{E}(\varf0)$ is much more robust and allows us to apply Algorithm~\ref{alg: refining FISTA} more broadly. The penalty for this flexibility is a more complicated analysis, each time the subspace changes, the system receives a `shock' proportional to $\norm{\varf2_{n}-\varf2_{n+1}}$. 
 	
 	
@@ -358,7 +356,7 @@
 	\begin{equation}
 		\op{E}(\varf0_n) - \min_{\varf0\in\spcf0^n}\op{E}(\varf0) \lesssim \frac{\norm{\varf0_0-\argmin_{\varf0\in\spcf0^n}\op{E}(\varf0)}^2}{n^2}
 	\end{equation}
-	uniformly in $n$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of subspaces. This can be interpreted as an overfitting to the discretisation of $\op{E}|_{\spcf0^n}$ rather than the desired function $\op{E}|_{\spcf0}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\spcf0^n$ grows sufficiently quickly).
+	uniformly in $n$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of subspaces. This can be interpreted as an overfitting to the discretisation of $\op{E}|_{\spcf0^n}$ rather than the desired function $\op{E}|_{\F H}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\spcf0^n$ grows sufficiently quickly).
 	
 	\begin{lemma}\label{thm: sufficiently fast}
 		\Copy{thm: sufficiently fast}{
@@ -379,7 +377,7 @@
 		\item The convergence guarantee for $N$ iterations of classical FISTA in the space $\spcf0^N$ is 
 		$$ \op{E}_0(\varf0_N) \lesssim \frac{\norm{\varf0_0-\argmin_{\varf0\in\spcf0^N}\op{E}(\varf0)}^2}{N^2} + \min_{\varf0\in\spcf0^N}\op{E}_0(\varf0) \lesssim \frac{\vars3_{\Varf0}^{2K}}{N^2} + \vars3_{\op{E}}^{-K}.$$
 		This is equivalent to Lemma~\ref{thm: sufficiently fast} after the assumptions on $n_k$.
-		\item If $\spcf0$ is finite dimensional, then the $\vars3_{\Varf0}=1$ is almost trivially satisfied. Norms in finite dimensions are equivalent and any discretisation can be achieved with a finite number of refinements (i.e. the sums over $k$ are finite). 
+		\item If $\edit{\spcf0}{\F H}$ is finite dimensional, then the $\vars3_{\Varf0}=1$ is almost trivially satisfied. Norms in finite dimensions are equivalent and any discretisation can be achieved with a finite number of refinements (i.e. the sums over $k$ are finite). 
 	\end{itemize}
 	
 	\subsection{Convergence rate}
@@ -423,7 +421,7 @@
 	$$\op{E}_0(\varf0_n) \geq \min_{\varf0\in\spcf0^n}\op{E}_0(\varf0) = O(\vars3_{\op{E}}^{-k}) = O(n^{2(\kappa-1)})$$
 	which suggests that to converge faster than $n^{2(\kappa-1)}$ requires choosing smaller $n_k$. As an example, in Section~\ref{sec: wavelet examples} we will see Algorithm~\ref{alg: refining FISTA} can converge at a linear rate, although this is not possible without adaptive refinement times. On the other hand, choice of spatial adaptivity has no impact on rate but can impact computational efficiency. It will be permitted to use greedy discretisation techniques so long as each collection $\{\spcf0^n \st n_k\leq n<n_{k+1}\}$ satisfies a monotonicity condition.
 	
-	While Theorem~\ref{thm: exponential FISTA convergence} also allows for spatial adaptivity, we will simplify the requirements to a form which seems more practical for implementation and also allows for temporal adaptivity. We make the assumption that the choice of $n_k$ depends only on the value $\op{E}(u^{n_k-1})$ and therefore make $u^{n_k-1}$ the root of our requirements. Lemma~\ref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\op{E}_0(\varf0^{n_k-1})\lesssim \vars3_{\op{E}}^{-k}$. However, the value of $\op{E}_0$ may be hard to estimate and so we retain a `backstop' condition which guarantees that convergence is no slower than the rate given by Theorem~\ref{thm: exponential FISTA convergence}. The only constraints on spatial adaptivity are the monotone inclusion properties, $\varf0_n\in\spcf0^{n+1}$ and existence of $\tilde{\varf2}_k$. This is confirmed by the following theorem.
+	While Theorem~\ref{thm: exponential FISTA convergence} also allows for spatial adaptivity, we will simplify the requirements to a form which seems more practical for implementation and also allows for temporal adaptivity. We make the assumption that the choice of $n_k$ depends only on the value $\op{E}(u_{n_k-1})$ and therefore make $u_{n_k-1}$ the root of our requirements. Lemma~\ref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\op{E}_0(\varf0_{n_k-1})\lesssim \vars3_{\op{E}}^{-k}$. However, the value of $\op{E}_0$ may be hard to estimate and so we retain a `backstop' condition which guarantees that convergence is no slower than the rate given by Theorem~\ref{thm: exponential FISTA convergence}. The only constraints on spatial adaptivity are the monotone inclusion properties, $\varf0_n\in\spcf0^{n+1}$ and existence of $\tilde{\varf2}_k$. This is confirmed by the following theorem.
 	\begin{theorem}\label{thm: stronger exponential FISTA convergence}
 		\Copy{thm: stronger exponential FISTA convergence}{
 			Let $(\spcf0^n\subset\F H\edit{\cap\spcf0}{})_{n\in\F N}$ be a sequence of subspaces \edit{}{satisfying \eqref{eq: refining subspace definition} }and $n_k\in\F N$ a monotone increasing sequence such that
@@ -458,10 +456,10 @@
 				\item Small discrete gap refinement: $\op{E}_0(\tilde{\varf2}_k)\leq \vars1\vars3_{\op{E}}^{-k}$ and $ \op{E}_0(\varf0_k)-\op{E}_0(\tilde{\varf2}_{k-1})\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$.
 				\item Small relative gap refinement: $ \op{E}_0(\varf0_k) - \op{E}_0(\tilde{\varf2}_{k-1}) \leq \vars1\op{E}_0(\varf0_k)$ for all $k\in\F N$, some $0<\vars1\leq \frac{1}{1+\vars3_{\op{E}}}$.
 			\end{enumerate}
-			\edit{}{If, furthermore, there exists a Banach space $(\spcf0,\Norm\cdot)$ with $\spcf0\supset\F H$, then it is also sufficient that:}
+			\edit{}{If, furthermore, there exists a Banach space $(\spcf0,\Norm\cdot)$ with $\spcf0\supset\F H$ and the sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded, then it is also sufficient that:}
 			\begin{enumerate}\setcounter{enumi}{3}
-				\item Small continuous gradient refinement: $ \Norm{\partial\op{E}(\varf0_k)}_*\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded.
-				\item Small discrete gradient refinement: $\op{E}_0(\tilde{\varf2}_k)\leq \vars1\vars3_{\op{E}}^{-k}$ and $\Norm{\tens{\Pi}_k\partial\op{E}(\varf0_k)}_*\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded.
+				\item Small continuous gradient refinement: $ \Norm{\partial\op{E}(\varf0_k)}_*\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$\edit{, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded}{}.
+				\item Small discrete gradient refinement: $\op{E}_0(\tilde{\varf2}_k)\leq \vars1\vars3_{\op{E}}^{-k}$ and $\Norm{\tens{\Pi}_k\partial\op{E}(\varf0_k)}_*\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$\edit{, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded}{}.
 			\end{enumerate}
 		}
 	\end{lemma}
@@ -478,11 +476,11 @@
 	The cases where $\spcf0$ is finite or countable dimensional are quite straight forward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$) then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. The examples considered here have $\F H = L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ where $\{\tilde{\spcf0}^n\st n\in\F N\}$ are finite dimensional finite-element--like spaces. We will now clarify exactly what is meant by these properties and then demonstrate that they are sufficient to find simple formulae for the values $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$. }{
 	We consider the main use of Algorithm~\ref{alg: refining FISTA} to be where there exists a Banach space $(\spcf0,\Norm\cdot)$ such that $\spcf0\supset\F H$ and
 	$$\inf_{\varf0\in\F H} \op{E}(\varf0) = \min_{\varf0\in\spcf0}\op{E}(\varf0) = \op{E}(\varf0^*)$$
-	for some $\varf0^*\in\spcf0$. The cases where $\F H$ has finite or countable dimension are quite straightforward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$) then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subspaces $(\tilde{\spcf0}^n)_{n\in\F N}$ will be finite dimensional finite-element--like spaces, as defined below.
+	for some $\varf0^*\in\spcf0$. The cases where $\F H$ has finite or countable dimension are quite straightforward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$), then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subspaces $(\tilde{\spcf0}^n)_{n\in\F N}$ will be finite dimensional finite-element--like spaces, as defined below.
 	}
 			
 	\begin{definition}
-		Suppose $\spcf0\subset L^p(\Domain)$ for some \edit{compact}{connected, bounded} domain $\Domain\subset\R^d$\edit{}{ with sufficiently smooth boundary}. We say that $\F M^k = \{\domain_1^k,\domain_2^k,\ldots\}$ is a \emph{mesh} if 
+		Suppose $\spcf0\subset L^q(\Domain)$ for some \edit{compact}{connected, bounded} domain $\Domain\subset\R^d$\edit{}{ with sufficiently smooth boundary}. We say that $\F M^k = \{\domain_1^k,\domain_2^k,\ldots\}$ is a \emph{mesh} if 
 		$$\domain_i^k\subset\Domain \qquad\text{and} \qquad |\domain_i^k\cap\domain^k_j| = 0$$
 		for all $i$ and $j$. We say that $\tilde{\spcf0}^k\subset \edit{\spcf0\cap}{}\F H$ is a \emph{finite element space} if there exists a mesh $\F M^k$ such that for all $\varf0\in\tilde{\spcf0}^k$ there exists $\varf0_i^k\in\tilde{\spcf0}^k$ such that
 		$$\supp(\varf0_i^k)\subset \bar{\domain_i^k}, \qquad \varf0(\vvarx0) = \varf0^k_i(\vvarx0) \qquad \text{ for a.e. }\vvarx0\in\domain_i^k, \text{ all } i\in\F N.$$
@@ -525,11 +523,11 @@
 	The aim of this section is to develop all of the necessary tools for implementing Algorithm~\ref{alg: refining FISTA} on the energy \eqref{eq: Lasso energy} using the convergence guarantees of either Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence}. This includes computing the rates $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$, estimating the continuous gap $\op{E}_0(\varf0_n)$, and developing an efficient refinement choice for $\spcf0^n$.
 	
 	\subsection{Continuous case}\label{sec: continuous lasso rate}
-	We start by estimating rates in the case $\spcf0=\C M(\Domain)$ where $\Domain =[0,1]^d$. In this case we choose $\tilde{\spcf0}^k$ to be the span of all piecewise constant functions on a mesh of squares with maximum side length $2^{-k}$ (i.e. $\meshsize=\sfrac12$). 
+	We start by estimating rates in the case $\spcf0=\C M(\Domain)$ where $\Domain =[0,1]^d$. In this case we choose $\tilde{\spcf0}^k$ to be the span of all piecewise constant functions on a mesh of squares with maximum side length $2^{-k}$ (i.e. $\meshsize=\tfrac12$). 
 	
 	Application of Theorem~\ref{thm: generic a_U and a_E} gives $\vars3_{\Varf0}=2^{\frac d2}$ although \edit{although}{} $\norm\cdot_1$ is too strong a metric and results in $\vars3_{\op{E}}=2^0$. This can be seen because for any $\varf0\in L^1(\Domain)$ and Dirac mass $\delta$ supported in $(0,1)^d$, 
 	\begin{equation}
-		\Norm{\varf0-\delta} = \sup_{\vard0\in C(\Domain), \norm{\vard0}_{L^\infty}\leq 1} \IP{\vard0}{\varf0-\delta} = \Norm{\varf0}+\Norm{\delta} \geq 1.
+		\Norm{\varf0-\delta} = \sup_{\vard0\in C(\Domain), \norm{\vard0}_{L^\infty}\leq 1} \IP{\vard0}{\varf0-\delta} = \Norm{\varf0}+\Norm{\delta} \geq 1 = \meshsize^0.
 	\end{equation}
 	To improve our estimate of $\vars3_{\op{E}}$ requires additional assumptions on $\A$. For any $\varf2\in\tilde{\spcf0}^k$ such that $\Norm{\varf2}\leq \Norm{\varf0^*}$, we compute
 	\begin{align}
@@ -554,7 +552,7 @@
 	\end{align}}
 	where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. 
 	
-	This computation confirms two things, firstly that the scaling constant is indeed $\vars3_{\op{E}} = 2$, and secondly that the required smoothness to achieve a good rate with Algorithm~\ref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. In Section~\ref{sec: smoothing operators} we will show two practical examples were this (semi)norm is accurately computable. 
+	This computation confirms two things, firstly that the scaling constant is indeed $\vars3_{\op{E}} = 2$, and secondly that the required smoothness to achieve a good rate with Algorithm~\ref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. In Section~\ref{sec: smoothing operators} we will show two practical examples where this (semi)norm is accurately computable. 
 	
 	Inserting the computed rates into Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence} gives the guaranteed convergence rate
 	\begin{equation}\label{eq: Lasso energy rate}
@@ -569,7 +567,7 @@
 	We now extend the rate computations to the case when $\spcf0=\ell^1(\R)$, or a finite dimensional subspace. The key fact here is that, even when $\spcf0$ is infinite dimensional, it is known (e.g. \cite[\edit{Theorem 2}{Thm 6}]{Unser2016} and \cite[\edit{Corollary 2}{Cor 3.8}]{Boyer2019}) that $\varf0^*$ can be chosen to have at most $m$ non-zeros. If this is the case, then $\varf0^*\in \ell^2(\R)$; this makes the analysis much simpler than in the continuous case. In this subsection we will ignore the discrete case as a simple sub-case of the countable.
 	
 	For countable Lasso we consider discretisation subspaces of the form 
-	$$\tilde{\spcf0}^k = \{\varf0\in \ell^1(\R) \st i\notin J_k\implies \varf0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\varf0^*\in\ell^2(\R)$, which leads to $\vars3_{\Varf0}=1$ and the expected optimal rate of $n^{-2}$, independent of $\vars3_{\op{E}}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence} hold trivially.
+	$$\tilde{\spcf0}^k = \{\varf0\in \ell^1(\R) \st i\notin J_k\implies \varf0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\norm{\varf0^*}<\infty$, which leads to $\vars3_{\Varf0}=1$ and the expected optimal rate of $n^{-2}$, independent of $\vars3_{\op{E}}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence} hold trivially.
 	
 	\subsection{Refinement metrics}\label{sec: Lasso gap and gradient}
 	Lemma~\ref{thm: practical refinement criteria} shows that adaptive refinement can be performed based on estimates of the function gap or the \edit{gradient}{subdifferential}. In this subsection we provide estimates for these values which can be easily computed.
@@ -692,7 +690,7 @@
 	\end{equation}
 	
 	Heuristically, we will use strong convexity of $\op{E}^*$ and smoothness of $\A^*$ to quantify the statement:
-	$$ \text{if}\quad \op{E}(\varf0_n) + \op{E}^*(\vars2_0 \vvard0_n) \approx 0 \quad \text{then}\quad \left\{\vvarx0\st |[\A^*\vvard0_n](\vvarx0)|\ll \mu\right\} \subset\{\vvarx0 \st \varf0^*(\vvarx0)=0\}.$$
+	$$ \text{if}\quad \op{E}(\varf0_n) + \op{E}^*(\vars2_0 \vvard0_n) \approx 0 \quad \text{then}\quad \left\{\vvarx0\st \mu - |[\A^*\vvard0_n](\vvarx0)|\ll 1\right\} \subset\{\vvarx0 \st \varf0^*(\vvarx0)=0\}.$$
 	First we use the strong convexity of $\op{E}^*$, if $\vars2_0\vvard0_n$ and $\vvard0^*$ are both dual-feasible then
 	\begin{equation}
 		\tfrac12\norm{\vars2_0\vvard0_n-\vvard0^*}_{\ell^2}^2 \leq \op{E}^*(\vars2_0\vvard0_n) - \op{E}^*(\vvard0^*) = \op{E}^*(\vars2_0\vvard0_n) + \op{E}(\varf0^*) \leq \op{E}^*(\vars2_0\vvard0_n) + \op{E}(\varf0_n),
@@ -707,12 +705,12 @@
 	\end{align}
 	Therefore,
 	\begin{equation}
-		|[\A^*\vars2_0\vvard0_n](\vvarx0)|< \mu - \sqrt{2(\op{E}(\varf0_n)+\op{E}^*(\vars2_0\vvard0_n))}|\A^*|_{\ell^2\to L^\infty} \qquad \implies \qquad \varf0^*(\vvarx0)= 0.\label{eq: support equation}
+		|[\tens{\Pi}_n\A^*\vars2_0\vvard0_n](\vvarx0)|< \mu - \sqrt{2(\op{E}(\varf0_n)+\op{E}^*(\vars2_0\vvard0_n))}|\A^*|_{\ell^2\to L^\infty} \qquad \implies \qquad \varf0^*(\vvarx0)= 0.\label{eq: support equation}
 	\end{equation}
 	This equation is valid when $\vvarx0$ is either a continuous or countable index, the only distinction is to switch to $\ell^\infty$ in the norm of $\A^*$. To make the equivalent statement on the discretised problem, simply replace $\vars2_0$ with $\vars2$ and $\A^*$ with $\tens{\Pi}_n\A^*$. There are two short observations on this formula:
 	\begin{itemize}
-		\item The convergence guarantee from Theorem~\ref{thm: exponential FISTA convergence} is for the quantity $\op{E}(\varf0_n)-\op{E}(\varf0^*)$, the more relevant quantity here is $\op{E}^*(\vars2_0\vvard0_n)+\op{E}(\varf0^*)$ for which there is no proven rate.
-		\item In Section~\ref{sec: continuous lasso rate}, $|\A^*|_{\ell^2\to C^1}<\infty$ was required to compute a rate of convergence, but only $|\A^*|_{\ell^2\to L^\infty}<\infty$ is needed to estimate the support.
+		\item The convergence guarantee from Theorem~\ref{thm: exponential FISTA convergence} is for the quantity $\op{E}(\varf0_n)-\op{E}(\varf0^*)$, the more relevant quantity here is $\op{E}^*(\vars2_0\vvard0_n)+\op{E}(\varf0^*)$ for which there is no proven rate of convergence.
+		\item In Section~\ref{sec: continuous lasso rate}, $|\A^*|_{\ell^2\to C^1}<\infty$ was required to compute a rate of convergence for $\op{E}(\varf0_n)$, but only $|\A^*|_{\ell^2\to L^\infty}<\infty$ is needed to estimate the support.
 	\end{itemize}
 	
 	
@@ -795,7 +793,7 @@
 	
 	Finally, we process a dataset which represents a realistic application in biological microscopy, referred to as STORM microscopy. In essence, the task is to perform 2D Gaussian de-blurring/super-resolution and denoising to find the location of sparse spikes of signal.
 	
-	In this section, the main aim is to minimise the exact Lasso energy $\op{E}_0(\varf0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\varf0_n)$ so it is this monotone estimate which is plotted. To clarify, as $\op{E}(\varf0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\varf0_n) \approx \min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vvard0_{n'})$. Another quantity of interest is minimisation of the discrete Lasso energy $\min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vvard0_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not monotonic as the discrete dual problem changes with $N$.
+	In this section, the main aim is to minimise the exact Lasso energy $\op{E}_0(\varf0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\varf0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\varf0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\varf0_n) \approx \min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vvard0_{n'})$. Another quantity of interest is minimisation of the discrete Lasso energy $\min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vvard0_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
 	
 	The code to reproduce these examples can be found on github\footnote{\href{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}}.
 	
@@ -824,7 +822,7 @@
 	\begin{equation}
 		\frac{\vars2_0}{\vars2} \approx \frac{\Norm{\A^*\vvard0_n}_*}{\Norm{\tens{\Pi}_n\A^*\vvard0_n}_*} = \frac{\max_{\domain_i^n\in\F M^n} \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{\max_{\domain_i^n\in\F M^n} |\tens{\Pi}_n\A^*\vvard0_n(\domain_i^n)|} \approx \max_{\domain_i^n\in\F M^n}\frac{ \norm{\A^*\vvard0_n}_{L^\infty(\domain_i^n)}}{|\tens{\Pi}_n\A^*\vvard0_n(\domain_i^n)|}
 	\end{equation}
-	is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vvard0_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement based on quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\varf0^*$. Such refinement is necessary to avoid critical points of $\op{E}$ which are not global minimisers.
+	is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vvard0_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement using quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\varf0^*$. Such refinement is necessary to avoid critical points of $\op{E}$ which are not global minimisers.
 	
 	\paragraph{Comparison of discretisation methods}
 	In Figure~\ref{fig: convergence with ndofs} we compare the three core approaches: fixed uniform
@@ -844,7 +842,7 @@
 		\vspace*{\floatsep}
 		
 		\includegraphics[width=.84\textwidth]{lasso_convergence_short}
-		\caption{Discrete convergence of different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
+		\caption{\edit{Discrete }{}Convergence plots for solving 1D problems with different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
 	\end{figure}
 	
 	
@@ -947,7 +945,7 @@
 		\vspace*{\floatsep}
 		
 		\includegraphics[width=.85\textwidth]{haar_convergence_short}
-		\caption{Discrete convergence of different implementations of Algorithm~\ref{alg: refining FISTA} with an unlimited number of pixels.}\label{fig: haar convergence}
+		\caption{\edit{Discrete }{}Convergence of different implementations of Algorithm~\ref{alg: refining FISTA} with an unlimited number of pixels.}\label{fig: haar convergence}
 		
 		\vspace*{\floatsep}
 		
@@ -966,11 +964,11 @@
 	
 	Finally, all the reconstructions were summed and the result shown in Figure~\ref{fig: STORM results}. The adaptive scheme used fewer than $10^4$ pixels per frame, a fixed discretisation with equivalent resolution of \SI{1.3}{\nano\meter} would have required more than $3\cdot10^6$ per frame. Lasso is compared with ThunderSTORM \cite{Ovesny2014}, a popular ImageJ plugin \cite{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial SMLM challenge \cite{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, Lasso has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
 	
-	Figure~\ref{fig: STORM convergence} shows slightly faster convergence than $n^{-\sfrac23}$ predicted by \eqref{eq: Lasso resolution rate} in dimension $d=2$. In this example we also implement the suggestion of Section~\ref{sec: support detection} to remove pixels outside of the support of $\varf0^*$. From \eqref{eq: support equation}, any pixel $\domain_i^n$ satisfying 
+	Figure~\ref{fig: STORM convergence} shows slightly faster convergence than $n^{-2/3}$ predicted by \eqref{eq: Lasso resolution rate} in dimension $d=2$. In this example we also implement the suggestion of Section~\ref{sec: support detection} to remove pixels outside of the support of $\varf0^*$. From \eqref{eq: support equation}, any pixel $\domain_i^n$ satisfying 
 	\begin{equation}
-		\vars2_0\norm{\tens{\Pi}_n\A^*\vvard0_n}_{L^\infty(\domain_i^n)} \leq 1-\frac{\op{threshold}}{\mu}
+		\vars2_0 \norm{ \tens{\Pi}_n\A^*\vvard0_n }_{L^\infty(\domain_i^n)} \leq (1-\op{threshold}_n)\mu
 	\end{equation}
-	guarantees that $\domain_i^n\cap\op{supp}(\varf0^*) = \emptyset$. This value is plotted in the first panel of Figure~\ref{fig: STORM convergence}. Once this threshold becomes less than 1, we can start reducing the number of pixels instead of just continual refinement, as seen in the right-hand panel after around 30 iterations.
+	guarantees that $\domain_i^n\cap\op{supp}(\varf0^*) = \emptyset$. This threshold is plotted in the first panel of Figure~\ref{fig: STORM convergence}. Once the value becomes less than 1, we can start reducing the number of pixels instead of continual refinement, as seen in the right-hand panel after around 30 iterations.
 	
 	\begin{figure}\centering
 		\includegraphics[width=.82\textwidth]{lasso2_convergence}
@@ -989,7 +987,7 @@
 	
 	The results in 2D are similar, all tested FISTA methods converge at least at the guaranteed rate. The wavelet example was most impressive, achieving nearly linear convergence in energy. This is similar to the behaviour for classical FISTA although it is also yet to be formally proven.
 	
-	An interesting observation over all of the adaptive Lasso examples is that the classical oscillatory behaviour of FISTA has not occurred. With the monotone gaps plotted, oscillatory convergence should correspond to a piecewise constant descending gap. Either this behaviour only emerges for larger $n$, or the adaptivity provides a dampening effect for this oscillation.
+	An interesting observation over all of the adaptive Lasso examples is that the standard oscillatory behaviour of FISTA has not occurred. With the monotone gaps plotted, oscillatory convergence should correspond to a piecewise constant descending gap. Either this behaviour only emerges for larger $n$, or the adaptivity provides a dampening effect for this oscillation.
 	
 	Moving forward, it would be interesting to see how far the analysis extends to other optimisation algorithms. Other variants of FISTA, such as the `greedy' implementation used here or the traditional Forward-Backward algorithm, should also be receptive to the analysis performed here. Furthermore, it would also interesting to attempt to replicate this refinement argument to extend the primal-dual algorithm \cite{Chambolle2011} or the Douglas-Rachford algorithm \cite{Douglas1956}.
 	
