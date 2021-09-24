@@ -36,8 +36,6 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. More generally, FISTA is known to converge weakly in the Hilbert-space setting. This is also likely to hold with our algorithm when the minimiser is in $\F H$ but we have not performed the analysis as it is still a relatively special case. A key component of the proof is the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain any convergence in the Banach space.
 	
-	\todo{Not sure if this is the right level of detail.}
-
 	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
 	
 	Thank you, we have made the suggested edit.
@@ -56,25 +54,21 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
 	
-	We have avoided non-smooth misfit terms because they are not so convenient for the FISTA framework, one might use a primal-dual or ADMM algorithm to avoid solving a least-squares problem on every iteration. For smooth misfits, you are quite right that most of Sections 6 and 7 can be generalised. The main difference is that the dual problem is very simple for quadratic misfits. If it is hard to compute $E_0(u_n)$, then one has to rely on the subdifferential for the a posteriori refinement strategy.
-	
-	\todo{I'm not sure what is being requested here. Is he asking for another numerical example? We could change the data fidelity for the Wavelet example quite easily? I'm actually struggling to think of another common smooth data fidelity which isn't Entropy-smoothed OT...}
+	You are right, we can also consider alternative misfits. We have replaced the wavelet example with a (Huber-smoothed) robust $\ell^1$ penalty as we only explicitly required the gradient and Lipschitz constant for computations.
 	
 	\item \review{page 17, line 28: missing word? ``most require''?}
 	
-	Thank you for noticing this mistake.
+	Thank you for noticing this typo.
 	
 	\item \review{On page 18, the authors state: ``Suppose that the numerical aim is to find a function $u_n$ with $E_0(u_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms.''}
 	
 	\review{This is used to argue that the adaptive schemes are better as they require smaller problems, less memory and less time to get to this point. However, it would appear that Figure 2 indicates that if a sufficiently accurate solution were desired, instead of a point with $E_0(u_n)\leq 0.1$, then we would still need orders of magnitude of 10 more iterations to get to the same accuracy as the nonadaptive schemes.}
 	
-	We have updated Figure 2 to show both discrete and continuous gaps to improve clarity. The old Figure 2 only plotted the discrete gap which showed convergence to stationarity rather than necessarily an `accurate solution'. If we measure accuracy in terms of the continuous gap (the value 0.1 in this case), you are correct that the nonadaptive scheme reaches high precision for the set accuracy level. In practice, this may mean that the adaptive reconstruction has more values which are approximately but not exactly 0.
-	
-	\todo{What point is being made here? Have they just been confused about different `accuracy' metrics in the two plots? Should I add a comment on precision in the text?}
+	We have updated Figure 2 to show both discrete and continuous gaps to improve clarity. The point of Figure 2 (and 3) is to demonstrate the accuracy of our theoretical rate predictions. While the initial rate of convergence is faster for the nonadaptive schemes, Figure 4 confirms that this does not translate to a large practical improvement.
 \end{enumerate}
 
 \section{Detailed response to second reviewer}
-We are very sorry that you found our manuscript so difficult to read. We have tried to extrapolate your comments to also make changes to the rest of the document. To address your first comments we have removed much of the emphasis on the Banach space $\F U$ so that most computations are clearly in the Hilbert space. The Banach space setting is reserved for examples discussed in Sections 5 to 7.
+We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the orthogonal projection was not needed at all, and we now allow $U^n$ to be subsets of $\F H$ rather than subspaces. The Banach space setting is reserved for examples discussed in Sections 5 to 7.
 
 \begin{enumerate}
 	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}

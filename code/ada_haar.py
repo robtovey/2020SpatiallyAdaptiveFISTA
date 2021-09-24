@@ -10,7 +10,7 @@ from haar_bin import (Radon_to_sparse_matrix, Radon_update_sparse_matrix, _small
                       _FP_leaf, _FP_wave2leaf, _BP_leaf, _BP_leaf2wave)
 from matplotlib import pyplot as plt
 from numpy import (array, empty, sqrt, zeros, isscalar, array_equal, concatenate,
-                   cos, sin, pi, log, nanmin, nanmax, log2)
+                   cos, sin, pi, log, nanmin, nanmax, log2, random)
 from anytree import Node, RenderTree, PreOrderIter, PostOrderIter
 from algorithms import shrink, stopping_criterion, faster_FISTA, \
     _makeVid, FB, Norm, FISTA
@@ -1129,7 +1129,7 @@ class Haar2Sino(op):
                          extent=[self.angles.min(), self.angles.max(), self.grid.min(), self.grid.max()], **kwargs)
 
 
-def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algorithm='Greedy'):
+def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None, algorithm='Greedy'):
     '''
     min 1/2|Pu-d|_2^2 + alpha*|Wu|_1
 
@@ -1152,6 +1152,27 @@ def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algori
     pms = {'i':0, 'eps':1e-18, 'refineI':2}
     recon = Haar_2D(0, Haar_space(1, dim=2))
     A.update(recon.FS)
+    
+    from numba import vectorize
+    @vectorize(identity=0, nopython=True)
+    def Huber(x):
+        x = abs(x)
+        if x < huber:
+            return x * x / (2 * huber)
+        else:
+            return x - .5 * huber
+    @vectorize(identity=0, nopython=True)
+    def Huber_grad(x):
+        if abs(x) < huber:
+            return x / huber
+        elif x > 0:
+            return 1
+        else:
+            return -1
+#     @vectorize(identity=0, nopython=True)
+#     def Huber(x): return .5 * x * x
+#     @vectorize(identity=0, nopython=True)
+#     def Huber_grad(x): return x
 
     def residual(u): return A(u) - data
 
@@ -1165,7 +1186,7 @@ def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algori
             u = refine(u)
             pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.15)  # 20 refinements for each factor of 10 iterations
 #             pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.30)  #  9 refinements for each factor of 10 iterations
-        return A.bwrd(A(u) - data, like=u)
+        return A.bwrd(Huber_grad(A(u) - data), like=u)
 
     def proxG(u, t):
         U = u.copy(0)
@@ -1245,7 +1266,8 @@ def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algori
             u = Haar_2D(u.FS.old2new(u.x, u.dof_map), u.FS)
 
         r = A(u) - data
-        df = A.bwrd(r, like=u).asarray()  # known gradient of f
+        Hr = Huber_grad(r)
+        df = A.bwrd(Hr, like=u).asarray()  # known gradient of f
 
         dF = df.copy()
         _smallgrad(dF.reshape(-1), u.asarray().reshape(-1), alpha, pms['eps'])  # known gradient
@@ -1253,11 +1275,11 @@ def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algori
         # unknown gradient of f = P^Tr on unknown indices
         # |unknown gradient|^2 = |P^Tr|^2-|A^*r|^2 = |r|^2 - |df|^2
         leaf_error = empty(df.shape[0], dtype=df.dtype)
-        _unknown_grad_tomo(r, A.grid, A.d, A.centre, u.dof_map, u.is_leaf, leaf_error)
+        _unknown_grad_tomo(Hr, A.grid, A.d, A.centre, u.dof_map, u.is_leaf, leaf_error)
 
         eF = Norm(leaf_error[leaf_error > alpha] - alpha)
 
-        pms['F'] = (.5 * (r ** 2).sum() + alpha * abs(u.asarray()).sum())
+        pms['F'] = (Huber(r).sum() + alpha * abs(u.asarray()).sum())
         pms['discrete_err'] = Norm(dF)
         pms['cont_err'] = (Norm(dF) ** 2 + eF ** 2) ** .5
         pms['dof'] = u.size
@@ -1290,15 +1312,15 @@ def Haar_tomo(A, data, alpha, iters=None, prnt=True, plot=True, vid=None, algori
     if algorithm[0] is 'Greedy':
         default = {'xi':0.95, 'S':1}
         default.update(algorithm[1])
-        recon = faster_FISTA(recon, 1 / A.norm ** 2, gradF, proxG, stop_crit, **default)
+        recon = faster_FISTA(recon, huber / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FISTA':
         default = {'a':10, 'restarting':False}
         default.update(algorithm[1])
-        recon = FISTA(recon, 1 / A.norm ** 2, gradF, proxG, stop_crit, **default)
+        recon = FISTA(recon, huber / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FB':
         default = {'scale':2}
         default.update(algorithm[1])
-        recon = FB(recon, default['scale'] / A.norm ** 2, gradF, proxG, stop_crit)
+        recon = FB(recon, default['scale'] * huber / A.norm ** 2, gradF, proxG, stop_crit)
 
     return recon, stop_crit
 
@@ -1310,7 +1332,7 @@ if __name__ == '__main__':
     from numpy import linspace
 #     plt.figure(figsize=(18, 10))
 
-    test = 5
+    test = 6
     # 1  : 1D wavlet functionality test
     # 1.5: 1D wavlet plotting test
     # 2  : 1D denoising example
@@ -1430,12 +1452,13 @@ if __name__ == '__main__':
 
         A = Haar2Sino(linspace(0, 180, 52)[1:-1], linspace(-.5, .5, 51), Haar_space(2, dim=2), centre=[.5] * 2)
         data = A(gt)
-        data += noise * Norm(data) * random.randn(*data.shape) / data.size ** .5
+#         data += noise * Norm(data) * random.randn(*data.shape) / data.size ** .5 # Gaussian noise
+        data += Norm(data) * random.laplace(0, noise, data.shape) * (.5 / data.size) ** .5 # Laplacian noise
 
-        iters = (10, 25)
+        iters = (1000, 1.1)
         vid = {'filename':'haar_vid_2D_disc', 'fps':int(iters[0] / iters[1] / 30) + 1}
         vid = None
-        recon, record = Haar_tomo(A, data, .0001, vid=vid, iters=iters, prnt=False)
+        recon, record = Haar_tomo(A, data, .1, .002, vid=vid, iters=iters, prnt=False)
         if vid is None:
             plt.show()
 
@@ -1450,13 +1473,13 @@ if __name__ == '__main__':
 
         A = Haar2Sino(linspace(0, 180, 52)[1:-1], linspace(-.5, .5, 51), Haar_space(2, dim=2), centre=[.5] * 2)
         data = A(gt)
-        data += noise * Norm(data) * random.randn(*data.shape) / data.size ** .5
+#         data += noise * Norm(data) * random.randn(*data.shape) / data.size ** .5 # Gaussian noise
+        data += Norm(data) * random.laplace(0, noise, data.shape) * (.5 / data.size) ** .5 # Laplacian noise
 
-        iters = (1000, 10)
+        iters = (1000, 1.1)
         vid = {'filename':'haar_vid_2D_shepp', 'fps':int(iters[0] / iters[1] / 30) + 1}
         vid = None
 
-        recon, record = Haar_tomo(A, data, .00002, vid=vid, iters=iters)
-        print('2', recon.size)
+        recon, record = Haar_tomo(A, data, .1, .001, vid=vid, iters=iters)
         if vid is None:
             plt.show()
