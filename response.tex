@@ -55,6 +55,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
 	
 	You are right, we can also consider alternative misfits. We have replaced the wavelet example with a (Huber-smoothed) robust $\ell^1$ penalty as we only explicitly required the gradient and Lipschitz constant for computations.
+	\todo{Maybe too much work to rewrite?}
 	
 	\item \review{page 17, line 28: missing word? ``most require''?}
 	
@@ -73,11 +74,11 @@ We are very sorry that you found our manuscript so difficult to read. You were r
 \begin{enumerate}
 	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}
 	
-	As suggested, we now state that $\F U^n$ are closed in (9) and re-referenced throughout the document. The mention of $\F U$ on page 1 is now just a reference to the Lasso example introduced in a later section.
+	As suggested, we now state that $\F U^n$ are closed in (10) and re-referenced throughout the document. The mention of $\F U$ on page 1 is now just a reference to the Lasso example introduced in a later section.
 	
 	\item \review{If $H$ is not a subspace of $U$ then it is not clear that such a projection $\Pi_n$ exists at all.}
 	
-	The projections $\Pi_n$ are now defined only on $\F H$.
+	The projections $\Pi_n$ are now used only on $\F H$.
 	
 	\item \review{I wonder, where in the paper the choice of the Banach space $U$ or the properties of $u^*$ matter. I have the impression that the results are all valid, if $U$ is removed from the paper and $E_0$ is defined as $E_0(u)=E(u)-\inf_{v\in H}E(v)$. Then the resulting algorithm tries to compute the infimum of $E$ on $H$ (which might not be attained).}
 	
@@ -85,7 +86,7 @@ We are very sorry that you found our manuscript so difficult to read. You were r
 	
 	\item \review{The line (p2, l 54) defining $\Pi_n$ looks strange: the pairings $\langle\cdot,\cdot\rangle$ cannot both denote the inner product on $H$ as $u\in U_n^*$ might not be in $H$}
 
-	As commented before, we define $\Pi_n$ on $\F H$ to remove the ambiguity.
+	As commented before, we define $\Pi_n$ on $\F H$ to remove any ambiguity.
 	
 	\item \review{p.3: in what topology do you want to consider the closure of $U_n^*$? Why is that necessary at all?}
 	
@@ -93,7 +94,7 @@ We are very sorry that you found our manuscript so difficult to read. You were r
 	
 	\item \review{These definitions clash in the proof of Lemma 1 (Thm 6): There $w\in U_n+U_{n-1}$ has to be mapped into $U_n^*$ to be able to apply Lemma 2. This happens by means of an unnamed mapping, lets call it $M$, with the property $\Pi_nMw=w$. Again it is not clear whether this mapping exists (under the very abstract setting without any relation between $U$, $H$ and $U_n$, $U_{n-1}$. I think the claimed inequality (68) is wrong if $U_{n-1}$ is not a subspace of $U_n$, as in that case some projections of $u_{n-1}$ onto $U_n$ have to appear in (68).}
 	
-	Lemma 1 has now been modified to have $w\in \F U^n$. Equation (9) also has the assumption $u_{n-1}\in \F U^n$, instead of the suggested $\F U^{n-1}\subset \F U^n$.
+	Lemma 1 has now been modified to have $w\in \F U^n$. Equation (10) also has the assumption $u_{n-1}\in \F U^n$, instead of the suggested $\F U^{n-1}\subset \F U^n$.
 	
 	\item \review{On page 1, the functions $f,g$ are defined on $H$ only}
 	
