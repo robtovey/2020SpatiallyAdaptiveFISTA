@@ -950,13 +950,13 @@ class Haar_2D(Haar):
 
         return self.copy(x)
 
-    def plot(self, level, ax=None, update=False, **kwargs):
-        y = self.discretise(level).T
+    def plot(self, level, ax=None, update=False, origin='lower', extent=[0, 1, 0, 1], **kwargs):
+        y = self.discretise(level)
         if update:
             assert ax is not None
             return ax.set_data(y)
         ax = ax if ax is not None else plt
-        return ax.imshow(y, origin='lower', extent=[0, 1, 0, 1], **kwargs)
+        return ax.imshow(y, origin=origin, extent=extent, **kwargs)
 
     def plot_tree(self, level=5, max_ticks=200, ax=None, spatial=True, update=False, **kwargs):
         ax = ax if ax is not None else plt.gca()
@@ -1158,17 +1158,18 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
     def Huber(x):
         x = abs(x)
         if x < huber:
-            return x * x / (2 * huber)
+            return .5 * x * x
         else:
-            return x - .5 * huber
+            return huber * (x - .5 * huber)
     @vectorize(identity=0, nopython=True)
     def Huber_grad(x):
         if abs(x) < huber:
-            return x / huber
+            return x
         elif x > 0:
-            return 1
+            return huber
         else:
-            return -1
+            return -huber
+    alpha = alpha * huber
 #     @vectorize(identity=0, nopython=True)
 #     def Huber(x): return .5 * x * x
 #     @vectorize(identity=0, nopython=True)

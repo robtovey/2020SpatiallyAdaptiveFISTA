@@ -124,7 +124,7 @@
 	\maketitle
 	
 	\begin{abstract}
-		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever \edit{the optimisation domain}{a minimiser} is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a \edit{subspace, and that subspace is allowed to change at every iteration}{subset which is allowed to change at every iteration}. \edit{Analytically, this allows us to guarantee convergence in a Banach space setting}{Sufficient conditions are provided for guaranteed convergence}, although at a reduced rate depending on the conditioning of the specific problem. \edit{Numerically we show that a greedy adaptive choice of discretisation can greatly increase the time and memory efficiency in infinite dimensional Lasso optimisation problems.}{These conditions have a natural interpretation when a minimiser exists in an underlying Banach space. A typical example is the Lasso problem where we provide detailed theoretical and numerical analysis.}
+		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever \edit{the optimisation domain}{a minimiser} is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a \edit{subspace, and that subspace is allowed to change at every iteration}{subset which is allowed to change at every iteration}. \edit{Analytically, this allows us to guarantee convergence in a Banach space setting}{Sufficient conditions are provided for guaranteed convergence}, although at a reduced rate depending on the conditioning of the specific problem. \edit{Numerically we show that a greedy adaptive choice of discretisation can greatly increase the time and memory efficiency in infinite dimensional Lasso optimisation problems.}{These conditions have a natural interpretation when a minimiser exists in an underlying Banach space. Typical examples are L1-penalised reconstructions where we provide detailed theoretical and numerical analysis.}
 	\end{abstract}
 	\keywords{Convex optimization \and Multiscale \and Multigrid \and Sparsity \and Lasso}
 	
@@ -138,7 +138,7 @@
 	
 	The contribution of this work is a modified FISTA algorithm which achieves two key properties:
 	\begin{itemize}
-		\item we extend the convergence results to the case \edit{$\varf0^*\in\bar{\F H}\setminus\F H$ where $\spcf0\coloneqq \bar{\F H}$ is a Banach space}{where the minimum is not achieved. For example, in Lasso discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\spcf0\supset\F H$ such that $\Emin = \min_{\varf0\in\spcf0}\op{E}(\varf0)$ is achieved in $\spcf0\setminus\F H$}. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.
+		\item we extend the convergence results to the case \edit{$\varf0^*\in\bar{\F H}\setminus\F H$ where $\spcf0\coloneqq \bar{\F H}$ is a Banach space}{where the minimum is not achieved. For example, in \edit{Lasso}{L1 penalised reconstructions} discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\spcf0\supset\F H$ such that $\Emin = \min_{\varf0\in\spcf0}\op{E}(\varf0)$ is achieved in $\spcf0\setminus\F H$}. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.
 		\item we allow for adaptive discretisation such that $\varf0_n\in\spcf0^n\subset\F H$. With simple guarantees on the rates of convergence, we show analytically that applying our FISTA algorithm with inexact discretisation does not reduce the proven rate of convergence. In the Hilbert space setting this is the original $n^{-2}$ rate. In numerical examples we demonstrate that greedy adaptive discretisation strategies can achieve much greater performance than uniform discretisation, both in measures of time and computer memory requirements.
 	\end{itemize}
 	There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for \edit{the use outside of Hilbert spaces}{use with un-attained minima} is the key theoretical novelty. Some other works for FISTA-like algorithms include \cite{Jiang2012,Villa2013}. Of particular note, our stability estimate for FISTA  in Theorem~\ref{thm: mini FISTA convergence} is very similar to \cite[Prop 2]{Schmidt2011} and \cite[Prop 3.3]{Aujol2015}. This is then used to analyse the convergence properties in our more general Banach space setting where all sources of inexactness come from subspace approximations. The ideas in \cite{Parpas2017} are similar although in application to the proximal gradient method with an additional smoothing on the functional $\op{g}$. The permitted refinement steps are also more broad in our work.
@@ -474,7 +474,7 @@
 	The cases where $\spcf0$ is finite or countable dimensional are quite straight forward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$) then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. The examples considered here have $\F H = L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ where $\{\tilde{\spcf0}^n\st n\in\F N\}$ are finite dimensional finite-element--like spaces. We will now clarify exactly what is meant by these properties and then demonstrate that they are sufficient to find simple formulae for the values $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$. }{
 	We consider the main use of Algorithm~\ref{alg: refining FISTA} to be where there exists a Banach space $(\spcf0,\Norm\cdot)$ such that $\spcf0\supset\F H$ and
 	$$\inf_{\varf0\in\F H} \op{E}(\varf0) = \min_{\varf0\in\spcf0}\op{E}(\varf0) = \op{E}(\varf0^*)$$
-	for some $\varf0^*\in\spcf0$. The cases where $\F H$ has finite or countable dimension are quite straightforward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$), then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subsets $(\tilde{\spcf0}^n)_{n\in\F N}$ will be finite dimensional finite-element--like spaces, as defined below.
+	for some $\varf0^*\in\spcf0$. The cases where $\F H$ has finite or countable dimension are quite straightforward. If the total number of refinements is finite (i.e. $\spcf0^n = \spcf0^N$ for all $n\geq N$, some $N\in\F N$), then $\vars3_{\Varf0} = 1$. This holds for most finite dimensional problems as well as the countable example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subsets $(\tilde{\spcf0}^n)_{n\in\F N}$ will be finite dimensional finite-element--like spaces, as defined below.
 	}
 			
 	\begin{definition}
@@ -511,12 +511,12 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
-	\section{Lasso minimisation}\label{sec: Lasso definition}
-	We now focus on the specific example of Lasso which will be used for numerical results in \edit{Sectoin}{Section}~\ref{sec: numerics}. We consider three forms of Lasso which will be referred to as continuous, countable, and discrete Lasso depending on whether the space $\spcf0$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or finite dimensional respectively. In each case, the energy can be written as 
+	\section{\edit{Lasso}{L1 penalised} minimisation}\label{sec: Lasso definition}
+	We now focus on the specific example of \edit{Lasso}{L1 penalised optimisation} which will be used for numerical results in \edit{Sectoin}{Section}~\ref{sec: numerics}. We consider three forms \edit{of Lasso}{} which will be referred to as the continuous, countable, and discrete \edit{Lasso}{problem} depending on whether the space $\spcf0$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or finite dimensional respectively. In each case, the energy can be written as 
 	\begin{equation}\label{eq: Lasso energy}
-		\op{E}(\varf0) = \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2 + \mu\Norm{\varf0}
+		\op{E}(\varf0) = \edit{\tfrac12\norm{\A\varf0-\data}_{\ell^2}^2}{\op{f}(\A\varf0-\data)} + \mu\Norm{\varf0}
 	\end{equation}
-	for some $\A\colon \spcf0\to\R^m$ and $\mu>0$, where $\Norm\cdot=\norm\cdot_1$. \edit{}{In the continuous-space case, we require $\A^*\colon\R^m\to C(\Domain)$. }Let $\varf0^*\in\argmin_{\varf0\in\spcf0}\op{E}(\varf0)$.
+	for some $\A\colon \spcf0\to\R^m$ and $\mu>0$, where $\Norm\cdot=\norm\cdot_1$. \edit{}{We assume $\op{f}\in C^1(\R^m)$ is convex with $\nabla\op{f}$ 1-Lipschitz and locally bounded, and in the continuous-space case, we require $\A^*\colon\R^m\to C(\Domain)$. }Let $\varf0^*\in\argmin_{\varf0\in\spcf0}\op{E}(\varf0)$.
 	
 	The aim of this section is to develop all of the necessary tools for implementing Algorithm~\ref{alg: refining FISTA} on the energy \eqref{eq: Lasso energy} using the convergence guarantees of either Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence}. This includes computing the rates $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$, estimating the continuous gap $\op{E}_0(\varf0_n)$, and developing an efficient refinement choice for $\spcf0^n$.
 	
@@ -530,11 +530,9 @@
 	To improve our estimate of $\vars3_{\op{E}}$ requires additional assumptions on $\A$. \edit{}{Note that the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\spcf0}^k$ onto piecewise-constant functions is $\Norm\cdot$-diminishing. Therefore }
 	for any $\varf0\in\F H$, $\varf2\coloneqq \tilde{\tens{\Pi}}_k\varf0\in\tilde{\spcf0}^k$ we have
 	\begin{align}
-		\op{E}(\varf2)-\op{E}(\varf0) &=  \tfrac12\norm{\A\varf2-\data}_{\ell^2}^2 - \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2 + \mu\left(\Norm{\varf2}-\Norm{\varf0}\right)
-		\\&\leq \tfrac12\norm{\A\varf2-\data}_{\ell^2}^2 - \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2
-		\\&= \ip{[\tfrac12\A(\varf2+\varf0)-\data]}{\A(\varf2-\varf0)}
-		\\&\leq \max(\norm{\A\varf2-\data}_{\ell^2},\norm{\A\varf0-\data}_{\ell^2})\norm{\A(\varf2-\varf0)}_{\ell^2}
-		\\&\leq \sqrt{2\max(\op{E}(\varf2), \op{E}(\varf0))}\norm{\A(\varf2-\varf0)}_{\ell^2}.
+		\op{E}(\varf2)-\op{E}(\varf0) &= \edit{\tfrac12\norm{\A\varf2-\data}_{\ell^2}^2 - \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2}{\op{f}(\A\varf2-\data)-\op{f}(\A\varf0-\data)} + \mu\left(\Norm{\varf2}-\Norm{\varf0}\right)
+		\\&= \ip{\nabla \op{f}(\A\varf2-\data)}{\A(\varf2-\varf0)}
+		\\&\lesssim_{\edit{}{\op{E}(\varf2)}} \edit{\max(\norm{\A\varf2-\data}_{\ell^2},\norm{\A\varf0-\data}_{\ell^2})}{}\norm{\A(\varf2-\varf0)}_{\ell^2}.
 	\end{align}
 	\edit{Choosing $\varf2 = \tilde{\tens{\Pi}}_k\varf0^*$ for any bounded linear extension to the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\spcf0\to\tilde{\spcf0}^k$ gives
 	\\\centerline{$\displaystyle\op{E}(\varf2)-\op{E}(\varf0^*) \lesssim \norm{\A(\tilde{\tens{\Pi}}_k\varf0^*-\varf0^*)}_{\ell^2} \leq \norm{(\tilde{\tens{\Pi}}_k-\id)\A^*}_{\ell^2\to L^\infty}\Norm{\varf0^*}.$}
@@ -543,12 +541,12 @@
 		\norm{(\tilde{\tens{\Pi}}_k-\id)\A^*}_{\ell^2\to L^\infty} = \sup_{\vvarx3\in\R^m}\max_{\vvarx0\in\Domain} \frac{|[\tilde{\tens{\Pi}}_k\A^*\vvarx3](\vvarx0)-[\A^*\vvarx3](\vvarx0)|}{\norm{\vvarx3}_{\ell^2}} \leq \sup_{\vvarx3\in\R^m} \frac{\sqrt{d}2^{-k}\norm{\nabla[\A^*\vvarx3]}_{L^\infty}}{\norm{\vvarx3}_{\ell^2}} 
 		= \sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1}$}
 	}{This norm further simplifies with
-	\begin{align}
+	\begin{multline}
 		\norm{\A(\tilde{\tens{\Pi}}_k\varf0-\varf0)}_{\ell^2}
-		 &= \sup_{\vvarx3\in\R^m}\norm{\vvarx3}_{\ell^2}^{-1} \IP{(\tilde{\tens{\Pi}}_k-\id)\A^*\vvarx3}{\varf0}
-		\\&\leq \sup_{\vvarx3\in\R^m}\max_{\vvarx0\in\Domain}|[\tilde{\tens{\Pi}}_k\A^*\vvarx3](\vvarx0)-[\A^*\vvarx3](\vvarx0)|\:\norm{\vvarx3}_{\ell^2}^{-1}\Norm{\varf0}
-		\\&\leq \sup_{\vvarx3\in\R^m}\sqrt{d}2^{-k}\norm{\nabla[\A^*\vvarx3]}_{L^\infty}\: \norm{\vvarx3}_{\ell^2}^{-1} \Norm{\varf0}\quad=\sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1} \Norm{\varf0}
-	\end{align}}
+		 = \sup_{\vvarx3\in\R^m}\norm{\vvarx3}_{\ell^2}^{-1} \IP{(\tilde{\tens{\Pi}}_k-\id)\A^*\vvarx3}{\varf0}
+		\leq \sup_{\vvarx3\in\R^m}\max_{\vvarx0\in\Domain}|[\tilde{\tens{\Pi}}_k\A^*\vvarx3](\vvarx0)-[\A^*\vvarx3](\vvarx0)|\:\norm{\vvarx3}_{\ell^2}^{-1}\Norm{\varf0}
+		\\\leq \sup_{\vvarx3\in\R^m}\sqrt{d}2^{-k}\norm{\nabla[\A^*\vvarx3]}_{L^\infty}\: \norm{\vvarx3}_{\ell^2}^{-1} \Norm{\varf0}\quad=\sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1} \Norm{\varf0}
+	\end{multline}}
 	where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. \edit{}{Sub-levelsets of $\op{E}$ are compact in $L^1(\Domain)$, therefore there exists a weak$^*$-converging minimising sequence $\varf0^*_j\in\F H$ such that $\varf0^*_j\rightharpoonup\varf0^*$ and $\lim_{j\to\infty}\op{E}(\varf0^*_j)=\op{E}(\varf0^*)$. 
 		Combining these estimates gives 
 		\begin{equation}
@@ -569,35 +567,35 @@
 	\subsection{Countable and discrete case}
 	We now extend the rate computations to the case when $\spcf0=\ell^1(\R)$, or a finite dimensional subspace. The key fact here is that, even when $\spcf0$ is infinite dimensional, it is known (e.g. \cite[\edit{Theorem 2}{Thm 6}]{Unser2016} and \cite[\edit{Corollary 2}{Cor 3.8}]{Boyer2019}) that $\varf0^*$ can be chosen to have at most $m$ non-zeros. If this is the case, then $\varf0^*\in \ell^2(\R)$; this makes the analysis much simpler than in the continuous case. In this subsection we will ignore the discrete case as a simple sub-case of the countable.
 	
-	For countable Lasso we consider discretisation subspaces of the form 
+	For countable \edit{Lasso}{dimensions} we consider discretisation subspaces of the form 
 	$$\tilde{\spcf0}^k = \{\varf0\in \ell^1(\R) \st i\notin J_k\implies \varf0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\norm{\varf0^*}<\infty$, which leads to $\vars3_{\Varf0}=1$ and the expected optimal rate of $n^{-2}$, independent of $\vars3_{\op{E}}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence} hold trivially.
 	
 	\subsection{Refinement metrics}\label{sec: Lasso gap and gradient}
 	Lemma~\ref{thm: practical refinement criteria} shows that adaptive refinement can be performed based on estimates of the function gap or the \edit{gradient}{subdifferential}. In this subsection we provide estimates for these values which can be easily computed.
 	
 	\subsubsection{Bounds for discretised functionals}\label{sec: bound discrete}
-	We start by computing estimates for discretised Lasso. This covers the cases when either continuous/countable Lasso is projected onto $\spcf0^n$, or $\spcf0$ is finite dimensional. For notation we will use the continuous case, to recover the other cases just replace continuous indexing with discrete (i.e. $\varf0(\vvarx0) \leadsto \varf0_i$).
+	We start by computing estimates for discretised \edit{Lasso}{energies}. This covers the cases when either the continuous/countable \edit{Lasso}{energy} is projected onto $\spcf0^n$, or $\spcf0$ is finite dimensional. For notation we will use the continuous case, to recover the other cases just replace continuous indexing with discrete (i.e. $\varf0(\vvarx0) \leadsto \varf0_i$).
 	
-	Let $\tens{\Pi}_n\colon\F H\to\spcf0^n$ denote the orthogonal projection. For Lasso, the discretised function $\varf0\mapsto\op{E}(\tens{\Pi}_n\varf0)$ is equivalent to replacing $\varf0$ with $\tens{\Pi}_n\varf0$, and $\A^*$ with $\tens{\Pi}_n\A^*$. 
+	Let $\tens{\Pi}_n\colon\F H\to\spcf0^n$ denote the orthogonal projection. \edit{For Lasso}{In our case}, the discretised function $\varf0\mapsto\op{E}(\tens{\Pi}_n\varf0)$ is equivalent to replacing $\varf0$ with $\tens{\Pi}_n\varf0$, and $\A^*$ with $\tens{\Pi}_n\A^*$. 
 	
 	\paragraph{Discrete gradient}
 	We can use $\tens{\Pi}_n$ to compute the discrete subdifferential at $\varf0_n\in\spcf0^n$:
 	\begin{align}
-		\partial_n \op{E}(\tens{\Pi}_n\varf0_n)(\vvarx0) &= [\tens{\Pi}_n\A^*(\A\varf0_n-\data)](\vvarx0) + \begin{cases}
+		\partial_n \op{E}(\tens{\Pi}_n\varf0_n)(\vvarx0) &= [\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)](\vvarx0) + \begin{cases}
 			\{+\mu\} & \varf0_n(\vvarx0)>0 \\ [-\mu,\mu] & \varf0_n(\vvarx0)=0 
 			\\\{-\mu\} & \varf0_n(\vvarx0)<0 
 		\end{cases} 
-		\\&\eqqcolon [\tens{\Pi}_n\A^*(\A\varf0_n-\data)](\vvarx0) + \mu\tens{\Pi}_n\sign(\varf0_n(\vvarx0))
+		\\&\eqqcolon [\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)](\vvarx0) + \mu\tens{\Pi}_n\sign(\varf0_n(\vvarx0))
 	\end{align}
 	where we define $s+\mu[-1,1] = [s-\mu,s+\mu]$ for all $s\in\R$, $\mu\geq0$. 
 	
 	As $\Norm\cdot = \norm\cdot_1$, the natural metric for $\partial_n\op{E}$ is $\Norm\cdot_* = \norm\cdot_\infty$ which we can estimate
 	\begin{align}
-		\Norm{\partial_n \op{E}(\varf0_n)}_* &= \max_{\vvarx0\in\Domain}\min\left\{|\varf1| \st \varf1\in \tens{\Pi}_n\A^*(\A\varf0_n-\data)(\vvarx0) +  \mu\sign(\varf0_n(\vvarx0))\right\}
+		\Norm{\partial_n \op{E}(\varf0_n)}_* &= \max_{\vvarx0\in\Domain}\min\left\{|\varf1| \st \varf1\in \tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)(\vvarx0) +  \mu\sign(\varf0_n(\vvarx0))\right\}
 		\\&= \max_{\vvarx0\in\Domain}\begin{cases}
-			|[\tens{\Pi}_n\A^*(\A\varf0_n-\data)(\vvarx0) + \mu| & \varf0_n(\vvarx0)>0
-			\\|[\tens{\Pi}_n\A^*(\A\varf0_n-\data)(\vvarx0) - \mu| & \varf0_n(\vvarx0)<0
-			\\\max\left(|[\tens{\Pi}_n\A^*(\A\varf0_n-\data)(\vvarx0)| - \mu, 0\right) & \varf0_n(\vvarx0) = 0
+			|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)(\vvarx0) + \mu| & \varf0_n(\vvarx0)>0
+			\\|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)(\vvarx0) - \mu| & \varf0_n(\vvarx0)<0
+			\\\max\left(|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\varf0_n-\data)(\vvarx0)| - \mu, 0\right) & \varf0_n(\vvarx0) = 0
 		\end{cases}
 	\end{align}
 	which can be used directly in Lemma~\ref{thm: practical refinement criteria}.
@@ -605,10 +603,10 @@
 	\paragraph{Discrete gap}
 	We now move on to the discrete gap, $\op{E}(\varf0_n)-\min_{\varf0\in\spcf0^n}\op{E}(\varf0)$. This can be computed with a dual representation (e.g. \cite{Duval2017a}),
 	\begin{align}
-		\min_{\varf0\in \spcf0^n} \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2 + \mu\Norm{\varf0} &= \min_{\varf0\in\F H}\max_{\vvard0\in\R^m} \ip{(\A\tens{\Pi}_n\varf0-\data)}{ \vvard0} +\mu\Norm{\tens{\Pi}_n\varf0} -\tfrac12\norm{\vvard0}_{\ell^2}^2
-		\\&= \max_{\vvard0\in\R^m}\min_{\varf0\in\F H} \ip{(\A\tens{\Pi}_n\varf0-\data)}{\vvard0} +\mu\Norm{\tens{\Pi}_n\varf0} -\tfrac12\norm{\vvard0}_{\ell^2}^2
-		\\&= \max_{\vvard0\in\R^m} \splitln{-\ip{\data}{\vvard0} -\tfrac12\norm{\vvard0}_{\ell^2}^2}{\qquad\Norm{\tens{\Pi}_n\A^*\vvard0}_*\leq \mu}{-\infty}{\qquad\text{else}}
-		\\&= -\min_{\vvard0\in\R^m} \underbrace{\tfrac12\norm{\vvard0}_{\ell^2}^2+\ip{\data}{\vvard0}}_{\eqqcolon \op{E}^*(\vvard0)}  + \chi(\Norm{\tens{\Pi}_n\A^*\vvard0}_*\leq \mu).
+		\min_{\varf0\in \spcf0^n} \edit{\tfrac12\norm{\A\varf0-\data}_{\ell^2}^2}{\op{f}(\A\varf0-\data)} + \mu\Norm{\varf0} &= \min_{\varf0\in\F H}\max_{\vvard0\in\R^m} \ip{(\A\tens{\Pi}_n\varf0-\data)}{ \vvard0} +\mu\Norm{\tens{\Pi}_n\varf0} -\edit{\tfrac12\norm{\vvard0}_{\ell^2}^2}{\op{f}^*(\vvard0)}
+		\\&= \max_{\vvard0\in\R^m}\min_{\varf0\in\F H} \ip{(\A\tens{\Pi}_n\varf0-\data)}{\vvard0} +\mu\Norm{\tens{\Pi}_n\varf0} -\edit{\tfrac12\norm{\vvard0}_{\ell^2}^2}{\op{f}^*(\vvard0)}
+		\\&= \max_{\vvard0\in\R^m} \splitln{-\ip{\data}{\vvard0} -\edit{\tfrac12\norm{\vvard0}_{\ell^2}^2}{\op{f}^*(\vvard0)}}{\qquad\Norm{\tens{\Pi}_n\A^*\vvard0}_*\leq \mu}{-\infty}{\qquad\text{else}}
+		\\&= -\min_{\vvard0\in\R^m} \underbrace{\edit{\tfrac12\norm{\vvard0}_{\ell^2}^2}{\op{f}^*(\vvard0)}+\ip{\data}{\vvard0}}_{\eqqcolon \op{E}^*(\vvard0)}  + \chi(\Norm{\tens{\Pi}_n\A^*\vvard0}_*\leq \mu).
 	\end{align}
 	In particular,
 	\begin{equation}
@@ -616,19 +614,20 @@
 	\end{equation}
 	for any feasible $\vvard0\in\R^m$. We further derive the criticality condition, if $(\varf0^*,\vvard0^*)$ is a saddle point, then
 	\begin{equation}
-		\vvard0^* = \A\varf0^*-\data.
+		\edit{}{\A\varf0^*-\data\in\partial\op{f}^*(\vvard0^*),\qquad\text{or equivalently}\qquad}
+		\vvard0^* = \edit{}{\nabla\op{f}}(\A\varf0^*-\data).
 	\end{equation}
 	We remark briefly that it is more conventional to include the constraint in the definition of $\op{E}^*$. We choose to omit it here to highlight that it is only the constraint which changes between the discrete and continuous cases; $\op{E}^*$ will remain the same.
 	
 	Given $\varf0_n\in \spcf0^n$, the optimality condition motivates a simple rule for choosing $\vvard0$:
 	\begin{equation}
-		\vvard0_n\coloneqq \A\varf0_n - \data, \qquad \op{E}(\varf0)-\min_{\varf0'\in\spcf0^n}\op{E}(\varf0') \leq \op{E}(\varf0) +\min_{\vars2\geq 0}\left\{\op{E}^*(\vars2\vvard0_n) \st \vars2 \Norm{\tens{\Pi}_n\A^*\vvard0_n}_*\leq \mu\right\}
+		\vvard0_n\coloneqq \edit{}{\nabla\op{f}}(\A\varf0_n - \data), \qquad \op{E}(\varf0)-\min_{\varf0'\in\spcf0^n}\op{E}(\varf0') \leq \op{E}(\varf0) +\edit{\min_{\vars2\geq 0}\{}{}\op{E}^*(\vars2\vvard0_n) \edit{\st \vars2 \Norm{\tens{\Pi}_n\A^*\vvard0_n}_*\leq \mu\}}{}
 	\end{equation}
-	with optimal choice
+	\edit{with optimal choice}{for some $0\leq \vars2\leq\frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vvard0_n}_*}$. In the case $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$, one can use the optimal choice}
 	\begin{equation}
 		\vars2 =\max\left(0, \min\left(\frac{-\ip{\data}{\vvard0_n}}{\norm{\vvard0_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vvard0_n}_*}\right)\right).
 	\end{equation}
-	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\varf0_n) = \frac12\norm{\vvard0_n}_{\ell^2}^2$ and $\tens{\Pi}_n\nabla\op{f}(\varf0_n) = \tens{\Pi}_n\A^*\vvard0_n$ are easily computable, therefore $\vars2$ and $\op{E}(\varf0_n) +\op{E}^*(\vars2\vvard0_n)$ are also easy to compute.
+	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\A\varf0_n-\data)\edit{ = \frac12\norm{\vvard0_n}_{\ell^2}^2}{}$ and $\tens{\Pi}_n\nabla\op{f}(\A\varf0_n-\data)\edit{ = \tens{\Pi}_n\A^*\vvard0_n}{}$ are easily computable, therefore $\vars2$ and $\op{E}(\varf0_n) +\op{E}^*(\vars2\vvard0_n)$ are also easy to compute.
 	
 	\subsubsection{Bounds for countable functionals}
 	Extending the results of Section~\ref{sec: bound discrete} to $\spcf0=\ell^1(\R)$ is analytically very simple but computationally relies heavily on the specific choice of $\A$. The computations of \edit{gradients}{subdifferentials} and gaps carry straight over replacing $\tens{\Pi}_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\spcf0^n = \{\varf0\in\ell^1\st i\notin J_n\implies \varf0_i=0\}$. In particular,
@@ -638,9 +637,9 @@
 			\\|[\A^*\vvard0_n]_i - \mu| & [\varf0_n]_i<0
 			\\\max\left(|[\A^*\vvard0_n]_i| - \mu, 0\right) & [\varf0_n]_i = 0
 		\end{cases}
-		\\ \op{E}_0(\varf0_n) &\leq \op{E}(\varf0_n) + \op{E}(\vars2_0\vvard0_n), \qquad \vars2_0=\max\left(0, \min\left(\frac{-\ip{\data}{\vvard0_n}}{\norm{\vvard0_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right)\right)
+		\\ \op{E}_0(\varf0_n) &\leq \op{E}(\varf0_n) + \op{E}(\vars2_0\vvard0_n), \qquad \vars2_0\edit{=\max\left(0, \min\left(\frac{-\ip{\data}{\vvard0_n}}{\norm{\vvard0_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right)\right)}{\in\left[0,\frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right]}
 	\end{align}
-	where $\vvard0_n = \A\varf0_n-\data\in\R^m$ is always exactly computable.
+	where $\vvard0_n = \edit{}{\nabla\op{f}}(\A\varf0_n-\data)\in\R^m$ is always exactly computable.
 	
 	In the countable case, the sets $J_n$ give a clear partition into known/unknown values in these definitions. For $i\in J_n$ the computation is the same as in Section~\ref{sec: bound discrete}, then for $i\notin J_n$ we know $[\varf0_n]_i=0$ which simplifies the remaining computations. This leads to:
 	\begin{align}
@@ -652,14 +651,14 @@
 	Both estimates only rely on an upper bound of $\max_{i\notin J_n} |[\A^*\vvard0_n]_i|$. One example computing this value is seen in Section~\ref{sec: wavelet examples}.
 	
 	\subsubsection{Bounds for continuous functionals}\label{sec: bound continuous}
-	Finally we extend the results of Section~\ref{sec: bound discrete} to continuous Lasso. Similar to the countable case, the exact formulae can be written down immediately:
+	Finally we extend the results of Section~\ref{sec: bound discrete} to continuous \edit{Lasso}{problems}. Similar to the countable case, the exact formulae can be written down immediately:
 	\begin{align}
 		\Norm{\partial\op{E}(\varf0_n)}_* &= \max_{\vvarx0\in\Domain}\begin{cases}
 			|[\A^*\vvard0_n](\vvarx0) + \mu| & \varf0_n(\vvarx0)>0
 			\\|[\A^*\vvard0_n](\vvarx0) - \mu| & \varf0_n(\vvarx0)<0
 			\\\max\left(|[\A^*\vvard0_n](\vvarx0)| - \mu, 0\right) & \varf0_n(\vvarx0) = 0
 		\end{cases}
-		\\ \op{E}_0(\varf0_n) &\leq \op{E}(\varf0_n) + \op{E}(\vars2_0\vvard0_n), \qquad \vars2_0=\max\left(0, \min\left(\frac{-\ip{\data}{\vvard0_n}}{\norm{\vvard0_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right)\right).
+		\\ \op{E}_0(\varf0_n) &\leq \op{E}(\varf0_n) + \op{E}(\vars2_0\vvard0_n), \qquad \vars2_0\edit{=\max\left(0, \min\left(\frac{-\ip{\data}{\vvard0_n}}{\norm{\vvard0_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right)\right)}{\in\left[0,\frac{\mu}{\Norm{\A^*\vvard0_n}_*}\right]}.
 	\end{align}
 	If these quantities are not analytically tractable then we use the mesh $\F M^n$ corresponding to $\spcf0^n$ to decompose the bounds:
 	\begin{align}
@@ -680,12 +679,12 @@
 	\end{equation}
 	A zeroth order expansion would be optimally inefficient (approximating $|[\nabla\A^*\vvard0_n](\vvarx0_i)|$ with $|\A^*\vvard0_n|_{C^1}$) and a second order expansion would possibly be more elegant but harder to implement. We found that a first order expansion was simple and efficient.
 	
-	The bounds presented here for continuous Lasso emphasise the twinned properties required for adaptive mesh optimisation. The mesh should be refined greedily to the structures of $\varf0^*$, but also must be sufficiently uniform to provide a good estimate for $\op{E}(\varf0^*)$. This is a classical exploitation/exploration trade-off; exploiting visible structure whilst searching for other structures which are not yet visible.
+	The bounds presented here for continuous \edit{Lasso}{problems} emphasise the twinned properties required for adaptive mesh optimisation. The mesh should be refined greedily to the structures of $\varf0^*$, but also must be sufficiently uniform to provide a good estimate for $\op{E}(\varf0^*)$. This is a classical exploitation/exploration trade-off; exploiting visible structure whilst searching for other structures which are not yet visible.
 	
 	
 	
 	\subsection{Support detection}\label{sec: support detection}
-	The main motivation for using Lasso in applications is because it recovers sparse signals, in the case of compressed sensing the support of $\varf0^*$ is also provably close to the `true' support \cite{Duval2017a,Poon2018}. If $\varf0_n\approx \varf0^*$ in the appropriate sense, then we should also be able to quantify the statement $\op{supp}(\varf0_n)\approx\op{supp}(\varf0^*)$. Such methods are referred to as \emph{safe screening} rules \cite{ElGhaoui2010} which gradually identify the support and allow the optimisation algorithm to constrain parts of the reconstruction to 0. In this subsection we propose a new simple screening rule which is capable of generalising to our continuous subspace approximation setting. It is likely that more advanced methods \cite{Bonnefoy2015,Ndiaye2017} can also be adapted, although that is beyond the scope of this work. The key difference is the allowance of inexact computations resulting from estimates such as \eqref{eq: Taylor approximation}.
+	The main motivation for using \edit{Lasso}{L1 penalties} in applications is because it recovers sparse signals, in the case of compressed sensing the support of $\varf0^*$ is also provably close to the `true' support \cite{Duval2017a,Poon2018}. If $\varf0_n\approx \varf0^*$ in the appropriate sense, then we should also be able to quantify the statement $\op{supp}(\varf0_n)\approx\op{supp}(\varf0^*)$. Such methods are referred to as \emph{safe screening} rules \cite{ElGhaoui2010} which gradually identify the support and allow the optimisation algorithm to constrain parts of the reconstruction to 0. In this subsection we propose a new simple screening rule which is capable of generalising to our continuous subspace approximation setting. It is likely that more advanced methods \cite{Bonnefoy2015,Ndiaye2017} can also be adapted, although that is beyond the scope of this work. The key difference is the allowance of inexact computations resulting from estimates such as \eqref{eq: Taylor approximation}.
 	
 	The support of $\varf0^*$ has already been characterised very precisely \cite{Duval2017a,Poon2018}. In particular, the support is at most $m$ distinct points and are a subset of $\{ \vvarx0\in\Domain \st |\A^*\vvard0^*|(\vvarx0) = \mu\} $ (an equivalent statement holds for the countable case). Less formally, this can also be seen from the the \edit{gradient}{subdifferential} computations in Section~\ref{sec: Lasso gap and gradient}, for all $\vvarx0\in\supp(\varf0^*)$ we have
 	\begin{equation}
@@ -694,7 +693,7 @@
 	
 	Heuristically, we will use strong convexity of $\op{E}^*$ and smoothness of $\A^*$ to quantify the statement:
 	$$ \text{if}\quad \op{E}(\varf0_n) + \op{E}^*(\vars2_0 \vvard0_n) \approx 0 \quad \text{then}\quad \left\{\vvarx0\st \mu - |[\A^*\vvard0_n](\vvarx0)|\ll 1\right\} \subset\{\vvarx0 \st \varf0^*(\vvarx0)=0\}.$$
-	First we use the strong convexity of $\op{E}^*$, if $\vars2_0\vvard0_n$ and $\vvard0^*$ are both dual-feasible then
+	\edit{First we use the strong convexity of $\op{E}^*$}{Recall that $\nabla\op{f}$ is 1-Lipschitz if and only if $\op{f}^*$ is 1-strongly convex. \todo{Is there a reference for this? I can't find it in Rockafellar.} Therefore}, if $\vars2_0\vvard0_n$ and $\vvard0^*$ are both dual-feasible, then
 	\begin{equation}
 		\tfrac12\norm{\vars2_0\vvard0_n-\vvard0^*}_{\ell^2}^2 \leq \op{E}^*(\vars2_0\vvard0_n) - \op{E}^*(\vvard0^*) = \op{E}^*(\vars2_0\vvard0_n) + \op{E}(\varf0^*) \leq \op{E}^*(\vars2_0\vvard0_n) + \op{E}(\varf0_n),
 	\end{equation}
@@ -718,7 +717,7 @@
 	
 	
 	\subsection{Operator norms}\label{sec: smoothing operators}
-	For numerical implementation of Lasso, we are required to accurately estimate several operator norms of $\A$. For $\op{f}$ to be 1-Lipschitz we must divide by $|\A\A^*|_{\ell^2\to\ell^2}$, and the adaptivity described in Sections~\ref{sec: continuous lasso rate}, \ref{sec: bound continuous}, and~\ref{sec: support detection} requires the values of $|\A^*|_{\ell^2\to L^\infty}$, $|\A^*|_{\ell^2\to C^1}$, and $|\A^*|_{\ell^2\to C^2}$. The aim for this section is to provide estimates of these norms and seminorms for the numerical examples presented in Section~\ref{sec: numerics}.
+	For numerical implementation of \edit{Lasso}{\eqref{eq: Lasso energy}}, we are required to accurately estimate several operator norms of $\A$. For $\op{f}$ to be 1-Lipschitz we must divide by $|\A\A^*|_{\ell^2\to\ell^2}$, and the adaptivity described in Sections~\ref{sec: continuous lasso rate}, \ref{sec: bound continuous}, and~\ref{sec: support detection} requires the values of $|\A^*|_{\ell^2\to L^\infty}$, $|\A^*|_{\ell^2\to C^1}$, and $|\A^*|_{\ell^2\to C^2}$. The aim for this section is to provide estimates of these norms and seminorms for the numerical examples presented in Section~\ref{sec: numerics}.
 	
 	We start by specifying the structure of $\A$. By continuity of $\A$, there must exist kernels $\vard1_j\in \F H\cap\spcf0^*$ such that $(\A\varf0)_j = \IP{\vard1_j}{\varf0}$ for all $\varf0\in \F H\cup\spcf0$, $j=1,\ldots,m$. In this form, the adjoint can be written precisely, $\A^*\colon\R^m\to \F H$ by 
 	\begin{equation}
@@ -790,19 +789,19 @@
 	
 	
 	\section{Numerical examples}\label{sec: numerics}
-	We present four numerical Lasso examples. The first two are in 1D to demonstrate the performance of different variants of Algorithm~\ref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \cite{Ekanadham2011,Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in Section~\ref{sec: 1D Lasso examples}.
+	We present four numerical \edit{Lasso }{}examples. The first two are in 1D to demonstrate the performance of different variants of Algorithm~\ref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \cite{Ekanadham2011,Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in Section~\ref{sec: 1D Lasso examples}.
 	
-	The next example is 2D reconstruction from Radon or X-ray data with wavelet-sparsity. As the forward operator is not sufficiently smooth, we must optimise in $\ell^1(\R)$ which naturally leads to the choice of a wavelet basis. 
+	The next example is 2D reconstruction from Radon or X-ray data with wavelet-sparsity\edit{}{ and a robust data fidelity}. As the forward operator is not sufficiently smooth, we must optimise in $\ell^1(\R)$ which naturally leads to the choice of a wavelet basis. 
 	
 	Finally, we process a dataset which represents a realistic application in biological microscopy, referred to as STORM microscopy. In essence, the task is to perform 2D Gaussian de-blurring/super-resolution and denoising to find the location of sparse spikes of signal.
 	
-	In this section, the main aim is to minimise the exact Lasso energy $\op{E}_0(\varf0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\varf0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\varf0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\varf0_n) \approx \min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vvard0_{n'})$. Another quantity of interest is minimisation of the discrete Lasso energy $\min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vvard0_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
+	In this section, the main aim is to minimise the exact \edit{Lasso }{}energy $\op{E}_0(\varf0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\varf0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\varf0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\varf0_n) \approx \min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vvard0_{n'})$. Another quantity of interest is minimisation of the discrete \edit{Lasso }{}energy $\min_{n\leq N}\op{E}(\varf0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vvard0_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
 	
 	The code to reproduce these examples can be found on github\footnote{\href{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}}.
 	
 	
 	\subsection{1D continuous Lasso}\label{sec: 1D Lasso examples}
-	In this example we choose $\spcf0=\C M([0,1])$ and $\A\colon \spcf0\to \R^{30}$ with either random Fourier kernels:
+	In this example we choose $\spcf0=\C M([0,1])$\edit{}{, $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$} and $\A\colon \spcf0\to \R^{30}$ with either random Fourier kernels:
 	\begin{equation}
 		(\A\varf0)_j = \int_0^1\cos(\vars3_j\varx0)\varf0(\varx0), \qquad \vars3_j\sim \op{Uniform}[-100,100],\ j=1,2,\ldots,30,\ \mu =0.02, 
 	\end{equation}
@@ -811,7 +810,7 @@
 		(\A\varf0)_j = (2\pi\sigma^2)^{-\frac12}\int_0^1\exp\left(-\frac{(\varx0-(j-1)\Delta)^2}{2\sigma^2}\right)\varf0(\varx0), \quad \sigma=0.12,\ \Delta = \tfrac1{29},\ j=1,2,\ldots,30,\ \mu=0.06.
 	\end{equation}
 	
-	Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy} (c.f. \cite{Bredies2013,Castro2016,Boyd2017,Catala2019}) however, most \edit{}{require} the solution of a non-convex problem. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. The idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen \cite{Ekanadham2011,Duval2017b}. If $\varf0^*$ has only one Dirac spike in each pixel, then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
+	Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation.\edit{There are many methods designed to minimise the continuous Lasso energy in \eqref{eq: Lasso energy}}{For this choice of $\op{f}$, we call \eqref{eq: Lasso energy} the continuous Lasso problem, for which there are many numerical methods} (c.f. \cite{Bredies2013,Castro2016,Boyd2017,Catala2019}) however, most \edit{}{require} the solution of a non-convex problem. We have focused on CBP because it approximates $\varf0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. The idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen \cite{Ekanadham2011,Duval2017b}. If $\varf0^*$ has only one Dirac spike in each pixel, then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
 	
 	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\vars3_{\Varf0} = \vars3_{\op{E}} = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}_0(\varf0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}_0(\varf0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\spcf0^n$ to approximately enforce
 	\begin{equation}
@@ -903,7 +902,7 @@
 		\caption{Example tree representation of 1D wavelets. Left: nodes, leaves, and mesh of discretisation. Right: arrangement into a tree with index $(j,k)$ and corresponding support of wavelet $w_{j,k}$ underneath.}\label{fig: wavelet tree}
 	\end{figure}
 	
-	\subsection{2D wavelet Lasso}\label{sec: wavelet examples}
+	\subsection{2D \edit{wavelet Lasso}{robust sparse wavelet reconstruction}}\label{sec: wavelet examples}
 	In this example we consider $\A$ to be a 2D Radon transform. In particular, the rows of $\A$ correspond to integrals over the sets $\F{X}^I_i$ where 
 	\begin{equation}
 		\F{X}_i^I = \left\{\vvarx0\in[-\tfrac12,\tfrac12]^2\st \ip{\vvarx0}{\begin{pmatrix}\cos\theta_I\\\sin\theta_I\end{pmatrix}}\in \left[-\tfrac12+\tfrac{i-1}{50},-\tfrac12+\tfrac{i}{50}\right)\right\}, \quad \theta_I=\frac{180^\circ}{51}I \quad \text{ for } i,I=1,2,\ldots,50.
@@ -912,11 +911,18 @@
 	\begin{equation}
 		\norm{\A}_{L^2\to\ell^2} \leq \sqrt{\sum_{I\in[50]}\max_{i\in[50]} |\F{X}^I_i|} = \sqrt{\sum_{I\in[50]}\max_{i\in[50]} \int_{\F{X}^I_i}1d\vvarx0}= \sqrt{\sum_{I\in[50]}\max_{i\in[50]}\ (\A\1)_{i,I}}\;.
 	\end{equation}
-	$\A$ is not smooth, therefore we can't bound $|\A^*|_{C^k}$ for $k>0$, and so we must look to minimise over $\ell^1$ rather than $L^1$. The natural choice is to promote sparsity in a wavelet basis which can be rearranged into the Lasso form:
+	$\A$ is not smooth, therefore we can't bound $|\A^*|_{C^k}$ for $k>0$, and so we must look to minimise over $\ell^1$ rather than $L^1$. The natural choice is to promote sparsity in a wavelet basis which can be rearranged into the \edit{Lasso}{} form \edit{}{of \eqref{eq: Lasso energy}}:
 	\begin{equation}
-		\min_{\varf0\in \spcf0} \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2 + \mu \norm{\tens{W}^{-1}\varf0}_{\ell^1} = \min_{\hat{\varf0}\in\ell^1(\R)} \tfrac12\norm{\A\tens{W}\hat{\varf0}-\data}_{\ell^2}^2 + \mu \norm{\hat{\varf0}}_{\ell^1}.
+		\min_{\varf0\in \spcf0} \edit{\tfrac12\norm{\A\varf0-\data}_{\ell^2}^2}{\op{f}(\A\varf0-\data)} + \mu \norm{\tens{W}^{-1}\varf0}_{\ell^1} = \min_{\hat{\varf0}\in\ell^1(\R)} \edit{\tfrac12\norm{\A\tens{W}\hat{\varf0}-\data}_{\ell^2}^2}{\op{f}(\A\tens{W}\hat{\varf0}-\data)} + \mu \norm{\hat{\varf0}}_{\ell^1}.
 	\end{equation}
-	The minimisers are related by $\varf0^* = \tens{W}\hat{\varf0}^*$ and, for wavelet bases, $\tens{W}$ is orthonormal so $\norm{\A\tens{W}}_{\ell^2\to\ell^2} = \norm{\A}_{L^2\to\ell^2}$. From Section~\ref{sec: Lasso gap and gradient} we know that to track convergence and perform adaptive refinement, it is sufficient to accurately bound $|[\tens{W}^\top \A^*\vvard0_n]_j|$ for all $j\notin J_n$. If $\tens{W}$ is a wavelet transformation then its columns, $w_j\in L^2$, are simply the wavelets themselves and we can use the bound 
+	The minimisers are related by $\varf0^* = \tens{W}\hat{\varf0}^*$ and, for wavelet bases, $\tens{W}$ is orthonormal so $\norm{\A\tens{W}}_{\ell^2\to\ell^2} = \norm{\A}_{L^2\to\ell^2}$. 
+	\edit{}{ In this example we consider the smoothed robust fidelity 
+		\begin{equation}
+			\op{f}(\vvard0) = \sum_{i=1}^m \splitln{10^{-4}|\vard0_i|}{|\vard0_i|\geq10^{-4}}{\tfrac12|\vard0_i|^2+\tfrac12 10^{-8}}{\text{else}} \approx 10^{-4}\norm{\vvard0}_{\ell^1}.
+		\end{equation}
+	\todo{Reference for robust fidelity?}
+	}	
+	From Section~\ref{sec: Lasso gap and gradient} we know that to track convergence and perform adaptive refinement, it is sufficient to accurately bound $|[\tens{W}^\top \A^*\vvard0_n]_j|$ for all $j\notin J_n$. If $\tens{W}$ is a wavelet transformation then its columns, $w_j\in L^2$, are simply the wavelets themselves and we can use the bound 
 	\begin{equation}
 		|\IP{w_j}{\A^*\vvard0_n}| = \left|\IP{w_j}{\1_{\supp(w_j)}\A^*\vvard0_n}\right| \leq \norm{\1_{\supp(w_j)} \A^*\vvard0_n}_{L^2}\leq \norm{\1_{\F{X}} \A^*\vvard0_n}_{L^2}
 	\end{equation}
@@ -935,7 +941,7 @@
 	\end{align}
 	
 	\paragraph{Numerical results}
-	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. No noise is added to the Shepp-Logan data but \SI{5}{\percent} Gaussian white noise is added to the disc data. This is visualised in Figure~\ref{fig: haar data}. All optimisations shown will be spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
+	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. No noise is added to the Shepp-Logan data but \SI{5}{\percent} \edit{Gaussian white}{Laplace distributed} noise is added to the disc data. This is visualised in Figure~\ref{fig: haar data}. All optimisations shown will be spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
 	$$ \norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} -\mu  \leq 10\Norm{\partial_n\op{E}(\varf0_n)}_*$$
 	for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times the discrete gradient).
 	
@@ -943,7 +949,7 @@
 	
 	\begin{figure}\centering
 		\includegraphics[width=.85\textwidth]{haar_data}
-		\caption{Phantoms and data used for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ Gaussian white noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
+		\caption{Phantoms\edit{ and}{,} data \edit{used }{and reconstructions }for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ \edit{Gaussian white}{Laplace distributed} noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
 		
 		\vspace*{\floatsep}
 		
@@ -957,7 +963,7 @@
 	\end{figure}
 	
 	\subsection{2D continuous Lasso}
-	Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. In mathematical terms, the observed data is a large number of sparse images which are corrupted by blurring and a large amount of noise, examples are seen in Figure~\ref{fig: STORM data}. The task is to compute the centres of the spikes of signal in each image and then re-combine into a single super-resolved image, as in Figure~\ref{fig: STORM results}. This technique is referred to as \emph{Single Molecule Localisation Microscopy} (SMLM), of which we consider the specific example of \emph{Stochastic Optical Reconstruction Microscopy} (STORM). Readers are directed to the references \cite{Sage2015,Sage2019,Schermelleh2019} for further details. The Lasso formulation has previously been shown to be effective in the context of STORM \cite{Huang2017,Denoyelle2019}.
+	Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. In mathematical terms, the observed data is a large number of sparse images which are corrupted by blurring and a large amount of noise, examples are seen in Figure~\ref{fig: STORM data}. The task is to compute the centres of the spikes of signal in each image and then re-combine into a single super-resolved image, as in Figure~\ref{fig: STORM results}. This technique is referred to as \emph{Single Molecule Localisation Microscopy} (SMLM), of which we consider the specific example of \emph{Stochastic Optical Reconstruction Microscopy} (STORM). Readers are directed to the references \cite{Sage2015,Sage2019,Schermelleh2019} for further details. The Lasso formulation \edit{}{($\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$) }has previously been shown to be effective in the context of STORM \cite{Huang2017,Denoyelle2019}.
 	
 	Here we use a simulated dataset provided as part of the 2016 SMLM challenge\footnote{\url{http://bigwww.epfl.ch/smlm/challenge2016/datasets/MT4.N2.HD/Data/data.html}} for benchmarking software in this application. The corresponding Lasso formulation is 
 	\begin{equation}
