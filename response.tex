@@ -34,7 +34,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \begin{enumerate}
 	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $w_n$ converge for the various versions of FISTA.} 
 	
-	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. More generally, FISTA is known to converge weakly in the Hilbert-space setting. This is also likely to hold with our algorithm when the minimiser is in $\F H$ but we have not performed the analysis as it is still a relatively special case. A key component of the proof is the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain any convergence in the Banach space.
+	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. More generally, FISTA is known to converge weakly in the Hilbert-space setting. This is also likely to hold with our algorithm when the minimiser is in $\F H$, but we have not verified this special case. A key component of the proof is the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain any convergence in the Banach space. In the LASSO case we know that the sequence is bounded in the L1 norm, so a subsequence must converge weakly, however, it's still unclear how to upgrade from convergence of a sub-sequence to full convergence.
 	
 	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
 	
@@ -54,8 +54,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
 	
-	You are right, we can also consider alternative misfits. We have replaced the wavelet example with a (Huber-smoothed) robust $\ell^1$ penalty as we only explicitly required the gradient and Lipschitz constant for computations.
-	\todo{Maybe too much work to rewrite?}
+	You are right, we can also consider alternative misfits. We have replaced the wavelet example in Section 7.2 with a (Huber-smoothed) robust $\ell^1$ penalty as we only explicitly required the gradient and Lipschitz constant for computations. This also led to a number of small updates to the analysis in Section 6 to generalise to a non-quadratic misfit.
 	
 	\item \review{page 17, line 28: missing word? ``most require''?}
 	
@@ -69,7 +68,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \end{enumerate}
 
 \section{Detailed response to second reviewer}
-We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the orthogonal projection was not needed at all, and we now allow $U^n$ to be subsets of $\F H$ rather than subspaces. The Banach space setting is reserved for examples discussed in Sections 5 to 7.
+We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the orthogonal projection was not required either, we now allow $U^n$ to be subsets of $\F H$ rather than subspaces. The Banach space setting is reserved for examples discussed in Sections 5 to 7.
 
 \begin{enumerate}
 	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}
