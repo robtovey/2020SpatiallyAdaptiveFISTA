@@ -20,8 +20,8 @@ from numpy import (empty, array, zeros, isscalar, log, pi, sqrt, log10,
 from scipy.sparse import csr_matrix
 from numpy.linalg import norm
 from matplotlib import pyplot as plt
-from sparse_bin import (jit, FTYPE, ker2mat1, ker2mat2, ker2func1, ker2func2, ker2meshmat2,
-    ker2meshfunc2, _blur_coarse)
+from sparse_bin import jit, FTYPE, _blur_coarse
+from sparse_ops import func, kernelMap, op, ker2meshmat2, ker2meshfunc2, sparse_matvec
 from math import (exp as c_exp, erf as c_erf, sin as c_sin, cos as c_cos, sqrt as c_sqrt, floor)
 from algorithms import (stopping_criterion, faster_FISTA, _makeVid,
     FB, shrink, shrink_vec, FISTA)
@@ -109,196 +109,6 @@ class const_plus_func(Array):
             assert len(like) == 2
             c, f = like[0], self.f.copy(like[1])
         return const_plus_func(c, f)
-
-
-class func:
-
-    def __init__(self, y, handles):
-        self.y = y
-        self.func = handles
-        self.__norm = {}
-
-    # Evaluate the function on the mesh depending on flag:
-    #    default: evaluate average per pixel
-    #    flag=1: evaluate at midpoint per pixel
-    #    flag=2: evaluate gradiant at midpoint per pixel
-    def discretise(self, dof_map, flag=0):
-        if flag == 2 and dof_map.shape[1] > 2:
-            out = empty((dof_map.shape[0], dof_map.shape[1] - 1), dtype=FTYPE)
-        else:
-            out = empty(dof_map.shape[0], dtype=FTYPE)
-
-        if flag == 1:
-            self.func['eval_mesh'](out, self.y, dof_map)
-        elif flag == 2:
-            self.func['grad_mesh'](out, self.y, dof_map)
-        else:
-            self.func['av_mesh'](out, self.y, dof_map)
-        return out
-
-    # Return upper bound of |d^kf|_\infty
-    def norm(self, k):
-        if k not in self.__norm:
-            self.__norm[k] = self.func['norm'](self.y, k)
-        return self.__norm[k]
-
-    # Estimate |f|_\infty given mesh
-    def max_abs(self, dof_map):
-        out = empty(dof_map.shape[0], dtype=FTYPE)
-        self.func['max_abs'](out, self.y, dof_map, self.norm(2))
-        return out
-
-class op:
-
-    def __init__(self, fwrd, bwrd, in_sz=None, out_sz=None,
-                 norm=None, T=None):
-        self._fwrd, self._bwrd = fwrd, bwrd
-
-        self.shape = [-1 if in_sz is None else prod(in_sz),
-                      -1 if out_sz is None else prod(out_sz)]
-        self._shape = [in_sz, out_sz]
-
-        if norm is None:
-            if out_sz is not None and self.shape[1] > 0:
-                tmp = random.randn(self.shape[1])
-                func = lambda t: fwrd(bwrd(t))
-            elif in_sz is not None and self.shape[0] > 0:
-                tmp = random.randn(self.shape[0])
-                func = lambda t: bwrd(fwrd(t))
-            else:
-                raise ValueError('If norm is not provided then must provide shape information')
-            norm = 0
-            for _ in range(100):
-                tmp = func(tmp)
-                norm, oldnorm = Norm(tmp), norm
-                if norm > oldnorm and (norm - oldnorm < 1e-10 or oldnorm / norm > 1 - 1e-6):
-                    break
-                tmp /= norm
-            norm = norm ** .5
-        self._norm = norm
-        self.T = op(bwrd, fwrd, out_sz, in_sz, norm, self) if T is None else T
-
-    def __call__(self, other, *args, **kwargs):
-        if self._shape[0] is not None:
-            other = other.reshape(self._shape[0])
-        out = self._fwrd(other, *args, **kwargs)
-        if self._shape[1] is not None:
-            out = out.reshape(self._shape[1])
-        return out
-
-    __mul__ = __call__
-
-    def adjoint(self, other):
-        if self._shape[1] is not None:
-            other = other.reshape(self._shape[1])
-        out = self._bwrd(other)
-        if self._shape[0] is not None:
-            out = out.reshape(self._shape[0])
-        return out
-
-    @property
-    def norm(self): return self._norm
-
-    def to_matrix(self, *args, adjoint=False, **kwargs):
-        if not adjoint:
-            mat = self._to_matrix(*args, **kwargs)
-        else:
-            mat = self._to_matrixT(*args, **kwargs)
-        # TODO: implement a default to_matrix method
-        return mat
-
-class kernelMap(op):
-
-    def __init__(self, dim, x, base_eval, base_grad, base_int,
-                 IP, mat_norm, func_norm, Norm=-1):
-        '''
-        Represents a linear map such that:
-            (A\mu)_i = \int k(x,p_i)mu(x)dx
-        whenever mu is a sparse_func element.
-        '''
-        op.__init__(self, self.fwrd, self.bwrd, out_sz=x.shape[0], norm=Norm)
-        self.x = x
-        self.dim = dim
-
-        if dim == 1:
-            self._bin = ker2mat1(base_eval, base_grad, base_int, IP)
-            self._func_bin = ker2func1(base_eval, base_grad, base_int)
-        elif dim == 2:
-            self._bin = ker2mat2(base_eval, base_grad, base_int, IP)
-            self._func_bin = ker2func2(base_eval, base_grad, base_int)
-        self._bin.update({'base_eval':base_eval, 'base_grad':base_grad, 'base_int':base_int, 'norm':mat_norm})
-        self._func_bin['norm'] = func_norm
-
-        if Norm < 0:
-            tmp = empty((self.x.shape[0],) * 2, dtype=FTYPE)
-            self._bin['to_matrix2'](tmp)
-            self._norm = norm(tmp, 2) ** .5
-            print('norm: ', self._norm)
-        self.__gnorm = {}
-        self.__buf = [None, None, None, None]
-        self.__rows = None
-
-    def update(self, FS, indcs=None):
-        DM, CM = FS.dof_map, FS.coarse_map
-        self.__buf[0] = DM
-        self.__buf[1] = CM
-        self.__buf[2] = self._to_matrix(DM)
-        if DM[:,-1].max() == 0:
-            self.__buf[3] = self.__buf[2].T
-        else:
-            self.__buf[3] = self.__buf[2].T / DM[:, -1:] ** (self.dim)
-
-    def fwrd(self, m, FS=None):
-        if isinstance(m, Array):
-            dof_map = m.dof_map
-            m = m.ravel()  # m.x.shape = (n,1)
-        elif FS is not None:
-            dof_map = FS.dof_map if hasattr(FS, 'dof_map') else FS
-        else:
-            out = empty(self.x.shape[0], dtype=FTYPE)
-            # discrete measure
-            for j in range(out.shape[0]):
-                out[j] = sum(m[i, 0] * self._bin['base_eval'](j, *m[i, 1:]) for i in range(m.shape[0]))
-            return out
-
-        if dof_map is self.__buf[0]:
-            return self.__buf[2].dot(m)
-        else:
-            out = empty(self.x.shape[0], dtype=FTYPE)
-            self._bin['fwrd'](out, m, dof_map)
-        return out
-
-    def bwrd(self, s, FS=None):
-        if FS is None:
-            return func(s, self._func_bin)
-        dof_map = FS.dof_map if hasattr(FS, 'dof_map') else FS
-        if dof_map is self.__buf[0]:
-            return self.__buf[3].dot(s).reshape(-1, 1)
-        else:
-            out = empty(FS.size, dtype=FTYPE)
-            self._bin['bwrd'](out, s, FS.dof_map)
-            return out.reshape(-1, 1)
-
-    def _to_matrix(self, FS, flag=0):
-        if flag == 2 and self.dim > 1:
-            raise NotImplementedError
-        if hasattr(FS, 'dof_map'):
-            FS = FS.dof_map
-        out = empty((self.x.shape[0], FS.shape[0]), dtype=FTYPE)
-        self._bin['to_matrix'](out, FS, flag)
-        return out
-
-    def _to_matrixT(self, FS):
-        if hasattr(FS, 'dof_map'):
-            FS = FS.dof_map
-        out = empty((FS.shape[0], self.x.shape[0]), dtype=FTYPE)
-        self._bin['to_matrixT'](out, FS)
-        return out
-
-    def gnorm(self, k):
-        if k not in self.__gnorm:
-            self.__gnorm[k] = self._bin['norm'](k)
-        return self.__gnorm[k]
 
 
 class kernelMap1D(kernelMap):
@@ -635,7 +445,7 @@ class kernelMapMesh2D(op):
 
     def _fat_dof_map(self, dof_map):
         fat_DM = dof_map.copy()
-        fat_DM[:, :-1] -= self.__params['r']
+        fat_DM[:,:-1] -= self.__params['r']
         fat_DM[:, -1] += 2 * self.__params['r']
         return fat_DM
 
@@ -644,14 +454,14 @@ class kernelMapMesh2D(op):
         FS = FS.FS if hasattr(FS, 'FS') else FS
         self._buf['DM'] = DM
         self._buf['CM'] = self._blur_coarse(FS.coarse_map)
-        
-        if DM[:,-1].max() == 0:
-            self._buf['bwrd_mat'] = csr_matrix((DM.shape[0], self.x.size ** 2),dtype=FTYPE)
-            self._buf['fwrd_mat'] = csr_matrix((self.x.size ** 2, DM.shape[0]),dtype=FTYPE)
+
+        if DM[:, -1].max() == 0:
+            self._buf['bwrd_mat'] = csr_matrix((DM.shape[0], self.x.size ** 2), dtype=FTYPE)
+            self._buf['fwrd_mat'] = csr_matrix((self.x.size ** 2, DM.shape[0]), dtype=FTYPE)
 #             self._buf['bwrd_mat'] = self._to_matrixT(FS)
 #             self._buf['fwrd_mat'] = self._buf['bwrd_mat'].T * DM[:, -1:].T ** (self.dim)
         else:
-    
+
             total_sz = ((DM[:, -1] + self.__params['r']) / self.__params['dx']).astype('int32') + 1
             total_sz = ((2 * total_sz + 1) ** 2).sum()
             ptr, indcs = empty(DM.shape[0] + 1, dtype='int32'), empty(total_sz, dtype='int32')
@@ -1068,7 +878,7 @@ class CBPArray:
     def asarray(self): return concatenate([a.reshape(-1, 1) for a in self.x], axis=1)
 
     def ravel(self): return concatenate([a.ravel() for a in self.x], axis=0)
-        
+
     def update(self, *args):
         self.x = args if len(args) > 1 else args[0]
 
@@ -1428,9 +1238,9 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", message='Data has no positive values, and therefore cannot be log-scaled.')
     from numpy import random
 
-    test = 2
+    test = 3
     if test == 1:  # check kernel maps
-        from sparse_bin import _test_op
+        from sparse_ops import _test_op
         sigma = .1
         x = linspace(0, 1, 11)
         A = kernelMap1D(ker='Gaussian', x=x, sigma=sigma)

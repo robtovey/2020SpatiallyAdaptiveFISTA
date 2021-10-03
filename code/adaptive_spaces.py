@@ -7,14 +7,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
 from numba import jit, prange
+from numpy import log2
+from numba.typed import List
 __params = {'nopython':True, 'parallel':False, 'fastmath':True, 'cache':True}
 __pparams = __params.copy(); __pparams['parallel'] = True
 __cparams = __params.copy(); __cparams['cache'] = False
 EPS, FTYPE = 1e-25, 'float64'
 
-# region ########################################
-# Numba wrapping of pymorton
-# endregion #####################################
+pass  # Numba wrapping of pymorton
 
 from pymorton import __part1by1, __part1by2, __unpart1by1, __unpart1by2
 pm_p1b1, pm_p1b2, pm_u1b1, pm_u1b2 = [jit()(f) for f in (__part1by1, __part1by2, __unpart1by1, __unpart1by2)]
@@ -42,9 +42,9 @@ def deinterleave3(i, j, k, out):
     out[2] = pm_u1b2(k) >> 2
 
 
-# region ########################################
-# Adaptive meshing
-# endregion #####################################
+pass  # Adaptive meshing
+
+
 class adaptive_mesh:  # odl RectPartition
 
     def __init__(self, init=0, dim=1, coarse_level=5, _parent=None):
@@ -61,20 +61,23 @@ class adaptive_mesh:  # odl RectPartition
         self.coarse_level = coarse_level
 
         # TODO: this needs better stability/robustness/utilisation
+        # Tracks which mesh is the 'newest'
         self.parent = _parent
         self.age = 0 if _parent is None else _parent.age + 1
 
         self.__buf = [np.zeros([1] * dim, dtype='int32'), np.zeros([1, dim], dtype='int32')]
 
-        if type(init) is int:
+        # dof_map[i] = (x,y,...,h) position and size of pixel i
+        # h = minimum pixel size
+        if type(init) is int:  # produce uniform mesh with <init> refinements
             self.dof_map = np.array([(0,) * dim + (1,)], dtype=FTYPE)
             self.h = 1
             for _ in range(init):
                 self.refine()
-        elif init.shape[0] == 0:
+        elif init.shape[0] == 0:  # empty initialisation, only 1 big pixel
             self.dof_map = np.array([(0,) * dim + (1,)], dtype=FTYPE)
             self.h = 1
-        else:
+        else:  # dof_map is given
             assert init.shape[1] == dim + 1
             self.dof_map = init
             self.h = self.dof_map[:, -1].min()
@@ -92,11 +95,12 @@ class adaptive_mesh:  # odl RectPartition
             <0 indicates removal
         '''
 
-        if self.dof_map.shape[0]==1 and self.dof_map[0,-1]==0:
+        # TODO: what is this for? Single width 0 pixel?
+        if self.dof_map.shape[0] == 1 and self.dof_map[0, -1] == 0:
             self.update()
             return
 
-        if indcs is None:
+        if indcs is None:  # refine all
             indcs = np.empty(self.size, dtype='int32')
             indcs.fill(1)
         else:
@@ -108,21 +112,26 @@ class adaptive_mesh:  # odl RectPartition
         new = np.empty((tot_len, self.dof_map.shape[1]), dtype=FTYPE)
         if new.size > 0:
             end = self._refine(new, self.dof_map, indcs, self.__splitarr)
-            new = new[:end] # cut off unnecessary elements
+            new = new[:end]  # cut off unnecessary elements
         if new.size > 0:
             self.dof_map = new
-        else:
-            self.dof_map = np.array([(0,) * self.dim + (0,)], dtype=FTYPE) # 1 box of width 0
+        else:  # TODO: is this the right trivial element?
+            self.dof_map = np.array([(0,) * self.dim + (0,)], dtype=FTYPE)  # 1 box of width 0
 
         self.h = self.dof_map[:, -1].min()
         self.age += 1
         self.update()
 
     def fine2coarse(self, dof_map, coarse_level):
+        '''
+        Pre-compute the indices which correspond to pixels in a coarse discretisation.
+        Say coarse_map[i0,i1,...] = j0,j1
+        where region coarse pixel (i0,i1) includes dofs [j0,j1-1] inclusive. 
+        '''
         scale = 2 ** coarse_level
 
         coarse_map = np.empty((scale,) * self.dim + (2,), dtype=int)
-        coarse_map[..., :] = self.size, -1  # identify areas with no pixels
+        coarse_map[...,:] = self.size, -1  # identify areas with no pixels
 
         self._fine2coarse(dof_map, coarse_map, 1 / scale)
         return coarse_map
@@ -199,22 +208,43 @@ class adaptive_mesh:  # odl RectPartition
 class sparse_mesh(adaptive_mesh):
 
     def _refine(self, new, dof_map, indcs, splitarr):
+        # refine mesh means removing the old pixel and replacing it with smaller new ones
         return _refine_mesh(new, dof_map, indcs, splitarr)
+
+    @property
+    def size(self): return self.dof_map.shape[0]
+    @property
+    def shape(self): return self.dof_map.shape[0], 1
 
 
 class sparse_tree(adaptive_mesh):
 
     def _refine(self, new, dof_map, indcs, splitarr):
-        return _refine_tree(new, dof_map, indcs, splitarr)
+        if not hasattr(self, 'isleaf'):
+            self.isleaf = np.empty(dof_map.shape[0], dtype=bool)
+            _isleaf(dof_map, self.isleaf)
+        oldisleaf = self.isleaf
+        newisleaf = np.empty(new.shape[0], dtype=bool)
+
+        # refine tree means keeping old pixel and adding smaller new ones
+        end = _refine_tree(new, newisleaf, dof_map, oldisleaf, indcs, splitarr)
+        self.isleaf = newisleaf[:end]
+        return end
 
     def _update(self):
-        self.isleaf = np.empty(self.size, dtype=bool)
-        _isleaf(self.dof_map, self.isleaf)
+        if not hasattr(self, 'isleaf'):
+            self.isleaf = np.empty(self.size, dtype=bool)
+            _isleaf(self.dof_map, self.isleaf)
+
+    @property
+    def size(self): return self.dof_map.shape[0]
+    @property
+    def shape(self): return self.dof_map.shape[0], 2 ** self.dim - 1
 
 
-# region ########################################
-# Adaptive function spaces
-# endregion #####################################
+pass  # Adaptive function spaces
+
+
 class adaptive_FS(adaptive_mesh):  # odl DiscretizedSpace
     # This is slightly lazy, implicitly adaptive_FS inherits from two concepts:
     # adaptive meshes and function spaces
@@ -443,15 +473,14 @@ class Haar_FS(sparse_tree, adaptive_FS):
             sz = (maps[0].shape[0] + 1, 2 ** self.dim - 1)
         x = np.zeros(sz, dtype=FTYPE)
         x[0, 0] = v
-        return Haar_function(x, self)
+        return Haar_function(x, self, maps=maps)
 
-    def _integrate(self, x, dof_map):
-        return x[0, 0]
+    def _integrate(self, x, dof_map): return x[0, 0]
 
     def _inner(self, x, y, dof_map):
-        x, y = x.reshape(-1), y.reshape(-1)
-        n = 2 ** self.dim - 1
-        return x[0] * y[0] + x[n:].dot(y[n:])
+        x, y = x.ravel(), y.ravel()
+        n = 2 ** self.dim - 1  # first few entries are not wavelets
+        return x[0] * y[0] + x[n:].dot(y[n:])  # orthogonal basis
 
     def _old2new(self, new_arr, new_DM, old_arr, old_DM):
         if self.dim == 1:
@@ -464,15 +493,16 @@ class Haar_FS(sparse_tree, adaptive_FS):
         f(new_arr[1:], new_DM, old_arr[1:], old_DM)
 
 
-# region ########################################
-# Adaptive functions
-# endregion #####################################
+pass  # Adaptive functions
+
+
 class adaptive_func:  # odl DiscretizedSpaceElement
 
     def __init__(self, arr, FS, maps=None):
         self.maps = FS if maps is None else maps
         self.x = arr
         self.FS = FS
+        assert self.x.shape[0] == self.dof_map.shape[0] + 1
 
     def asarray(self): return self.x
 
@@ -762,7 +792,7 @@ class sparse_func1D(sparse_func):
             # post-filtering: x[:sz] contains all pixels which have not yet
             #     been discretised (size >2^{-L})
             #     img[L] is the discretisation of pixels size 2^{-L}
-            sz = _filter_sparse1D(X, DM, x, dm, img[L], 2.** -L)
+            sz = _sparse2discrete1D(X, DM, x, dm, img[L], 2.** -L)
             # cut off excess buffer for next iteration
             X, DM = x[:sz], dm[:sz]
 
@@ -874,7 +904,7 @@ class sparse_func2D(sparse_func):
         return self.copy(x)
 
     def plot(self, level, ax=None, update=None, mass=False,
-             scale=None, background=0, **kwargs):
+             scale=None, background=0, extent=[0, 1, 0, 1], **kwargs):
         '''
         out = self.plot(level, ax=None, update=None,
                 mass=False, scale=None, background=0, **kwargs)
@@ -901,12 +931,17 @@ class sparse_func2D(sparse_func):
         if update is not None:
             return update.set_data(y)
         ax = ax if ax is not None else plt.gca()
-        return ax.imshow(y, origin='lower', extent=[0, 1, 0, 1], **kwargs)
+        return ax.imshow(y, origin='lower', extent=extent, **kwargs)
 
     def _copy(self, arr, FS, maps): return sparse_func2D(arr, FS, maps)
 
 
 def sparse_function(arr, FS, *args, **kwargs):
+    '''
+    u = sparse_function()
+    u.dof_map[i] = (x,y,...,h) is positions and size of pixel[i]
+    u.x[i] is amplitude of function on pixel[i], not mass
+    '''
     if FS.dim == 1:
         return sparse_func1D(arr, FS, *args, **kwargs)
     elif FS.dim == 2:
@@ -1001,6 +1036,7 @@ class Haar_func1D(wave_func):
         eps = abs(y).max() * 1e-8
 
         if update is not None:  # not yet implemented
+            ax = update
             ax.clear()
 
         # place in middle of support (at jump)
@@ -1027,6 +1063,7 @@ class Haar_func2D(wave_func):
         assert FS.dim == 2
         wave_func.__init__(self, arr, FS, maps)
 
+        # TODO: half of this is bollocks
         '''
         dof_map[d] = (level, index0, index1, index2)
         arr[d] = (v0, v1, v2)
@@ -1056,36 +1093,61 @@ class Haar_func2D(wave_func):
         '''
 
     def discretise(self, level):
-        out = np.empty((2 ** level,) * 2, dtype='float64')
-        _discretise_Haar2D(self.x[0, 0], self.x[1:], self.dof_map, 1, out)
-        return out
+        X, DM = self.x[1:], self.dof_map
+        # preallocate storage for each level of discretisation
+        img = [np.zeros((2 ** L,) * 2, dtype=FTYPE) for L in range(level + 1)]
+        for L in range(level, 0, -1):  # start with fine pixels and proceed to coarse
+            # initialise buffers to store all pixels size > 2^{-L}
+            x, dm = np.empty(X.shape, dtype=FTYPE), np.empty(DM.shape, dtype=FTYPE)
+            # pre-filtering: X contains all pixels to be discretised
+            # post-filtering: x[:sz] contains all pixels which have not yet
+            #     been discretised (size >2^{-L})
+            #     img[L] is the discretisation of pixels size 2^{-L}
+            sz = _filter_Haar2D(X, DM, x, dm, img[L], 2.** (1 - L))
+            # cut off excess buffer for next iteration
+            X, DM = x[:sz], dm[:sz]
+        img[0][0, 0] = self.x[0, 0]
+
+        for L in range(level):
+            # img[L] is the discretisation of pixels >= 2^{-L}
+            # img[L+1] is the discretisation of pixels = 2^{-L-1}
+            _upscale_sparse2D(img[L], img[L + 1])
+            # img[L+1] is the discretisation of pixels >= 2^{-L-1}
+
+#         out = np.empty((2 ** level,) * 2, dtype='float64')
+#         _discretise_Haar2D(self.x[0, 0], self.x[1:], self.dof_map, 1, out)
+        return img[-1]
 
     def from_discrete(self, arr):
         assert arr.shape[0] == arr.shape[1]  # square input
         level = int(np.log2(arr.shape[0]).round())
         assert arr.shape[0] == 2 ** level  # power of 2 size
 
+        img = [np.empty((2 ** L,) * 2, dtype=FTYPE) for L in range(level)] + [np.require(arr, requirements='C')]
+        for L in range(level, 0, -1):  # start with fine pixels and proceed to coarse
+            _downsample_2D(img[L], img[L - 1])
+
         x = np.empty(self.x.shape, dtype='float64')
-        x[0, 0] = _from_discrete_Haar2D(arr, self.dof_map, 1, x[1:])
+        x[0, 0] = img[0][0, 0]
         x[0, 1:] = 0
+        _from_discrete_Haar2D(List(img[1:]), self.dof_map, -log2(self.dof_map[:, 2]).astype('int32'), x[1:])
 
         return self.copy(x)
 
-    def plot(self, level, ax=None, update=None, **kwargs):
+    def plot(self, level, ax=None, update=None, extent=[0, 1, 0, 1], **kwargs):
         y = self.discretise(level)
         if update:
             return update.set_data(y)
         ax = ax if ax is not None else plt.gca()
-        return ax.imshow(y, origin='lower', extent=[0, 1, 0, 1], **kwargs)
+        return ax.imshow(y, origin='lower', extent=extent, **kwargs)
 
-    def plot_tree(self, ax=None, update=None, **kwargs):
+    def plot_tree(self, ax=None, update=None, level=5, **kwargs):
         ax = ax if ax is not None else plt.gca()
         y = self.x[1:]
         eps = abs(y).max() * 1e-10
 
         # place in middle of support (at jump)
-        x = self.dof_map[:, :2] + .5 * self.dof_map[:, 2:]
-        x[0, :] = 0.01
+        x = self.dof_map[:, 1::-1] + .5 * self.dof_map[:, -1:]
 
         # do plotting
         lines = []
@@ -1095,7 +1157,7 @@ class Haar_func2D(wave_func):
         else:
             tmp *= 0; eps = 0 * eps + 1
         I = [i for i in range(tmp.size) if tmp[i] <= eps]
-        L = ax.hist2d(x[:, 0], x[:, 1], range=[[0, 1], [0, 1]],
+        L = ax.hist2d(x[:, 1], x[:, 0], range=[[0, 1], [0, 1]],
                                bins=min(100, 1 + int(x.shape[0] ** .5 / 10)), density=True)
         ax.clear()
         lines.append(ax.imshow(L[0], origin='lower', interpolation='bicubic',
@@ -1108,15 +1170,16 @@ class Haar_func2D(wave_func):
         cmap = LinearSegmentedColormap('k2r', cmap)
         if y.shape[0] < 50 ** 2:
             lines.append(ax.scatter(x[I, 1], x[I, 0], 2, tmp[I], '.', cmap=cmap, **kwargs))
-        I = [i for i in range(tmp.size) if tmp[i] > eps]
-        lines.append(ax.scatter(x[I, 1], x[I, 0], 40, tmp[I], '*', cmap=cmap, **kwargs))
+        I = (tmp > eps) * (self.dof_map[:, 2] > 2 ** -level)
+#         [i for i in range(tmp.size) if tmp[i] > eps]
+        lines.append(ax.scatter(x[I, 0], x[I, 1], 40, tmp[I], '*', cmap=cmap, **kwargs))
 
         ax.set_aspect('equal', 'box')
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.set_xlabel('Jump location x')
         ax.set_ylabel('Jump location y')
-        ax.set_title('Logarithmic intensity in red, density in blue')
+        ax.set_title('Log. intensity in red, density in blue')
 
         return lines
 
@@ -1132,9 +1195,9 @@ def Haar_function(arr, FS, *args, **kwargs):
         raise NotImplementedError
 
 
-# region ########################################
-# Compiled functions for meshes
-# endregion #####################################
+pass  # Compiled functions for meshes
+
+
 @jit(**__params)
 def _refine_mesh(new, old, indcs, c):
     '''
@@ -1159,46 +1222,33 @@ def _refine_mesh(new, old, indcs, c):
     return j
 
 
-# @jit(**__params)
-def _refine_tree(new, old, indcs, c):
+@jit(**__params)
+def _refine_tree(new, n_isleaf, old, o_isleaf, indcs, c):
     '''
-    Refining a mesh, if a pixel is refined then the old one is kept.
+    Refining a tree, if a pixel is refined then the old one is kept.
     Coarsening is not yet supported.
     '''
     # TODO: implement tree coarsening
-    j, dim = 0, new.shape[1] - 1
-    for i in range(indcs.size - 1):
+    j = 0
+    for i in range(indcs.size):
         I = indcs[i]
         if I <= 0:  # ignore request to coarsen
-            for k in range(dim + 1):
-                new[j, k] = old[i, k]
+            new[j,:] = old[i,:]
+            n_isleaf[j] = o_isleaf[i]
             j += 1
         elif I > 0:
             # keep old pixel
-            for k in range(dim + 1):
-                new[j, k] = old[i, k]
+            new[j,:] = old[i,:]
+            n_isleaf[j] = False
             j += 1
-            NOT_LEAF = True
-            for k in range(dim):
-                NOT_LEAF = NOT_LEAF and (old[i + 1, k] == old[i, k])
-            if not NOT_LEAF:  # only refine leaf nodes
+            if o_isleaf[i]:  # perform refinement
                 h = .5 * old[i, c.shape[1]]
                 for k0 in range(c.shape[0]):  # loop over new pixels
                     for k1 in range(c.shape[1]):  # loop over dimensions
                         new[j, k1] = old[i, k1] + h * c[k0, k1]
                     new[j, c.shape[1]] = h
+                    n_isleaf[j] = True
                     j += 1
-    i = indcs.size - 1
-    for k in range(dim + 1):
-        new[j, k] = old[i, k]
-    j += 1
-    if indcs[i] > 0:  # last node is always a leaf
-        h = .5 * old[i, c.shape[1]]
-        for k0 in range(c.shape[0]):  # loop over new pixels
-            for k1 in range(c.shape[1]):  # loop over dimensions
-                new[j, k1] = old[i, k1] + h * c[k0, k1]
-            new[j, c.shape[1]] = h
-            j += 1
     return j
 
 
@@ -1250,9 +1300,9 @@ def _isleaf(dof_map, arr):
     arr[dof_map.shape[0] - 1] = True
 
 
-# region ########################################
-# Compiled functions for functions
-# endregion #####################################
+pass  # Compiled functions for re-meshing
+
+
 @jit(**__params)
 def _old2new_mesh1(new, new_DM, old, old_DM):
     i, I = 0, 0
@@ -1320,9 +1370,12 @@ def _old2new_tree2(new, new_DM, old, old_DM):
         elif j < J:  # old box too far ahead
 #             new[i] = 0
             i += 1
-        else:  # new contains old
+        else:  # new equals old
             new[i] = old[I]
             i += 1; I += 1
+
+
+pass  # Compiled functions for parsing arrays
 
 
 @jit(**__params)
@@ -1342,15 +1395,16 @@ def _square_intersect2D(x0, y0, x1, y1, px0, py0, px1, py1):
 
 
 @jit(**__params)
-def _filter_sparse1D(old, old_DM, new, new_DM, coarse, s):
+def _sparse2discrete1D(old, old_DM, new, new_DM, coarse, s):
     i, t = 0, 1 / s
     for j in range(old.size):  # for each mesh point
         if old_DM[j, 1] <= s:
-            # if cell size smaller than s then discretise by average intensity
+            # if mesh size smaller than s then discretise by average intensity
             i0 = int(old_DM[j, 0] * t)
             coarse[i0] += old[j] * (old_DM[j, 1] * t)
         else:
-            # if cell size larger than s then copy to new list of cells
+            # if mesh size larger than s then copy to new list of cells
+            # to add to discretisation later
             new[i] = old[j]
             new_DM[i, 0], new_DM[i, 1] = old_DM[j, 0], old_DM[j, 1]
             i += 1
@@ -1401,7 +1455,7 @@ def _filter_sparse2D(old, old_DM, new, new_DM, coarse, s):
         else:
             # if cell size larger than s then copy to new list of cells
             new[i] = old[j]
-            new_DM[i, 0], new_DM[i, 1], new_DM[i, 2] = old_DM[j, 0], old_DM[j, 1], old_DM[j, 2]
+            new_DM[i] = old_DM[j]
             i += 1
     return i
 
@@ -1493,69 +1547,54 @@ def _from_discrete_Haar1D(arr, dof_map, h, out):
     return value0 + value1
 
 
-@jit(**__cparams)
-def _discretise_Haar2D(value, arr, dof_map, h, out):
-    if arr.shape[0] == 0:
-        out[:] = value
-        return
-
-    h *= .5
-    I = np.array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 2] == h:
-                I[j] = i
-                j += 1
+@jit(**__params)
+def _filter_Haar2D(old, old_DM, new, new_DM, coarse, s):
+    i = 0; t = 1 / s; scale = 1 / s
+    for j in range(old.shape[0]):
+        h = old_DM[j, 2]
+        if h > s:  # save for future filtering
+            new[i] = old[j]
+            new_DM[i] = old_DM[j]
             i += 1
+        elif h == s:
+            i0, i1 = int(old_DM[j, 0] * t), int(old_DM[j, 1] * t)
+            coarse[2 * i0, 2 * i1] = scale * (-old[j, 0] - old[j, 1] + old[j, 2])
+            coarse[2 * i0, 2 * i1 + 1] = scale * (-old[j, 0] + old[j, 1] - old[j, 2])
+            coarse[2 * i0 + 1, 2 * i1] = scale * (+old[j, 0] - old[j, 1] - old[j, 2])
+            coarse[2 * i0 + 1, 2 * i1 + 1] = scale * (+old[j, 0] + old[j, 1] + old[j, 2])
+    return i
 
-    scale, N = .5 / h, out.shape[0] // 2
-    _discretise_Haar2D(value + scale * (-arr[0, 0] - arr[0, 1] + arr[0, 2]),
-                  arr[I[0]:I[1]], dof_map[I[0]:I[1]], h, out[:N, :N])
-    _discretise_Haar2D(value + scale * (-arr[0, 0] + arr[0, 1] - arr[0, 2]),
-                  arr[I[1]:I[2]], dof_map[I[1]:I[2]], h, out[:N, N:])
-    _discretise_Haar2D(value + scale * (+arr[0, 0] - arr[0, 1] - arr[0, 2]),
-                  arr[I[2]:I[3]], dof_map[I[2]:I[3]], h, out[N:, :N])
-    _discretise_Haar2D(value + scale * (+arr[0, 0] + arr[0, 1] + arr[0, 2]),
-                  arr[I[3]:], dof_map[I[3]:], h, out[N:, N:])
+
+@jit(**__params)
+def _downsample_2D(fine, coarse):
+    for i in range(coarse.shape[0]):
+        for j in range(coarse.shape[1]):
+            coarse[i, j] = fine[2 * i, 2 * j] + fine[2 * i, 2 * j + 1]
+        for j in range(coarse.shape[1]):
+            coarse[i, j] += fine[2 * i + 1, 2 * j] + fine[2 * i + 1, 2 * j + 1]
+            coarse[i, j] *= .25  # average value
 
 
 @jit(**__cparams)
-def _from_discrete_Haar2D(arr, dof_map, h, out):
-    if out.shape[0] == 0:  # pixels are smaller than wavelets
-        value = 0
-        for i in range(arr.shape[0]):
-            for j in range(arr.shape[1]):
-                value += arr[i, j]
-        return value / arr.size * h ** 2  # integral on this cell
-    elif arr.shape[0] == 1:
-        out[:] = 0  # all smaller wavelets integrate to 0
-        return arr[0, 0] * h ** 2  # integral on this cell
+def _from_discrete_Haar2D(arr, dof_map, level, out):
+    for i in range(dof_map.shape[0]):
+        if level[i] >= len(arr):  # small wavelets are all 0
+            out[i] = 0
+        else:
+            A = arr[level[i]]
+            h = dof_map[i, 2]
+            scale = .25 * h
+            i0, i1 = int(dof_map[i, 0] / h), int(dof_map[i, 1] / h)
+            v0 = A[2 * i0, 2 * i1]; v1 = A[2 * i0, 2 * i1 + 1]
+            v2 = A[2 * i0 + 1, 2 * i1]; v3 = A[2 * i0 + 1, 2 * i1 + 1]
 
-    h *= .5
-    I = np.array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 2] == h:
-                I[j] = i
-                j += 1
-            i += 1
-
-    scale, N = .5 / h, arr.shape[0] // 2
-    value0 = _from_discrete_Haar2D(arr[:N, :N], dof_map[I[0]:I[1]], h, out[I[0]:I[1]])
-    value1 = _from_discrete_Haar2D(arr[:N, N:], dof_map[I[1]:I[2]], h, out[I[1]:I[2]])
-    value2 = _from_discrete_Haar2D(arr[N:, :N], dof_map[I[2]:I[3]], h, out[I[2]:I[3]])
-    value3 = _from_discrete_Haar2D(arr[N:, N:], dof_map[I[3]:], h, out[I[3]:])
-
-    out[0, 0] = scale * (-value0 - value1 + value2 + value3)
-    out[0, 1] = scale * (-value0 + value1 - value2 + value3)
-    out[0, 2] = scale * (+value0 - value1 - value2 + value3)
-    return value0 + value1 + value2 + value3
+            out[i, 0] = (-v0 - v1 + v2 + v3) * scale
+            out[i, 1] = (-v0 + v1 - v2 + v3) * scale
+            out[i, 2] = (+v0 - v1 - v2 + v3) * scale
 
 
 if __name__ == '__main__':
-    test = 1
+    test = 2.5
     if test == 1:  # sparse_mesh initiation and refining
         mesh = sparse_mesh(2, 1, 1)
         assert mesh.age == 2
@@ -1572,7 +1611,7 @@ if __name__ == '__main__':
         assert mesh.age == 2
         assert mesh.h == 1 / 4
         tmp = ([0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [3, 0], [2, 1], [3, 1], [0, 2], [1, 2], [0, 3], [1, 3], [2, 2], [3, 2], [2, 3], [3, 3])
-        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
+        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
         assert all(tuple(mesh.coarse_map[i0, i1]) == (4 * j, 4 * j + 4) for j, (i0, i1) in enumerate(tmp[:4]))
         mesh.update(2)
         assert all(tuple(mesh.coarse_map[i0, i1]) == (j, j + 1) for j, (i0, i1) in enumerate(tmp))
@@ -1592,7 +1631,7 @@ if __name__ == '__main__':
         mesh.refine([0, 1, 0, -1])
         assert mesh.age == 2
         assert mesh.h == 1 / 4
-        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(
+        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(
             ([0, 0], [2, 0], [3, 0], [2, 1], [3, 1], [0, 2])))
         tmp = ((slice(2), slice(2), 0, 1), (2, 0, 1, 2), (3, 0, 2, 3), (2, 1, 3, 4), (3, 1, 4, 5), (slice(2), slice(2, 4), 5, 6), (slice(2, 4), slice(2, 4), 6, -1))
         assert all(abs(mesh.coarse_map[x[:2]][..., 0] - x[2]).max() + abs(mesh.coarse_map[x[:2]][..., 1] - x[3]).max() < EPS for x in tmp)
@@ -1616,7 +1655,7 @@ if __name__ == '__main__':
         assert mesh.h == 1 / 4
         tmp = ([0, 0], [0, 0], [0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [2, 0], [3, 0], [2, 1], [3, 1],
                [0, 2], [0, 2], [1, 2], [0, 3], [1, 3], [2, 2], [2, 2], [3, 2], [2, 3], [3, 3])
-        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
+        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
         assert all(tuple(mesh.coarse_map.reshape(-1, 2)[i]) == (0, j) for i, j in enumerate((6, 16, 11, 21)))
         mesh.update(2)
         tmp = np.array((3, 5, 13, 15, 4, 6, 14, 16, 8, 10, 18, 20, 9, 11, 19, 21)).reshape(4, 4)
@@ -1658,7 +1697,7 @@ if __name__ == '__main__':
         print('Discretising 1D checked')
 
         plt.subplot(122)
-        x = np.linspace(0, 1, 2** level)
+        x = np.linspace(0, 1, 2 ** level)
         my_func = ((x.reshape(-1, 1) - .1) ** 2 + (x.reshape(1, -1) - .7) ** 2 < .5 ** 2).astype(FTYPE)
         ax = None
         for level in range(1, 8):
@@ -1684,10 +1723,10 @@ if __name__ == '__main__':
             plt.legend(loc='lower right')
             plt.pause(.3)
         assert abs(my_grid.discretise(level) - my_func).max() < 1e-10
-        print('Discretising 1D checked')
+        print('Discretising 1D wavelet checked')
 
         plt.subplot(122)
-        x = np.linspace(0, 1, 2** level)
+        x = np.linspace(0, 1, 2 ** level)
         my_func = ((x.reshape(-1, 1) - .1) ** 2 + (x.reshape(1, -1) - .7) ** 2 < .5 ** 2).astype(FTYPE)
         ax = None
         for init in (1, 3, 5, 7, level):
@@ -1698,5 +1737,5 @@ if __name__ == '__main__':
             plt.title('level = ' + str(init))
             plt.pause(.3)
         assert abs(my_grid.discretise(level) - my_func).max() < 1e-10
-        print('Discretising 2D checked')
+        print('Discretising 2D wavelet checked')
         plt.show()

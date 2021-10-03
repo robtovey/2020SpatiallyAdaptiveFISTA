@@ -163,7 +163,7 @@
 	\end{equation}
 	}
 	
-	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of \edit{refining subspaces}{closed convex subsets} $\spcf0^n\subset \edit{\spcf0\cap}{}\F H$ for $n=0,1,\ldots$. The only difference \edit{}{from standard FISTA }is that on iteration $n$, all computations are performed in the \edit{subspace}{subset} $\spcf0^n$. If $\spcf0^n\edit{=\spcf0}{}=\F H$ then we recover the \edit{standard FISTA}{original} algorithm.
+	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of \edit{refining subspaces}{closed convex subsets} $\spcf0^n\subset \edit{\spcf0\cap}{}\F H$ for $n\in\F N$. The only difference \edit{}{from standard FISTA }is that on iteration $n$, all computations are performed in the \edit{subspace}{subset} $\spcf0^n$. If $\spcf0^n\edit{=\spcf0}{}=\F H$, then we recover the \edit{standard FISTA}{original} algorithm. \edit{}{More generally, the idea is that $\spcf0^n$ are `growing', for example $\spcf0^n\subset\spcf0^{n+1}$, but this assumption is not necessary in most of the results.}
 	
 	Without loss of generality we will assume $L=1$, i.e. $\nabla\op{f}$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\op{E}$ with $\frac{\op{E}}{L}$.\edit{ A more important distinction is to say that the properties of $\op{f}$ and $\op{g}$ are stated with respect to the Hilbert norm.}{} In particular,
 	\begin{equation}
@@ -276,9 +276,9 @@
 	
 	\subsection{Computing the convergence bound}
 	For Step~\ref{step: step 1 stability} of Section~\ref{sec: recipe} we look to replicate the classical bound of the form in \eqref{eq: classical FISTA} for Algorithm~\ref{alg: refining FISTA}. The proofs in this step follow the classical arguments \cite{Beck2009,Chambolle2015} very closely. 
-	\edit{}{Throughout this section we consider a sequence $(\spcf0^n)_{n\in\F N}$ which generate the iterates $(\varf0_n)_{n\in\F N}$ in Algorithm~\ref{alg: refining FISTA} satisfying
+	\edit{}{Throughout this section we consider a sequence $(\spcf0^n)_{n\in\F N}$ which generate the iterates $(\varf0_n)_{n\in\F N}$ in Algorithm~\ref{alg: refining FISTA} such that
 	\begin{equation}\label{eq: refining subspace definition}
-		\varf0^{n-1}\in\spcf0^n\subset\F H \quad\text{are closed, convex, locally compact subsets for all }\quad n\in\F N.
+		\varf0^{n-1}\in\spcf0^n\subset\F H \quad\text{where }\spcf0^n\text{ is a closed, convex, locally compact subset for all } n\in\F N.
 	\end{equation}}
 	
 	\subsubsection{Single iterations}
@@ -539,7 +539,7 @@
 	\\\centerline{$\displaystyle
 		\norm{(\tilde{\tens{\Pi}}_k-\id)\A^*}_{\ell^2\to L^\infty} = \sup_{\vvarx3\in\R^m}\max_{\vvarx0\in\Domain} \frac{|[\tilde{\tens{\Pi}}_k\A^*\vvarx3](\vvarx0)-[\A^*\vvarx3](\vvarx0)|}{\norm{\vvarx3}_{\ell^2}} \leq \sup_{\vvarx3\in\R^m} \frac{\sqrt{d}2^{-k}\norm{\nabla[\A^*\vvarx3]}_{L^\infty}}{\norm{\vvarx3}_{\ell^2}} 
 		= \sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1}$}
-	}{Clearly $\norm{\nabla\op{f}(\A\varf0^*-\data)}_{\ell^2}$ is a constant, the second term is bounded by
+	}{Clearly $\norm{\nabla\op{f}(\A\varf0^*-\data)}_{\ell^2}$ is a constant. For the second term, recall $\Norm{\varf2}\leq \Norm{\varf0}$, therefore we can bound
 	\begin{equation}
 	\norm{\A(\varf2-\varf0^*)}_{\ell^2} = \sup_{\vvarx3\in\R^m}\norm{\vvarx3}_{\ell^2}^{-1} \IP{\A^*\vvarx3}{\varf2-\varf0^*} \leq \sup_{\vvarx3\in\R^m}\norm{\vvarx3}_{\ell^2}^{-1} |\A^*\vvarx3|_{L^\infty}\Norm{\varf2-\varf0^*} \leq |\A^*|_{\ell^2\to C^0}(\Norm{\varf0}+\Norm{\varf0^*}).
 	\end{equation}
@@ -908,11 +908,12 @@
 	\subsection{2D \edit{wavelet Lasso}{robust sparse wavelet reconstruction}}\label{sec: wavelet examples}
 	In this example we consider $\A$ to be a 2D Radon transform. In particular, the rows of $\A$ correspond to integrals over the sets $\F{X}^I_i$ where 
 	\begin{equation}
-		\F{X}_i^I = \left\{\vvarx0\in[-\tfrac12,\tfrac12]^2\st \ip{\vvarx0}{\begin{pmatrix}\cos\theta_I\\\sin\theta_I\end{pmatrix}}\in \left[-\tfrac12+\tfrac{i-1}{50},-\tfrac12+\tfrac{i}{50}\right)\right\}, \quad \theta_I=\frac{180^\circ}{51}I \quad \text{ for } i,I=1,2,\ldots,50.
+		\F{X}_i^I = \left\{\vvarx0\in[-\tfrac12,\tfrac12]^2\st \ip{\vvarx0}{\begin{pmatrix}\cos\theta_I\\\sin\theta_I\end{pmatrix}}\in \left[-\tfrac12+\tfrac{i-1}{100},-\tfrac12+\tfrac{i}{100}\right)\right\}, \quad \theta_I=\frac{180^\circ}{51}I
 	\end{equation}
-	This is not exactly in the form analysed by Theorem~\ref{thm: norm bound examples}, however only the sets $\{\F{X}^I_i\st i\in[50]\}$ for each $I$ are disjoint, therefore we apply Theorem~\ref{thm: norm bound examples} block-wise to estimate
+	for $i=1,\ldots,50$, $I=1,\ldots,100$.
+	This is not exactly in the form analysed by Theorem~\ref{thm: norm bound examples}, however only the sets $\{\F{X}^I_i\st i\in[100]\}$ for each $I$ are disjoint, therefore we apply Theorem~\ref{thm: norm bound examples} block-wise to estimate
 	\begin{equation}
-		\norm{\A}_{L^2\to\ell^2} \leq \sqrt{\sum_{I\in[50]}\max_{i\in[50]} |\F{X}^I_i|} = \sqrt{\sum_{I\in[50]}\max_{i\in[50]} \int_{\F{X}^I_i}1d\vvarx0}= \sqrt{\sum_{I\in[50]}\max_{i\in[50]}\ (\A\1)_{i,I}}\;.
+		\norm{\A}_{L^2\to\ell^2} \leq \sqrt{\sum_{I\in[50]}\max_{i\in[100]} |\F{X}^I_i|} = \sqrt{\sum_{I\in[50]}\max_{i\in[100]} \int_{\F{X}^I_i}1d\vvarx0}= \sqrt{\sum_{I\in[50]}\max_{i\in[100]}\ (\A\1)_{i,I}}\;.
 	\end{equation}
 	$\A$ is not smooth, therefore we can't bound $|\A^*|_{C^k}$ for $k>0$, and so we must look to minimise over $\ell^1$ rather than $L^1$. The natural choice is to promote sparsity in a wavelet basis which can be rearranged into the \edit{Lasso}{} form \edit{}{of \eqref{eq: Lasso energy}}:
 	\begin{equation}
@@ -943,15 +944,15 @@
 	\end{align}
 	
 	\paragraph{Numerical results}
-	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. No noise is added to the Shepp-Logan data but \SI{5}{\percent} \edit{Gaussian white}{Laplace distributed} noise is added to the disc data. This is visualised in Figure~\ref{fig: haar data}. All optimisations shown will be spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
+	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. \edit{No noise is added to the Shepp-Logan data but 5\% Gaussian white noise is added to the disc data.}{Both examples are corrupted with \SI{2}{\percent} Laplace distributed noise.} This is visualised in Figure~\ref{fig: haar data}. All optimisations shown are spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
 	$$ \norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} -\mu  \leq 10\Norm{\partial_n\op{E}(\varf0_n)}_*$$
 	for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times the discrete gradient).
 	
-	The first numerical results shown in Figure~\ref{fig: haar convergence} compare the same adaptive algorithms as shown in Figure~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower.
+	The first numerical results shown in Figure~\ref{fig: haar convergence} compare the same adaptive algorithms as shown in Figure~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower. \edit{}{Interestingly, in both examples the $a=20$ variant uses half as many wavelets as the Greedy variant, and therefore converges slightly faster in time. }
 	
 	\begin{figure}\centering
 		\includegraphics[width=.85\textwidth]{haar_data}
-		\caption{Phantoms\edit{ and}{,} data \edit{used }{and reconstructions }for wavelet-sparse tomography optimisation. The Shepp-Logan data is exact but the data for the disc-phantom has \SI{5}{\percent}\ \edit{Gaussian white}{Laplace distributed} noise. Without noise the data would be uniform with respect to the angle.}\label{fig: haar data}
+		\caption{Phantoms\edit{ and}{,} data \edit{used }{and reconstructions }for wavelet-sparse tomography optimisation. \edit{The Shepp-Logan data is exact but the data for the disc-phantom has}{Both examples are corrupted with} \SI{2}{\percent}\ \edit{Gaussian white}{Laplace distributed} noise. }\label{fig: haar data}
 		
 		\vspace*{\floatsep}
 		

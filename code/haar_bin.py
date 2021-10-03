@@ -3,161 +3,18 @@ Created on 9 Apr 2020
 
 @author: Rob
 '''
-from numba import jit, prange, i4, i8, f8
+from numba import jit, prange
 from numpy import array, sqrt
 _PARALLEL = True
 __params = {'nopython':True, 'parallel':False, 'fastmath':True, 'cache':True, 'boundscheck':False}
 __pparams = __params.copy(); __pparams['parallel'] = True
-__cparams = __params.copy(); __cparams['cache'] = False
 
-_compiled = {}
 
-@jit(['F(F,F,F,F)'.replace('F', 'f8')], **__params)
+@jit(**__params)
 def len_intersect(x0, x1, y0, y1): return max(min(x1, y1) - max(x0, y0), 0)
 
 
-@jit(**__cparams)
-def _discretise1D(value, arr, dof_map, level, out):
-    if arr.shape[0] == 0:
-        out[:] = value
-        return
-
-    i = 2  # skip root and first child
-    while i < dof_map.shape[0]:
-        if dof_map[i, 0] == level + 1:
-            break
-        i += 1
-
-    scale, N = 2 ** ((level - 1) / 2), out.shape[0] // 2
-    _discretise1D(value - scale * arr[0], arr[1:i], dof_map[1:i],
-                     level + 1, out[:N])
-    _discretise1D(value + scale * arr[0], arr[i:], dof_map[i:],
-                     level + 1, out[N:])
-
-
-@jit(**__cparams)
-def _from_discrete1D(arr, dof_map, level, out):
-    if arr.shape[0] == 1:
-        out[:] = 0
-        return arr[0] * 2.** (1 - level)
-    elif arr.shape[0] == 0:
-        out[:] = 0
-        return 0
-    elif out.shape[0] == 0:
-        value = 0
-        for i in range(arr.size):
-            value += arr[i]
-        return value / arr.size * 2.** (1 - level)
-
-    i = 2  # skip root and first child
-    while i < dof_map.shape[0]:
-        if dof_map[i, 0] == level + 1:
-            break
-        i += 1
-
-    scale, N = 2 ** ((level - 1) / 2), arr.shape[0] // 2
-    value0 = _from_discrete1D(arr[:N], dof_map[1:i], level + 1, out[1:i])
-    value1 = _from_discrete1D(arr[N:], dof_map[i:], level + 1, out[i:])
-
-    out[0] = scale * (-value0 + value1)
-    return value0 + value1
-
-
-@jit(**__cparams)
-def _discretise2D(value, arr, dof_map, level, out):
-    if arr.shape[0] == 0:
-        out[:] = value
-        return
-
-    I = array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 0] == level + 1:
-                I[j] = i
-                j += 1
-            i += 1
-
-    scale, N = 2 ** float(level - 1), out.shape[0] // 2
-    _discretise2D(value + scale * (-arr[0, 0] - arr[0, 1] + arr[0, 2]),
-                  arr[I[0]:I[1]], dof_map[I[0]:I[1]], level + 1, out[:N, :N])
-    _discretise2D(value + scale * (-arr[0, 0] + arr[0, 1] - arr[0, 2]),
-                  arr[I[1]:I[2]], dof_map[I[1]:I[2]], level + 1, out[:N, N:])
-    _discretise2D(value + scale * (+arr[0, 0] - arr[0, 1] - arr[0, 2]),
-                  arr[I[2]:I[3]], dof_map[I[2]:I[3]], level + 1, out[N:, :N])
-    _discretise2D(value + scale * (+arr[0, 0] + arr[0, 1] + arr[0, 2]),
-                  arr[I[3]:], dof_map[I[3]:], level + 1, out[N:, N:])
-
-
-@jit(**__cparams)
-def _from_discrete2D(arr, dof_map, level, out):
-    if arr.size == 1:
-        out[:] = 0
-        return arr[0, 0] * 4.** (1 - level)
-    elif arr.size == 0:
-        out[:] = 0
-        return 0.0
-    elif out.shape[0] == 0:
-        value = 0
-        for i in range(arr.shape[0]):
-            for j in range(arr.shape[1]):
-                value += arr[i, j]
-        return value / arr.size * 4.** (1 - level)
-
-    I = array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 0] == level + 1:
-                I[j] = i
-                j += 1
-            i += 1
-
-    scale, N = 2. ** (level - 1), arr.shape[0] // 2
-    value0 = _from_discrete2D(arr[:N, :N], dof_map[I[0]:I[1]], level + 1, out[I[0]:I[1]])
-    value1 = _from_discrete2D(arr[:N, N:], dof_map[I[1]:I[2]], level + 1, out[I[1]:I[2]])
-    value2 = _from_discrete2D(arr[N:, :N], dof_map[I[2]:I[3]], level + 1, out[I[2]:I[3]])
-    value3 = _from_discrete2D(arr[N:, N:], dof_map[I[3]:], level + 1, out[I[3]:])
-
-    out[0, 0] = scale * (-value0 - value1 + value2 + value3)
-    out[0, 1] = scale * (-value0 + value1 - value2 + value3)
-    out[0, 2] = scale * (+value0 - value1 - value2 + value3)
-    return value0 + value1 + value2 + value3
-
-
-def opt_jit(debug, *args, **kwargs):
-    if len(args) > 0:
-        args = [args[0].replace('F', 'float64').replace('I', 'int32')]
-    else:
-        args = None
-
-    def decorator(func):
-        if debug:
-            return func
-        else:
-            return jit(args, **kwargs)(func)
-
-    return decorator
-
-
-def numba_compile(f, DEBUG=False):
-    opts = {'nopython':True, 'parallel':False, 'fastmath':True, 'cache':False}
-    if f in _compiled:
-        return _compiled[f]
-    elif f == '_FP_wave2leaf':
-        F = opt_jit(DEBUG, 'void(F,F[:,:],I[:,:],I,F[:,:])',
-                locals={'i':i4, 'j':i4, 'I':i8[:], 'scale':f8, 'v0':f8, 'v1':f8, 'v2':f8, 'v3':f8}, **opts)(_FP_wave2leaf)
-    elif f == '_BP_leaf2wave':
-        F = opt_jit(DEBUG, 'F(F[:],I[:,:],I,F[:,:])',
-                locals={'i':i4, 'j':i4, 'I':i8[:], 'scale':f8,
-                        'value0':f8, 'value1':f8, 'value2':f8, 'value3':f8}, **opts)(_BP_leaf2wave)
-    else:
-        F = jit(**opts)(globals()[f])
-    _compiled[f] = F
-    return F
-
-
-@jit(['void(i4[:,:],F[:],F[:],F[:],F[:])'.replace('F', 'f8')], **__pparams)
+@jit(**__pparams)
 def _gradF(dof_map, grid, L, R, DF):
     for i in prange(1, dof_map.shape[0]):
         j = dof_map[i]
@@ -173,10 +30,10 @@ def _gradF(dof_map, grid, L, R, DF):
         DF[i] = 2 ** ((j[0] - 1) / 2) * v
 
 
-@jit(['F(F,F,F[:],F,F,F,F)'.replace('F', 'f8')], **__params)
+@jit(**__params)
 def line_intersect_square(px, py, d, x0, y0, x1, y1):
     '''
-    The line is p + t*d for t\in R
+    The line is p + t*d for t in R
     The box is bound by the corners [x0,y0] and [x1,y1]
 
     There are 4 possible intersection points:
@@ -223,66 +80,59 @@ def line_intersect_square(px, py, d, x0, y0, x1, y1):
     return v
 
 
-@jit(['void(F[:,:],I[:,:],b1[:],F[:],F[:,:],F[:],F[:,:])'.replace('F', 'f8').replace('I', 'i4')], **__pparams)
-def _FP_leaf(value, dof_map, is_leaf, g, slope, centre, sino):
+@jit(**__pparams)
+def _FP_tomo(wave, dof_map, g, slope, centre, sino):
     for j in prange(sino.shape[0]):
+        # First wavelet is special, just constant
+        # Bounding box for support:
+        b0x, b0y = dof_map[0, 0] - centre[0], dof_map[0, 1] - centre[1]
+        b1x, b1y = b0x + 1, b0y + 1
+
+        # First wavelet effects all pixels in sinogram
+        for k in range(g.size - 1):
+            p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
+            p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
+
+            sino[j, k] = (
+                wave[0, 0] * abs(
+                line_intersect_square(p10, p11, slope[j], b0x, b0y, b1x, b1y)
+                -line_intersect_square(p00, p01, slope[j], b0x, b0y, b1x, b1y))
+            )
+
         for i in range(dof_map.shape[0]):
-            if is_leaf[i]:
-                c = 2.**(1 - dof_map[i, 0])
-                b0x, b0y = dof_map[i, 1] * c - centre[0], dof_map[i, 2] * c - centre[1]
-                b1x, b1y = b0x + c, b0y + c
-                midx, midy = b0x + .5 * c, b0y + .5 * c
-                r = 2.**(-.5) * c
+            I = i + 1  # index in wave
+            h = dof_map[i, 2]  # width of wavelet
+            # Bounding box of wavelet:
+            b0x, b0y = dof_map[i, 0] - centre[0], dof_map[i, 1] - centre[1]
+            b1x, b1y = b0x + h, b0y + h
+            midx, midy = b0x + .5 * h, b0y + .5 * h  # midpoints
+            r = 2.**(-.5) * h  # diagonal radius of wavelet
+            scale = 1 / h  # L2 scaling of wavelets
 
-                t = midx * slope[j, 1] - midy * slope[j, 0]
-                for k in range(g.size - 1):
-                    if g[k] > t + r:
-                        break
-                    elif g[k + 1] > t - r:
-                        p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
-                        p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
+            # midpoint of wavelet projected onto detector coordinate
+            t = midx * slope[j, 1] - midy * slope[j, 0]
+            for k in range(g.size - 1):
+                if g[k] > t + r:
+                    break  # outside of support
+                elif g[k + 1] > t - r:
+                    # Bounding lines over which to integrate over
+                    p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
+                    p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
 
-                        sino[j, k] += (
-                            value[i, 0] * abs(
-                            line_intersect_square(p10, p11, slope[j], b0x, b0y, midx, midy)
-                            -line_intersect_square(p00, p01, slope[j], b0x, b0y, midx, midy))
-                            +value[i, 1] * abs(
-                            line_intersect_square(p10, p11, slope[j], b0x, midy, midx, b1y)
-                            -line_intersect_square(p00, p01, slope[j], b0x, midy, midx, b1y))
-                            +value[i, 2] * abs(
-                            line_intersect_square(p10, p11, slope[j], midx, b0y, b1x, midy)
-                            -line_intersect_square(p00, p01, slope[j], midx, b0y, b1x, midy))
-                            +value[i, 3] * abs(
-                            line_intersect_square(p10, p11, slope[j], midx, midy, b1x, b1y)
-                            -line_intersect_square(p00, p01, slope[j], midx, midy, b1x, b1y))
-                        )
-
-
-@jit(['void(F,F[:,:],I[:,:],I,F[:,:])'.replace('F', 'f8').replace('I', 'i4')], **__cparams)
-def _FP_wave2leaf(value, wave, dof_map, level, out):
-    scale = 2 ** float(level - 1)
-    v0 = value + scale * (-wave[0, 0] - wave[0, 1] + wave[0, 2])  # [x,y]
-    v1 = value + scale * (-wave[0, 0] + wave[0, 1] - wave[0, 2])  # [x+h,y]
-    v2 = value + scale * (+wave[0, 0] - wave[0, 1] - wave[0, 2])  # [x,y+h]
-    v3 = value + scale * (+wave[0, 0] + wave[0, 1] + wave[0, 2])  # [x+h,y+h]
-
-    if wave.shape[0] == 1:
-        out[0, 0], out[0, 1], out[0, 2], out[0, 3] = v0, v1, v2, v3
-        return
-
-    I = array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 0] == level + 1:
-                I[j] = i
-                j += 1
-            i += 1
-
-    _FP_wave2leaf(v0, wave[I[0]:I[1]], dof_map[I[0]:I[1]], level + 1, out[I[0]:I[1]])
-    _FP_wave2leaf(v1, wave[I[1]:I[2]], dof_map[I[1]:I[2]], level + 1, out[I[1]:I[2]])
-    _FP_wave2leaf(v2, wave[I[2]:I[3]], dof_map[I[2]:I[3]], level + 1, out[I[2]:I[3]])
-    _FP_wave2leaf(v3, wave[I[3]:], dof_map[I[3]:], level + 1, out[I[3]:])
+                    sino[j, k] += (
+                        (-wave[I, 0] - wave[I, 1] + wave[I, 2]) * abs(
+                        line_intersect_square(p10, p11, slope[j], b0x, b0y, midx, midy)
+                        -line_intersect_square(p00, p01, slope[j], b0x, b0y, midx, midy))
+                        +(-wave[I, 0] + wave[I, 1] - wave[I, 2]) * abs(
+                        line_intersect_square(p10, p11, slope[j], b0x, midy, midx, b1y)
+                        -line_intersect_square(p00, p01, slope[j], b0x, midy, midx, b1y))
+                        +(+wave[I, 0] - wave[I, 1] - wave[I, 2]) * abs(
+                        line_intersect_square(p10, p11, slope[j], midx, b0y, b1x, midy)
+                        -line_intersect_square(p00, p01, slope[j], midx, b0y, b1x, midy))
+                        +(+wave[I, 0] + wave[I, 1] + wave[I, 2]) * abs(
+                        line_intersect_square(p10, p11, slope[j], midx, midy, b1x, b1y)
+                        -line_intersect_square(p00, p01, slope[j], midx, midy, b1x, b1y))
+                    ) * scale
 
 
 @jit(**__params)
@@ -333,102 +183,39 @@ def _Radon_row(i, p00, p01, p10, p11, slope, b0x, midx, b1x, b0y, midy, b1y):
                     -line_intersect_square(p00, p01, slope, midx, midy, b1x, b1y)))
 
 
-@jit(**__pparams)
-def Radon_to_matrixT(A, dof_map, g, slope, centre):
-    b0x, b0y, b1x, b1y = 0 - centre[0], 0 - centre[1], 1 - centre[0], 1 - centre[1]
-    midx, midy = b0x + .5, b0y + .5
-    r = 2.**(-.5)
-
-    for i0 in range(slope.shape[0]):
-        for i1 in range(g.size - 1):
-            p00, p01 = g[i1] * slope[i0, 1], -g[i1] * slope[i0, 0]
-            p10, p11 = g[i1 + 1] * slope[i0, 1], -g[i1 + 1] * slope[i0, 0]
-
-            A[0, i0, i1] = (
-                # bottom left
-                +abs(line_intersect_square(p10, p11, slope[i0], b0x, b0y, midx, midy)
-                    -line_intersect_square(p00, p01, slope[i0], b0x, b0y, midx, midy))
-                # top left
-                +abs(line_intersect_square(p10, p11, slope[i0], b0x, midy, midx, b1y)
-                    -line_intersect_square(p00, p01, slope[i0], b0x, midy, midx, b1y))
-                # bottom right
-                +abs(line_intersect_square(p10, p11, slope[i0], midx, b0y, b1x, midy)
-                    -line_intersect_square(p00, p01, slope[i0], midx, b0y, b1x, midy))
-                # top right
-                +abs(line_intersect_square(p10, p11, slope[i0], midx, midy, b1x, b1y)
-                    -line_intersect_square(p00, p01, slope[i0], midx, midy, b1x, b1y))
-            )
-            A[1, i0, i1] = 0
-            A[2, i0, i1] = 0
-
-    for j in prange(1, dof_map.shape[0]):
-        c = 2.**(1 - dof_map[j, 0])
-        scale = 1 / c
-        b0x, b0y = dof_map[j, 1] * c - centre[0], dof_map[j, 2] * c - centre[1]
-        b1x, b1y = b0x + c, b0y + c
-        midx, midy = b0x + .5 * c, b0y + .5 * c
-        r = 2.**(-.5) * c
-
-        for i in range(3):  # for each type of wavelet
-            for i0 in range(slope.shape[0]):  # for each projection
-                t = midx * slope[i0, 1] - midy * slope[i0, 0]  # for each pixel
-                for i1 in range(g.size - 1):
-                    if g[i1] > t + r:
-                        A[3 * j + i, i0, i1] = 0
-                    elif g[i1 + 1] > t - r:
-                        p00, p01 = g[i1] * slope[i0, 1], -g[i1] * slope[i0, 0]
-                        p10, p11 = g[i1 + 1] * slope[i0, 1], -g[i1 + 1] * slope[i0, 0]
-
-                        A[3 * j + i, i0, i1] = scale * _Radon_row(i, p00, p01, p10, p11, slope[i0],
-                                                                  b0x, midx, b1x, b0y, midy, b1y)
-                    else:
-                        A[3 * j + i, i0, i1] = 0
-
-
 @jit(**__params)
 def Radon_to_sparse_matrix(data, indcs, ptr, dof_map, g, slope, centre):
     sz = g.size - 1
-    J = 0  # current index of matrix
+    indx = 0  # current index of matrix
 
     # constant pixel
     b0x, b0y, b1x, b1y = 0 - centre[0], 0 - centre[1], 1 - centre[0], 1 - centre[1]
-    midx, midy = b0x + .5, b0y + .5
-    ptr[0] = J
+    ptr[0] = indx
     for i0 in range(slope.shape[0]):
         for i1 in range(g.size - 1):
             p00, p01 = g[i1] * slope[i0, 1], -g[i1] * slope[i0, 0]
             p10, p11 = g[i1 + 1] * slope[i0, 1], -g[i1 + 1] * slope[i0, 0]
 
-            data[J] = (
-                # bottom left
-                +abs(line_intersect_square(p10, p11, slope[i0], b0x, b0y, midx, midy)
-                    -line_intersect_square(p00, p01, slope[i0], b0x, b0y, midx, midy))
-                # top left
-                +abs(line_intersect_square(p10, p11, slope[i0], b0x, midy, midx, b1y)
-                    -line_intersect_square(p00, p01, slope[i0], b0x, midy, midx, b1y))
-                # bottom right
-                +abs(line_intersect_square(p10, p11, slope[i0], midx, b0y, b1x, midy)
-                    -line_intersect_square(p00, p01, slope[i0], midx, b0y, b1x, midy))
-                # top right
-                +abs(line_intersect_square(p10, p11, slope[i0], midx, midy, b1x, b1y)
-                    -line_intersect_square(p00, p01, slope[i0], midx, midy, b1x, b1y))
-            )
-            indcs[J] = i0 * sz + i1
-            J += 1
-    ptr[1] = J  # empty row
-    ptr[2] = J  # empty row
+            data[indx] = abs(line_intersect_square(p10, p11, slope[i0], b0x, b0y, b1x, b1y)
+                    -line_intersect_square(p00, p01, slope[i0], b0x, b0y, b1x, b1y))
+            indcs[indx] = i0 * sz + i1
+            indx += 1
+    ptr[1] = indx  # empty row
+    ptr[2] = indx  # empty row
 
     # wavelet pixels
-    for j in range(1, dof_map.shape[0]):
-        c = 2.**(1 - dof_map[j, 0])
-        scale = 1 / c
-        b0x, b0y = dof_map[j, 1] * c - centre[0], dof_map[j, 2] * c - centre[1]
-        b1x, b1y = b0x + c, b0y + c
-        midx, midy = b0x + .5 * c, b0y + .5 * c
-        r = 2.**(-.5) * c
+    for j in range(dof_map.shape[0]):
+        jj = j + 1  # index of wave
+        h = dof_map[j, 2]  # width of wavelet
+        # Bounding box of wavelet:
+        b0x, b0y = dof_map[j, 0] - centre[0], dof_map[j, 1] - centre[1]
+        b1x, b1y = b0x + h, b0y + h
+        midx, midy = b0x + .5 * h, b0y + .5 * h  # midpoints
+        r = 2.**(-.5) * h  # diagonal radius of wavelet
+        scale = 1 / h  # L2 scaling of wavelets
 
         for i in range(3):  # for each wavelet type
-            ptr[3 * j + i] = J  # start of new row
+            ptr[3 * jj + i] = indx  # start of new row
             for i0 in range(slope.shape[0]):
                 t = midx * slope[i0, 1] - midy * slope[i0, 0]
                 for i1 in range(g.size - 1):
@@ -438,48 +225,48 @@ def Radon_to_sparse_matrix(data, indcs, ptr, dof_map, g, slope, centre):
                         p00, p01 = g[i1] * slope[i0, 1], -g[i1] * slope[i0, 0]
                         p10, p11 = g[i1 + 1] * slope[i0, 1], -g[i1 + 1] * slope[i0, 0]
 
-                        data[J] = scale * _Radon_row(i, p00, p01, p10, p11, slope[i0],
+                        data[indx] = scale * _Radon_row(i, p00, p01, p10, p11, slope[i0],
                                                       b0x, midx, b1x, b0y, midy, b1y)
-                        indcs[J] = i0 * sz + i1
-                        J += 1
-                        if J >= data.size:
+                        indcs[indx] = i0 * sz + i1
+                        indx += 1
+                        if indx >= data.size:
                             raise MemoryError()
 
-    ptr[3 * dof_map.shape[0]] = J  # end of data arrays
+    ptr[3 * dof_map.shape[0] + 3] = indx  # end of data arrays
 
 
 @jit(**__params)
 def Radon_update_sparse_matrix(o_data, o_indcs, o_ptr, refine,
         n_data, n_indcs, n_ptr, dof_map, g, slope, centre):
     sz = g.size - 1
-    J, JJ = 0  # current row/index of new matrix
+    J = indx = 0  # current wavelet/index of new matrix
 
-    for j in range(refine.shape[0]):  # current row of old matrix
+    for j in range(refine.shape[0]):  # current wavelet of old matrix
 
-        if refine[j] == 0:  # copy old row to new
-            for i in range(3):
-                n_ptr[3 * J + i] = JJ  # row J starts at index JJ
-                for jj in range(o_ptr[3 * j + i], o_ptr[3 * j + i + 1]):
-                    n_data[JJ] = o_data[jj]
-                    n_indcs[JJ] = o_indcs[jj]
-                    JJ += 1
-                    if JJ >= n_data.size:
-                        raise MemoryError()
-            J += 1  # move to new row in new matrix
+        # always copy old rows to new
+        for i in range(3):
+            n_ptr[3 * J + i] = indx  # row J of new matrix starts at index indx
+            for jj in range(o_ptr[3 * j + i], o_ptr[3 * j + i + 1]):
+                n_data[indx] = o_data[jj]
+                n_indcs[indx] = o_indcs[jj]
+                indx += 1
+                if indx >= n_data.size:
+                    raise MemoryError()
+        J += 1  # move to new wavelet in new matrix
 
-        elif refine[j] > 0:  # create new rows
-            # wavelet pixels
-            c = 2.**(1 - dof_map[J, 0])
-            scale = 1 / c
-            r = 2.**(-.5) * c
+        if refine[j] > 0:  # create new rows
+            h = dof_map[J - 1, 2]  # width of new wavelets
+            r = 2.**(-.5) * h  # diagonal radius of wavelet
+            scale = 1 / h  # L2 scaling of wavelets
 
             for _ in range(4):  # one pixel splits into 4 consecutive ones
-                b0x, b0y = dof_map[J, 1] * c - centre[0], dof_map[J, 2] * c - centre[1]
-                b1x, b1y = b0x + c, b0y + c
-                midx, midy = b0x + .5 * c, b0y + .5 * c
+                # Bounding box of wavelet:
+                b0x, b0y = dof_map[J - 1, 0] - centre[0], dof_map[J - 1, 1] - centre[1]
+                b1x, b1y = b0x + h, b0y + h
+                midx, midy = b0x + .5 * h, b0y + .5 * h  # midpoints
 
                 for i in range(3):  # for each wavelet type
-                    n_ptr[3 * J + i] = JJ  # start of new row
+                    n_ptr[3 * J + i] = indx  # start of new row
                     for i0 in range(slope.shape[0]):
                         t = midx * slope[i0, 1] - midy * slope[i0, 0]
                         for i1 in range(g.size - 1):
@@ -489,85 +276,75 @@ def Radon_update_sparse_matrix(o_data, o_indcs, o_ptr, refine,
                                 p00, p01 = g[i1] * slope[i0, 1], -g[i1] * slope[i0, 0]
                                 p10, p11 = g[i1 + 1] * slope[i0, 1], -g[i1 + 1] * slope[i0, 0]
 
-                                n_data[JJ] = scale * _Radon_row(i, p00, p01, p10, p11, slope[i0],
+                                n_data[indx] = scale * _Radon_row(i, p00, p01, p10, p11, slope[i0],
                                                               b0x, midx, b1x, b0y, midy, b1y)
-                                n_indcs[JJ] = i0 * sz + i1
-                                JJ += 1
-                                if JJ >= n_data.size:
+                                n_indcs[indx] = i0 * sz + i1
+                                if abs(n_data[indx]) > 1e-14:
+                                    indx += 1
+                                if indx >= n_data.size:
                                     raise MemoryError()
-                J += 1  # move to new row in new matrix
+                J += 1  # move to new wavelet in new matrix
 
-    n_ptr[3 * J] = JJ  # end of data arrays
+    n_ptr[3 * J] = indx  # end of data arrays
 
 
-@jit(['void(F[:,:],I[:,:],b1[:],F[:],F[:,:],F[:],F[:,:],F[:])'.replace('F', 'f8').replace('I', 'i4')], **__pparams)
-def _BP_leaf(sino, dof_map, is_leaf, g, slope, centre, wave, residue):
+@jit(**__pparams)
+def _BP_tomo(sino, dof_map, g, slope, centre, wave):
+    # First wavelet is special, just constant
+    # Bounding box for support:
+    b0x, b0y = dof_map[0, 0] - centre[0], dof_map[0, 1] - centre[1]
+    b1x, b1y = b0x + 1, b0y + 1
+
+    # First wavelet effects all pixels in sinogram
+    wave[0, 0] = 0
+    for j in range(slope.shape[0]):
+        for k in range(g.size - 1):
+            p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
+            p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
+
+            wave[0, 0] += (
+                sino[j, k] * abs(
+                line_intersect_square(p10, p11, slope[j], b0x, b0y, b1x, b1y)
+                -line_intersect_square(p00, p01, slope[j], b0x, b0y, b1x, b1y))
+            )
+
     for i in prange(dof_map.shape[0]):
-        if is_leaf[i]:
-            c = 2.**(1 - dof_map[i, 0])
-            b0x, b0y = dof_map[i, 1] * c - centre[0], dof_map[i, 2] * c - centre[1]
-            b1x, b1y = b0x + c, b0y + c
-            midx, midy = b0x + .5 * c, b0y + .5 * c
-            r = 2.**(-.5) * c
+        I = i + 1  # index in wave
+        h = dof_map[i, 2]  # width of wavelet
+        # Bounding box of wavelet:
+        b0x, b0y = dof_map[i, 0] - centre[0], dof_map[i, 1] - centre[1]
+        b1x, b1y = b0x + h, b0y + h
+        midx, midy = b0x + .5 * h, b0y + .5 * h  # midpoints
+        r = 2.**(-.5) * h  # diagonal radius of wavelet
+        scale = 1 / h  # L2 scaling of wavelets
 
-            value0, value1, value2, value3 = 0, 0, 0, 0
-            for j in range(slope.shape[0]):
-                t = midx * slope[j, 1] - midy * slope[j, 0]
-                for k in range(g.size - 1):
-                    if g[k] > t + r:
-                        break
-                    elif g[k + 1] > t - r:
-                        p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
-                        p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
+        v0 = 0; v1 = 0; v2 = 0; v3 = 0
+        for j in range(slope.shape[0]):
+            # midpoint of wavelet projected onto detector coordinate
+            t = midx * slope[j, 1] - midy * slope[j, 0]
+            for k in range(g.size - 1):
+                if g[k] > t + r:
+                    break  # outside of support
+                elif g[k + 1] > t - r:
+                    # Bounding lines over which to integrate over
+                    p00, p01 = g[k] * slope[j, 1], -g[k] * slope[j, 0]
+                    p10, p11 = g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0]
 
-                        value0 += sino[j, k] * abs(
-                            line_intersect_square(p10, p11, slope[j], b0x, b0y, midx, midy)
-                            -line_intersect_square(p00, p01, slope[j], b0x, b0y, midx, midy))
-                        value1 += sino[j, k] * abs(
-                            line_intersect_square(p10, p11, slope[j], b0x, midy, midx, b1y)
-                            -line_intersect_square(p00, p01, slope[j], b0x, midy, midx, b1y))
-                        value2 += sino[j, k] * abs(
-                            line_intersect_square(p10, p11, slope[j], midx, b0y, b1x, midy)
-                            -line_intersect_square(p00, p01, slope[j], midx, b0y, b1x, midy))
-                        value3 += sino[j, k] * abs(
-                            line_intersect_square(p10, p11, slope[j], midx, midy, b1x, b1y)
-                            -line_intersect_square(p00, p01, slope[j], midx, midy, b1x, b1y))
+                    v0 += sino[j, k] * abs(line_intersect_square(p10, p11, slope[j], b0x, b0y, midx, midy)
+                        -line_intersect_square(p00, p01, slope[j], b0x, b0y, midx, midy))
+                    v1 += sino[j, k] * abs(line_intersect_square(p10, p11, slope[j], b0x, midy, midx, b1y)
+                        -line_intersect_square(p00, p01, slope[j], b0x, midy, midx, b1y))
+                    v2 += sino[j, k] * abs(line_intersect_square(p10, p11, slope[j], midx, b0y, b1x, midy)
+                        -line_intersect_square(p00, p01, slope[j], midx, b0y, b1x, midy))
+                    v3 += sino[j, k] * abs(line_intersect_square(p10, p11, slope[j], midx, midy, b1x, b1y)
+                        -line_intersect_square(p00, p01, slope[j], midx, midy, b1x, b1y))
 
-            wave[i, 0] = (-value0 - value1 + value2 + value3) / c
-            wave[i, 1] = (-value0 + value1 - value2 + value3) / c
-            wave[i, 2] = (+value0 - value1 - value2 + value3) / c
-            residue[i] = value0 + value1 + value2 + value3
-        else:
-            residue[i] = -1
+        wave[I, 0] = (-v0 - v1 + v2 + v3) * scale
+        wave[I, 1] = (-v0 + v1 - v2 + v3) * scale
+        wave[I, 2] = (+v0 - v1 - v2 + v3) * scale
 
 
-@jit(['F(F[:],I[:,:],I,F[:,:])'.replace('F', 'f8').replace('I', 'i4')], **__cparams)
-def _BP_leaf2wave(residue, dof_map, level, wave):
-    if wave.shape[0] == 1: # leaf
-        return residue[0]
-
-    I = array([1, 1, 1, 1])
-    i, j = 2, 1
-    if dof_map.shape[0] > 1:
-        while j < 4:
-            if dof_map[i, 0] == level + 1:
-                I[j] = i
-                j += 1
-            i += 1
-
-    scale = 2 ** float(level - 1)
-    value0 = _BP_leaf2wave(residue[I[0]:I[1]], dof_map[I[0]:I[1]], level + 1, wave[I[0]:I[1]])
-    value1 = _BP_leaf2wave(residue[I[1]:I[2]], dof_map[I[1]:I[2]], level + 1, wave[I[1]:I[2]])
-    value2 = _BP_leaf2wave(residue[I[2]:I[3]], dof_map[I[2]:I[3]], level + 1, wave[I[2]:I[3]])
-    value3 = _BP_leaf2wave(residue[I[3]:], dof_map[I[3]:], level + 1, wave[I[3]:])
-
-    wave[0, 0] = scale * (-value0 - value1 + value2 + value3)
-    wave[0, 1] = scale * (-value0 + value1 - value2 + value3)
-    wave[0, 2] = scale * (+value0 - value1 - value2 + value3)
-    return value0 + value1 + value2 + value3
-
-
-@jit(['void(F[:],F[:],F,F)'.replace('F', 'f8')], **__params)
+@jit(**__params)
 def _smallgrad(df, u, a, eps):
     for i in prange(df.size):
         if u[i] > eps:  # u>0
@@ -580,8 +357,6 @@ def _smallgrad(df, u, a, eps):
             df[i] += a
         else:
             df[i] = 0
-
-
 
 ###################################################################################################
 # # Copyright (C) 2010  Alex Opie  <lx_op@orcon.net.nz>
