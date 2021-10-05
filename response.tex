@@ -32,9 +32,11 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \section{Detailed response to first reviewer}
 
 \begin{enumerate}
-	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $w_n$ converge for the various versions of FISTA.} 
+	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $u_n$ converge for the various versions of FISTA.} 
 	
-	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. More generally, FISTA is known to converge weakly in the Hilbert-space setting. This is also likely to hold with our algorithm when the minimiser is in $\F H$, but we have not verified this special case. A key component of the proof is the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, in general we do not even expect this quantity to be bounded. It's not clear whether we can leverage the Hilbert-norm structures of FISTA to gain any convergence in the Banach space. In the LASSO case we know that the sequence is bounded in the L1 norm, so a subsequence must converge weakly, however, it's still unclear how to upgrade from convergence of a sub-sequence to full convergence.
+	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. Similarly, if one has compact sub-levelsets (e.g. LASSO), then one has convergence of a sub-sequence.
+	
+	In the general Hilbert space setting we know FISTA iterates converge weakly (for certain variants). The same result is likely to hold with our adaptivity when the minimiser is in $\F H$, although we haven't verified this special case. The standard proof (e.g. [10]) relies on the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, i.e. vanishing stepsize in the Hilbert norm, but in general we only expect this quantity to be bounded. It's not clear whether we can adapt the argument to gain any convergence in the Banach space. 
 	
 	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
 	

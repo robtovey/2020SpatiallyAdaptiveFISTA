@@ -173,7 +173,7 @@
 	\begin{equation}
 		\argmin_{\varf0\in\tilde{\spcf0}}\tfrac12\norm{\varf0-\varf1}^2 + \op{g}(\varf0)
 	\end{equation}
-	is exactly computable for all $\varf1\in\F H$ and all $\tilde{\spcf0}\in\{\spcf0^n\}_{n=0}^\infty$. \edit{}{Note in particular we need the argmin to be non-empty. For this we will assume $\spcf0^n$ are locally compact, for example finite dimensional.}
+	is exactly computable for all $\varf1\in\F H$ and all $\tilde{\spcf0}\in\{\spcf0^n\}_{n=0}^\infty$. \edit{}{Closed subsets of $\F H$ are locally weakly compact, therefore this argmin is always non-empty.}
 	
 	One defining property of the FISTA algorithm is an appropriate choice of inertia, dictated by $t_n$. In particular, we will say that $(t_n)_{n=0}^\infty$ is a \emph{FISTA stepsize} if
 	\begin{equation}\label{def: t_n and rho_n}
@@ -278,7 +278,7 @@
 	For Step~\ref{step: step 1 stability} of Section~\ref{sec: recipe} we look to replicate the classical bound of the form in \eqref{eq: classical FISTA} for Algorithm~\ref{alg: refining FISTA}. The proofs in this step follow the classical arguments \cite{Beck2009,Chambolle2015} very closely. 
 	\edit{}{Throughout this section we consider a sequence $(\spcf0^n)_{n\in\F N}$ which generate the iterates $(\varf0_n)_{n\in\F N}$ in Algorithm~\ref{alg: refining FISTA} such that
 	\begin{equation}\label{eq: refining subspace definition}
-		\varf0^{n-1}\in\spcf0^n\subset\F H \quad\text{where }\spcf0^n\text{ is a closed, convex, locally compact subset for all } n\in\F N.
+		\varf0^{n-1}\in\spcf0^n\subset\F H \quad\text{where }\spcf0^n\text{ is a closed, convex subset for all } n\in\F N.
 	\end{equation}}
 	
 	\subsubsection{Single iterations}
@@ -502,7 +502,7 @@
 		\end{align*}
 		If $\op{g}$ is not Lipschitz at $\varf0^*$ but $\op{f}$ is $\Norm\cdot$-Lipschitz and 
 		$$\min_{\varf2\in\tilde{\spcf0}^k}\left\{\Norm{\varf2-\varf0^*}\st \op{g}(\varf2)\leq \op{g}(\varf0^*)\right\} \lesssim \min_{\varf2\in\tilde{\spcf0}^k}\Norm{\varf2-\varf0^*},$$
-		then, again, $\vars3_{\op{E}}\geq\meshsize^{-p}$. 
+		then, again, $\vars3_{\op{E}}\geq\meshsize^{-p}$.
 	\end{theorem}
 	The proof of this theorem is in Appendix~\ref{app: generic a_U and a_E}. The main take-home for this theorem is that the computation of $\vars3_{\Varf0}$ and $\vars3_{\op{E}}$ is typically very simple and clear given a particular choice of $\Norm\cdot$ and $\op{E}$. The only non-trivial case is when $\op{g}$ is not smooth enough to estimate directly. So long as $\tilde{\spcf0}^k$ are sufficiently dense in sublevel sets of $\op{g}$, the smoothness of $\op{f}$ is sufficient to give a convergence rate.
 	
@@ -526,7 +526,7 @@
 	\begin{equation}
 		\Norm{\varf0-\delta} = \sup_{\vard0\in C(\Domain), \norm{\vard0}_{L^\infty}\leq 1} \IP{\vard0}{\varf0-\delta} = \Norm{\varf0}+\Norm{\delta} \geq 1 = \meshsize^0.
 	\end{equation}
-	To improve our estimate of $\vars3_{\op{E}}$ requires additional assumptions on $\A$. \edit{}{Note that the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\spcf0}^k$ onto piecewise-constant functions is $\Norm\cdot$-diminishing. Therefore }
+	To improve our estimate of $\vars3_{\op{E}}$ requires additional assumptions on $\A$. \edit{}{Note that the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\spcf0}^k$ onto piecewise-constant functions is $\Norm\cdot$-diminishing, therefore }
 	for any $\varf0\in\F H$, $\varf2\coloneqq \tilde{\tens{\Pi}}_k\varf0\in\tilde{\spcf0}^k$ we have
 	\begin{align}
 		\op{E}(\varf2)-\op{E}(\varf0) &= \edit{\tfrac12\norm{\A\varf2-\data}_{\ell^2}^2 - \tfrac12\norm{\A\varf0-\data}_{\ell^2}^2}{\op{f}(\A\varf2-\data)-\op{f}(\A\varf0-\data)} + \mu\left(\Norm{\varf2}-\Norm{\varf0}\right)
