@@ -293,7 +293,7 @@
 			\edit{where $\tens{\Pi}_n\colon\bar{(\spcf0^n)^*}\to\spcf0^n$ is the orthogonal projection.}{}
 		}
 	\end{lemma}
-	\noindent This is exactly the result of \cite{Chambolle2015} on the \edit{subspace}{subset} $\spcf0^n$. Applying Lemma~\ref{thm: descent lemma} to the iterates from Algorithm~\ref{alg: refining FISTA} gives a more explicit inequality.
+	\noindent The proof is exactly the same as in \cite{Chambolle2015} on the \edit{subspace}{subset} $\spcf0^n$. Applying Lemma~\ref{thm: descent lemma} to the iterates from Algorithm~\ref{alg: refining FISTA} gives a more explicit inequality.
 	
 	\begin{lemma}[{\edit{analogous to }{}\cite[\edit{Theorem 2}{(17)}]{Chambolle2015}, \cite[\edit{Theorem 1}{Lemma 4.1}]{Beck2009}}]\label{thm: one step FISTA}
 		\Copy{thm: one step FISTA}{
@@ -944,11 +944,12 @@
 	\end{align}
 	
 	\paragraph{Numerical results}
-	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. \edit{No noise is added to the Shepp-Logan data but 5\% Gaussian white noise is added to the disc data.}{Both examples are corrupted with \SI{2}{\percent} Laplace distributed noise.} This is visualised in Figure~\ref{fig: haar data}. All optimisations shown are spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^2$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
+	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. \edit{No noise is added to the Shepp-Logan data but 5\% Gaussian white noise is added to the disc data.}{Both examples are corrupted with \SI{2}{\percent} Laplace distributed noise.} This is visualised in Figure~\ref{fig: haar data}. All optimisations shown are spatially adaptive using Haar wavelets and initialised with $\spcf0^0= \{\varx0\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^\infty$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
 	$$ \norm{\1_{\supp(w_j)}\A^*\vvard0_n}_{L^2} -\mu  \leq 10\Norm{\partial_n\op{E}(\varf0_n)}_*$$
 	for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times the discrete gradient).
+	\edit{}{We do not expect wavelet regularisation to have state-of-the-art performance in the examples of Figure~\ref{fig: haar data}. What they demonstrate is the preference Haar wavelets have to align large discontinuities with a coarse grid, even when the discretisation is allowed to be as fine as necessary. There is an average of $2\cdot10^6$ wavelet coefficients in each discretised reconstruction, although the higher frequencies have much smaller intensities. In limited data scenarios, wavelet regularisation automatically selects a local `resolution' which reflects the quality of data. Particularly in the Shepp-Logan reconstruction, we see that the outer ring is detected with a finer precision than the dark interior ellipses.}
 	
-	The first numerical results shown in Figure~\ref{fig: haar convergence} compare the same adaptive algorithms as shown in Figure~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower. \edit{}{Interestingly, in both examples the $a=20$ variant uses half as many wavelets as the Greedy variant, and therefore converges slightly faster in time. }
+	The first numerical results shown in Figure~\ref{fig: haar convergence} compare the same adaptive FISTA variants as shown in Figure~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower. \edit{}{Interestingly, in both examples the $a=20$ variant uses half as many wavelets as the Greedy variant, and therefore converges slightly faster in time. }
 	
 	\begin{figure}\centering
 		\includegraphics[width=.85\textwidth]{haar_data}
