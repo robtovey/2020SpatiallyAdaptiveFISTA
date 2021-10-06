@@ -34,9 +34,9 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \begin{enumerate}
 	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $u_n$ converge for the various versions of FISTA.} 
 	
-	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the convergence is clear. Similarly, if one has compact sub-levelsets (e.g. LASSO), then one has convergence of a sub-sequence.
+	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the sequence convergences strongly. Similarly, if one has (weakly) compact sub-levelsets, such as in the LASSO examples, then a sub-sequence converges (weakly).
 	
-	In the general Hilbert space setting we know FISTA iterates converge weakly (for certain variants). The same result is likely to hold with our adaptivity when the minimiser is in $\F H$, although we haven't verified this special case. The standard proof (e.g. [10]) relies on the bound $\lVert u_n-u_{n-1}\rVert = o(n^{-1})$, i.e. vanishing stepsize in the Hilbert norm, but in general we only expect this quantity to be bounded. It's not clear whether we can adapt the argument to gain any convergence in the Banach space. 
+	Of course there are variants of FISTA that guarantee weak convergence in the Hilbert space setting without any further coercivity or compactness assumptions. It is likely that the same arguments (e.g. [10]) can be made for our adaptive algorithm in a Hilbert space, although we haven't verified this special case. It is beyond the scope of this work to extend these results into the generalised setting and at the moment the question does not appear to be trivial.
 	
 	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
 	
@@ -70,7 +70,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 \end{enumerate}
 
 \section{Detailed response to second reviewer}
-We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the orthogonal projection was not required either, we now allow $U^n$ to be subsets of $\F H$ rather than subspaces. The Banach space setting is reserved for examples discussed in Section 5 onwards.
+We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the subspace structure and orthogonal projection were not required either. We now allow $U^n$ to be closed convex subsets of $\F H$. The Banach space setting is reserved for examples discussed in Section 5 onwards.
 
 \begin{enumerate}
 	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}
