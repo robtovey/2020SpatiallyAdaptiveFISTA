@@ -1,5 +1,5 @@
 \documentclass[12pt]{article}
-\usepackage[cm]{fullpage}
+\usepackage[in]{fullpage}
 \usepackage{amsmath,amsfonts,color}
 \usepackage[normalem]{ulem}
 
@@ -17,11 +17,10 @@
 \definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
 \renewcommand{\ULthickness}{1.0pt}
 \newcommand{\edit}[2]{{\ifmmode\text{\color{red}\sout{\ensuremath{#1}}}\else {\color{red} \sout{#1}}\fi} {\color{darkgreen} #2}}
-\newcommand{\todo}[1]{{\color{red} #1}}
 
 \title{Response to reviewer comments:\\``FISTA'' in Banach spaces with adaptive discretisations}
 \author{Antonin Chambolle and Robert Tovey}
-\date{\todo{31st October 2021}}
+\date{7th October 2021}
 
 \begin{document}
 \maketitle
@@ -56,7 +55,7 @@ We would like to thank both the reviewers for their time and feedback. All chang
 	
 	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
 	
-	You are right, we can also consider alternative misfits. We have replaced the wavelet example in Section 7.2 with a (Huber-smoothed) robust $\ell^1$ penalty as we only explicitly required the gradient and Lipschitz constant for computations. This also led to a number of small updates to the analysis in Section 6 to generalise to a non-quadratic misfit.
+	You are right, we can also consider alternative misfits. We have replaced the wavelet example in Section 7.2 with a (Huber-smoothed) robust $\ell^1$ penalty. This also led to a number of small updates to the analysis in Section 6 to generalise for a non-quadratic misfit.
 	
 	\item \review{page 17, line 28: missing word? ``most require''?}
 	
