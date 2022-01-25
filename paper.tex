@@ -23,7 +23,7 @@
 \usepackage[colorlinks, citecolor=blue, bookmarks=True]{hyperref}
 \usetikzlibrary{positioning,trees}
 \usepackage{algorithm,algpseudocode}
-%\graphicspath{{Figures/}}
+\graphicspath{{Figures/}}
 \DeclareGraphicsExtensions{.pdf,.png}
 
 \let\F\mathds\let\C\mathcal\newcommand{\R}{\F{R}}\newcommand{\A}{\tens{A}}
@@ -41,7 +41,10 @@
 \DeclareMathOperator{\supp}{supp}
 \DeclareMathOperator{\id}{id}
 \DeclareMathOperator{\sign}{sign}
+\newcommand{\diff}{\mathop{}\!\mathrm{d}}
 \newcommand{\Emin}[1][\var0]{\inf_{#1\in\F H}\op{E}(#1)}
+\newcommand{\aU}{a_{\op{U}}}\newcommand{\aE}{a_{\op{E}}}
+\newcommand{\aUaE}{$(\aU,\aE)$-minimising sequence of $\op{E}$}
 
 \newcounter{adaptStepCounter}
 \newenvironment{adaptiveStep}{\refstepcounter{adaptStepCounter}}{}
@@ -77,9 +80,19 @@
 % Macro for tracking changes
 \usepackage[normalem]{ulem}\renewcommand{\ULthickness}{1.0pt}
 \definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
-\newcommand{\edit}[2]{{\ifmmode\text{\color{red}\sout{\ensuremath{#1}}}\else {\color{red} \sout{#1}}\fi} {\color{darkgreen} #2}}
-\renewcommand{\edit}[2]{#2}
-%\newcommand{\todo}[1]{{\color{red}#1}}
+\newcommand{\edit}[3][1]{
+	\IfEq{#1}{2}{\def\mysecondvar{}}{\def\mysecondvar{#2}}% hide the deleted text?
+	\ifx\mysecondvar\empty{}\else{%
+		\IfEq{#1}{1}{%
+			\ifmmode%
+			\text{\color{red}\sout{\ensuremath{#2}}}%
+			\else%
+			{\color{red} \sout{#2}}%
+			\fi%
+		}{\color{red}#2}\ %
+	}\fi{\color{darkgreen}#3}}
+%\renewcommand{\edit}[3][1]{#3}
+\newcommand{\todo}[1]{{\color{orange}#1}}
 
 \author{Antonin Chambolle \and Robert Tovey }
 \institute{A. Chambolle \at
@@ -95,7 +108,7 @@
 	\maketitle
 	
 	\begin{abstract}
-		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever \edit{the optimisation domain}{a minimiser} is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a \edit{subspace, and that subspace is allowed to change at every iteration}{subset which is allowed to change at every iteration}. \edit{Analytically, this allows us to guarantee convergence in a Banach space setting}{Sufficient conditions are provided for guaranteed convergence}, although at a reduced rate depending on the conditioning of the specific problem. \edit{Numerically we show that a greedy adaptive choice of discretisation can greatly increase the time and memory efficiency in infinite dimensional Lasso optimisation problems.}{These conditions have a natural interpretation when a minimiser exists in an underlying Banach space. Typical examples are L1-penalised reconstructions where we provide detailed theoretical and numerical analysis.}
+		FISTA is a popular convex optimisation algorithm which is known to converge at an optimal rate whenever a minimiser is contained in a suitable Hilbert space. We propose a modified algorithm where each iteration is performed in a subset which is allowed to change at every iteration. Sufficient conditions are provided for guaranteed convergence, although at a reduced rate depending on the conditioning of the specific problem. These conditions have a natural interpretation when a minimiser exists in an underlying Banach space. Typical examples are L1-penalised reconstructions where we provide detailed theoretical and numerical analysis.
 	\end{abstract}
 	\keywords{Convex optimization \and Multiscale \and Multigrid \and Sparsity \and Lasso}
 	
@@ -103,70 +116,75 @@
 	The Fast Iterative Shrinkage-Thresholding Algorithm (FISTA) was proposed by Beck and Teboulle \cite{Beck2009} as an extension of Nesterov's fast gradient method \cite{Nesterov2004} and is now a very popular algorithm for minimising the sum of two convex functions.
 	We write this as the problem of computing
 	\begin{equation}\label{eq: min F = fD+fC}
-		\edit{u^* \in \argmin_{\var0\in\F H}\op{E}(\var0)}{\Emin}  \qquad\text{such that}\qquad \op{E}(\var0)\coloneqq \op{f}(\var0) + \op{g}(\var0),
+		\Emin \qquad\text{such that}\qquad \op{E}(\var0)\coloneqq \op{f}(\var0) + \op{g}(\var0),
 	\end{equation}
-	where $\op{f}\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\op{g}\colon\F H\to\bar\R$ is a convex function, whose ``proximity operator'' is easy to compute. The iterates of the FISTA algorithm will be denoted $\var0_n\in\F H$. It has been shown that $\op{E}(\var0_n) - \edit{\op{E}(u^*)}{\Emin}$ converges at the optimum rate of $n^{-2}$ \cite{Beck2009}, and later (after a small modification) the convergence of the iterates was also shown in a general Hilbert space setting \cite{Chambolle2015}. Many further works have gone on to demonstrate faster practical convergence rates for slightly modified variants of FISTA \cite{Tao2016,Liang2017,Alamo2019}.
+	where $\op{f}\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\op{g}\colon\F H\to\bar\R$ is a convex function, whose ``proximity operator'' is easy to compute. The iterates of the FISTA algorithm will be denoted $\var0_n\in\F H$. It has been shown that $\op{E}(\var0_n) - \Emin$ converges at the optimum rate of $n^{-2}$ \cite{Beck2009}, and later (after a small modification) the convergence of the iterates was also shown in a general Hilbert space setting \cite{Chambolle2015}. Many further works have gone on to demonstrate faster practical convergence rates for slightly modified variants of FISTA \cite{Tao2016,Liang2017,Alamo2019}.
 	
-	The contribution of this work is a modified FISTA algorithm which achieves two key properties:
+\edit[0]{%
+	\sout{The contribution of this work is a modified FISTA algorithm which achieves two key properties:}
 	\begin{itemize}
-		\item we extend the convergence results to the case \edit{$\var0^*\in\bar{\F H}\setminus\F H$ where $\F{U}\coloneqq \bar{\F H}$ is a Banach space}{where the minimum is not achieved. For example, in \edit{Lasso}{L1 penalised reconstructions} discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\F{U}\supset\F H$ such that $\Emin = \min_{\var0\in\F{U}}\op{E}(\var0)$ is achieved in $\F{U}\setminus\F H$}. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.
-		\item we allow for adaptive discretisation such that $\var0_n\in\F{U}^n\subset\F H$. With simple guarantees on the rates of convergence, we show analytically that applying our FISTA algorithm with inexact discretisation does not reduce the proven rate of convergence. In the Hilbert space setting this is the original $n^{-2}$ rate. In numerical examples we demonstrate that greedy adaptive discretisation strategies can achieve much greater performance than uniform discretisation, both in measures of time and computer memory requirements.
+		\item \sout{We extend the convergence results to the case where the minimum is not achieved. For example, in L1 penalised reconstructions discussed in Section~\ref{sec: Lasso definition} there exists a Banach space $\F{U}\supset\F H$ such that $\Emin = \min_{\var0\in\F{U}}\op{E}(\var0)$ is achieved in $\F{U}\setminus\F H$. The proven rate is slower than the optimal $n^{-2}$, but appears to be quite sharp in numerical examples.}
+		\item \sout{We allow for adaptive discretisation such that $\var0_n\in\F{U}^n\subset\F H$. With simple guarantees on the rates of convergence, we show analytically that applying our FISTA algorithm with inexact discretisation does not reduce the proven rate of convergence. In the Hilbert space setting this is the original $n^{-2}$ rate. In numerical examples we demonstrate that greedy adaptive discretisation strategies can achieve much greater performance than uniform discretisation, both in measures of time and computer memory requirements.}
 	\end{itemize}
-	There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for \edit{the use outside of Hilbert spaces}{use with un-attained minima} is the key theoretical novelty. Some other works for FISTA-like algorithms include \cite{Jiang2012,Villa2013}. Of particular note, our stability estimate for FISTA  in Theorem~\ref{thm: mini FISTA convergence} is very similar to \cite[Prop 2]{Schmidt2011} and \cite[Prop 3.3]{Aujol2015}. This is then used to analyse the convergence properties in our more general Banach space setting where all sources of inexactness come from subspace approximations. The ideas in \cite{Parpas2017} are similar although in application to the proximal gradient method with an additional smoothing on the functional $\op{g}$. The permitted refinement steps are also more broad in our work. \cite{}{Very recent work in \cite{Yu2021} proposes a `Multilevel FISTA' algorithm which allows similar coarse-to-fine refinement strategies, although only a finite number. We also allow for non-uniform refinement with a posteriori strategies.}
+	\sout{There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for use with un-attained minima is the key theoretical novelty.}
+	
+}{%
+	There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, however, our interpretation is relatively novel. In particular, we emphasise the infinite-dimensional setting where errors come from `discretisation' (rather than random or decaying errors in $\F H$), which enables two new perspectives:
+	\begin{itemize}
+		\item Analytically, we prove new rates of convergence for FISTA when the minimum energy is not achieved (at least not in $\F H$). The exact rate can be computed by quantifying coercivity and regularity properties of $\op{E}$. If there isn't a minimiser in $\F H$, then this rate is strictly smaller than $n^{-2}$.
+		
+		\item Numerically, we allow the optimisation domain to change on every iteration. This enables us to understand how FISTA behaves with adaptive discretisations. Adaptive finite-element methods are known to improve the efficiency of, for example, approximating the solutions of PDEs. Our analytical results show how to combine such tools with FISTA (without reducing the guaranteed rate of convergence), and our numerical results confirm much improved time and computer memory efficiency in the Lasso example (Section~\ref{sec: Lasso definition}).
+	\end{itemize}
+	All the examples in this work, discussed from Section~\ref{sec: general examples} onward, consider $\{\var0\in\F H\st \op{E}(\var0)<\infty\}$ to be contained in some ambient Banach space $\F{U}$. The idea is that FISTA provides a minimising sequence in $\F H\cap\F U$, but further properties like rate of convergence (of $\op{E}$ or iterates) must come from the topology of $\F{U}$. It will not be necessary for $\F H\hookrightarrow\F U$ to be a continuous embedding, nor in fact the full inclusion $\F H\subset\F U$.
+
+	\todo{Note to self: It is probably not very hard to imagine examples outside of a Banach space, you just need to find a metric space without the linear scaling. Examples outside of a metric space would be much harder.}
+}
+	
+	Some other works for FISTA-like algorithms include \cite{Jiang2012,Villa2013}. Of particular note, our stability estimate for FISTA  in Theorem~\ref{thm: mini FISTA convergence} is very similar to \cite[Prop 2]{Schmidt2011} and \cite[Prop 3.3]{Aujol2015}. This is then used to analyse the convergence properties in our more general Banach space setting where all sources of inexactness come from subspace approximations. The ideas in \cite{Parpas2017} are similar although in application to the proximal gradient method with an additional smoothing on the functional $\op{g}$. The permitted refinement steps are also more broad in our work. Very recent work in \cite{Yu2021} proposes a `Multilevel FISTA' algorithm which allows similar coarse-to-fine refinement strategies, although only a finite number. We also allow for non-uniform refinement with a posteriori strategies.
 	
 	
 	\subsection{Outline}
-	This work is organised as follows. Section~\ref{sec: prelims} defines notation and the generic form of our proposed refining FISTA algorithm, Algorithm~\ref{alg: refining FISTA}. The main theoretical contribution of this work is the convergence analysis of Algorithm~\ref{alg: refining FISTA} which is split into two parts: first we outline the proof structure in Section~\ref{sec: recipe}, then we state the specific results in the case of FISTA in Section~\ref{sec: FISTA convergence}. The main results are Theorems~\ref{thm: exponential FISTA convergence}/\ref{thm: stronger exponential FISTA convergence} which extend the convergence of FISTA \edit{to infinite dimensional Banach spaces}{to cases with un-attained minima} with uniform/adaptively chosen subspaces $\F{U}^n$ respectively. 
+	This work is organised as follows. Section~\ref{sec: prelims} defines notation and the generic form of our proposed refining FISTA algorithm, Algorithm~\ref{alg: refining FISTA}. The main theoretical contribution of this work is the convergence analysis of Algorithm~\ref{alg: refining FISTA} which is split into two parts: first we outline the proof structure in Section~\ref{sec: recipe}, then we state the specific results in the case of FISTA in Section~\ref{sec: FISTA convergence}. The main results are Theorems~\ref{thm: exponential FISTA convergence}/\ref{thm: stronger exponential FISTA convergence} which extend the convergence of FISTA to cases with un-attained minima with uniform/adaptively chosen subspaces $\F{U}^n$ respectively. 
 	
-	Section~\ref{sec: general examples} presents some general results for the application of Algorithm~\ref{alg: refining FISTA} \edit{}{in Banach spaces }and Section~\ref{sec: Lasso definition} gives a much more detailed discussion of adaptive refinement for Lasso minimisation. In particular, we describe how to choose efficient refining discretisations to approximate \edit{$\var0^*$}{$\Emin$}, estimate the convergence of $\op{E}$, and identify the support of \edit{$\var0^*$}{the minimiser}. The numerical results in Section~\ref{sec: numerics} demonstrate these techniques in four different models demonstrating the apparent sharpness of our convergence rates and the computational efficiency of adaptive discretisations.
+	Section~\ref{sec: general examples} presents some general results for the application of Algorithm~\ref{alg: refining FISTA} in Banach spaces and Section~\ref{sec: Lasso definition} gives a much more detailed discussion of adaptive refinement for Lasso minimisation. In particular, we describe how to choose efficient refining discretisations to approximate $\Emin$, estimate the convergence of $\op{E}$, and identify the support of the minimiser. The numerical results in Section~\ref{sec: numerics} demonstrate these techniques in four different models demonstrating the apparent sharpness of our convergence rates and the computational efficiency of adaptive discretisations.
 	
 	
 	\section{Definitions and notation}\label{sec: prelims}
-	\edit{We consider optimisation of \eqref{eq: min F = fD+fC} over two spaces, the Banach space $(\F{U},\Norm\cdot)$ and Hilbert space $(\F H,\IP\cdot\cdot,\norm\cdot)$, such that 
-	\\\centerline{$\displaystyle \exists\var0^*\in \F{U} \quad\st\quad \op{E}(\var0^*) = \min_{\var0\in\F{U}}\op{E}(\var0) = \inf_{\var0\in\F H}\op{E}(\var0).$}
-	Furthermore, define the translated energy
-	\\\centerline{$\displaystyle \op{E}_0\colon\F{U}\cup\F H\to \R,\qquad \op{E}_0(\var0) \coloneqq \op{E}(\var0)-\op{E}(\var0^*).$}
-	Note that the value of $\op{E}_0$ is uniquely defined, even if $\var0^*$ may not be.%
-	\\}{%
 	We consider optimisation of \eqref{eq: min F = fD+fC} over a Hilbert space $(\F H,\IP\cdot\cdot,\norm\cdot)$ with the translated energy
 	\begin{equation}
 		\op{E}_0\colon\F H\to \R,\qquad \op{E}_0(\var0) \coloneqq \op{E}(\var0)-\Emin[\tilde{\var0}].
 	\end{equation}
-	}
+
 	
-	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of \edit{refining subspaces}{closed convex subsets} $\F{U}^n\subset \edit{\F{U}\cap}{}\F H$ for $n\in\F N$. The only difference \edit{}{from standard FISTA }is that on iteration $n$, all computations are performed in the \edit{subspace}{subset} $\F{U}^n$. If $\F{U}^n\edit{=\F{U}}{}=\F H$, then we recover the \edit{standard FISTA}{original} algorithm. \edit{}{More generally, the idea is that $\F{U}^n$ are `growing', for example $\F{U}^n\subset\F{U}^{n+1}$, but this assumption is not necessary in most of the results.}
+	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of closed convex subsets $\F{U}^n\subset \F H$ for $n\in\F N$. The only difference from standard FISTA is that on iteration $n$, all computations are performed in the subset $\F{U}^n$. If $\F{U}^n=\F H$, then we recover the original algorithm. More generally, the idea is that $\F{U}^n$ are `growing', for example $\F{U}^n\subset\F{U}^{n+1}$, but this assumption is not necessary in most of the results.
 	
-	Without loss of generality we will assume $L=1$, i.e. $\nabla\op{f}$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\op{E}$ with $\frac{\op{E}}{L}$.\edit{ A more important distinction is to say that the properties of $\op{f}$ and $\op{g}$ are stated with respect to the Hilbert norm.}{} In particular,
+	Without loss of generality we will assume $L=1$, i.e. $\nabla\op{f}$ is 1-Lipschitz. To get the general statement of any of the results which follow, replace $\op{E}$ with $\frac{\op{E}}{L}$. In particular,
 	\begin{equation}
 		\norm{\nabla\op{f}(\var0)- \nabla\op{f}(\var1)} \leq \norm{\var0-\var1}
 	\end{equation}
-	for all $\var0,\var1\in\F H$ and $\op{g}$ is called `simple' if \edit{}{it is proper, convex, weakly lower-semicontinuous, and}
+	for all $\var0,\var1\in\F H$ and $\op{g}$ is called `simple' if it is proper, convex, weakly lower-semicontinuous, and
 	\begin{equation}
 		\argmin_{\var0\in\tilde{\F{U}}}\tfrac12\norm{\var0-\var1}^2 + \op{g}(\var0)
 	\end{equation}
-	is exactly computable for all $\var1\in\F H$ and all $\tilde{\F{U}}\in\{\F{U}^n\}_{n=0}^\infty$. \edit{}{Closed subsets of $\F H$ are locally weakly compact, therefore this argmin is always non-empty.}
+	is exactly computable for all $\var1\in\F H$ and all $\tilde{\F{U}}\in\{\F{U}^n\}_{n=0}^\infty$. Closed subsets of $\F H$ are locally weakly compact, therefore this argmin is always non-empty.
 	
 	One defining property of the FISTA algorithm is an appropriate choice of inertia, dictated by $t_n$. In particular, we will say that $(t_n)_{n=0}^\infty$ is a \emph{FISTA stepsize} if
 	\begin{equation}\label{def: t_n and rho_n}
 		t_0 = 1, \qquad t_n \geq 1, \qquad \text{and}\qquad \rho_n \coloneqq t_n^2 - t_{n+1}^2 + t_{n+1} \geq 0\qquad \text{ for all }n=0,1,\ldots.
 	\end{equation}
-	
-	\edit{Finally we introduce the concept of an orthogonal projection in the setting of this work. For a subspace $\F{U}^n\subset\F{U}\cap\F H$ we define the orthogonal projection $\tens{\Pi}_n\colon (\F{U}^n)^*\to \F{U}^n$ to be any extension of the function such that 
-	\\\centerline{$\IP{\tens{\Pi}_n\var0}{\var1} = \IP{\var0}{\var1} \text{ for all } \var0\in(\F{U}^n)^*, \ \var1\in\F{U}^n.$}
-	This definition is non-standard as we view $(\F{U}^n)^*$ embedded in $\F{U}$. Note that $\F{U}^n\subset\F H$ implies that $(\F{U}^n)^*\supset\F H$, therefore $\tens{\Pi}_n$ is an extension of the classical orthogonal projection. It is convenient to allow an extension here because $\F{U}$ may be bigger than $\F H$, $(\F{U}^n)^*$ is the largest space such that $\tens{\Pi}_n$ is sufficiently well-defined. Beyond this, the Hahn-Banach theorem may allow the domain of $\tens{\Pi}_n$ to be extended further, but the definition is no longer unique. For example, in 1D the value of $\IP{\delta_0}{\frac{1}{\sqrt[4]{x}}}$ is not well-defined, but the value of $\IP{\delta_0}{\1_{[0,1]}}$ can be chosen to be consistent with some sequence of molifiers. To account for this possibility, we shall state that the domain of $\tens{\Pi}_n$ is $\bar{(\F{U}^n)^*}$, with the closure computed in an appropriate topology dictated by $\Norm\cdot$.}{}
-	
+		
 	The precise constants associated to a given rate are given in the statements of the theorems but, for convenience, are otherwise omitted from the text. For sequences $(a_n)_{n=1}^\infty$,$(b_n)_{n=1}^\infty$ we will use the notation:
 	\begin{align*}
 		a_n \lesssim b_n \qquad &\iff \qquad \exists C,N>0 \st a_n \leq C b_n \text{ for all } n>N,
 		\\ a_n \simeq b_n \qquad &\iff \qquad a_n\lesssim b_n \lesssim a_n.
 	\end{align*}
-	\edit{}{For $n\in\F N$ we use the abbreviation $[n] = \{1,2,\ldots,n\}$. When the subdifferential of $\op{E}$ is set-valued, we will use the short-hand
+	For $n\in\F N$ we use the abbreviation $[n] = \{1,2,\ldots,n\}$. When the subdifferential of $\op{E}$ is set-valued, we will use the short-hand
 	\begin{equation}
 		\Norm{\partial\op{E}(\var0)} \coloneqq \inf_{\var1\in\partial\op{E}(\var0)}\Norm{\var1}
 	\end{equation}
-	for any specified norm $\Norm\cdot$.}
+	for any specified norm $\Norm\cdot$.
 	
-	\begin{algorithm}\caption{Refining \edit{subspace}{subset} FISTA}\label{alg: refining FISTA}
+	\begin{algorithm}\caption{Refining subset FISTA}\label{alg: refining FISTA}
 		\centering
 		\begin{algorithmic}[1]
 			\State Choose $(\F{U}^n)_{n\in\F N}$, $\var0_0\in \F{U}^0$ and some FISTA stepsize choice $(t_n)_{n\in\F N}$
@@ -182,64 +200,66 @@
 	
 	
 	\section{General proof recipe}\label{sec: recipe}
-	In this section we give an intuitive outline of the full proof for convergence of Algorithm~\ref{alg: refining FISTA} before giving formal theorems and proofs in the next section. First we recall the classical FISTA convergence guarantee given by \cite[\edit{Theorem 2}{Thm 3.1}]{Chambolle2015}:
+	In this section we give an intuitive outline of the full proof for convergence of Algorithm~\ref{alg: refining FISTA} before giving formal theorems and proofs in the next section. First we recall the classical FISTA convergence guarantee given by \cite[Thm 3.1]{Chambolle2015}\edit{:}{; if there exists $\var0^*\in \argmin_{\var0\in\F H}\op{E}(\var0)$, then}
 	\begin{equation}\label{eq: classical FISTA}
 		t_N^2\op{E}_0(\var0_N) + \sum^{N-1}_{n=1}\rho_n\op{E}_0(\var0_n) + \tfrac12\norm{\var1_N-\var0^*}^2 \leq \tfrac12\norm{\var0_0-\var0^*}^2
 	\end{equation}
-	for some FISTA stepsize choice $t_N\simeq N$ and $\rho_n\geq0$.
+	for \edit{some $\var0^*\in \argmin_{\var0\in\F H}\op{E}(\var0)$, and}{any} FISTA stepsize choice $t_N\simeq N$ such that $\rho_n\geq0$.
 	
 	\paragraph{Step 1: Quantifying the stability}
 	\begin{adaptiveStep}\label{step: step 1 stability}
-		The first step is to generalise \eqref{eq: classical FISTA} to account for the adapting \edit{subspaces}{subsets} $\F{U}^n$. In the notation of Algorithm~\ref{alg: refining FISTA}, Theorem~\ref{thm: mini FISTA convergence} shows that 
+		The first step is to generalise \eqref{eq: classical FISTA} to account for the adapting subsets $\F{U}^n$. In the notation of Algorithm~\ref{alg: refining FISTA}, Theorem~\ref{thm: mini FISTA convergence} shows that 
 		\begin{equation}\label{eq: mini FISTA convergence}
 			t_N^2\op{E}_0(\var0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\var0_n) + \tfrac12\norm{\var1_N-\var2_N}^2 \leq \tfrac12\norm{\var0_0-\var2_0}^2 +\tfrac{\norm{\var2_N}^2-\norm{\var2_0}^2}2 
 			+ \sum^N_{n=1} t_n\op{E}_0(\var2_n) + \IP{\var1_{n-1}}{\var2_{n-1}-\var2_n}
 		\end{equation}
-		for any $\var2_n \in \argmin_{\var0\in\F{U}^n}\op{E}(\var0)$. The similarities to \eqref{eq: classical FISTA} are clear. If $\F{U}^n=\edit{\F{U}}{\F H}$, then we have $\var2_n=\edit{\var0^*}{\var2_0\in\argmin_{\var0\in\F H}\op{E}(\var0)}$ and the two estimates agree. These extra terms quantify the robustness to changing of discretisation.
+		for any $\var2_n \in \edit{\argmin_{\var0\in\F{U}^n}\op{E}(\var0)}{\F{U}^n}$. The similarities to \eqref{eq: classical FISTA} are clear. If $\F{U}^n=\F H$, then we \edit{have}{can choose} $\var2_n=\edit{\var2_0\in\argmin_{\var0\in\F H}\op{E}(\var0)}{\var0^*}$ and the two estimates agree. These extra terms in \eqref{eq: mini FISTA convergence} quantify the robustness to changing of discretisation.
 	\end{adaptiveStep}
 	
 	
 	\paragraph{Step 2: Quantifying the scaling properties}
 	\begin{adaptiveStep}\label{step: step 2 smoothness}
-		To show that the extra terms in \eqref{eq: mini FISTA convergence} are small, we need to quantify the approximation properties of $\F{U}^n$. \edit{}{The idea is that $\F{U}^n$ are locally compact, so that minimisers are achieved, but `growing' so that $\min_{\var0\in\F{U}^n}\op{E}(\var0) \to \inf_{\var0\in\F H}\op{E}(\var0)$. A canonical example might be $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq n\}$.} \edit{To do so, we construct}{To quantify the balance between a growing Hilbert norm and improving estimate of $\op{E}$, we introduce} a secondary sequence $n_0 < n_1 < \ldots$ and constants $\vars3_U,\vars3_{\op{E}}\geq1$ such that for each $k\in\F N$
-		\begin{equation}
-			n\leq n_k \implies \norm{\var2_n} \lesssim \vars3_U^k, \qquad n\geq n_k \implies \op{E}_0(\var2_n) \lesssim \vars3_{\op{E}}^{-k}.
+		To show that the extra terms in \eqref{eq: mini FISTA convergence} are small, we need to quantify the approximation properties of $\F{U}^n$. The idea is that $\F{U}^n$ are locally compact, so that minimisers are achieved, but `growing' so that $\min_{\var0\in\F{U}^n}\op{E}(\var0) \to \inf_{\var0\in\F H}\op{E}(\var0)$. A canonical example might be $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq n\}$. To quantify the balance between a growing Hilbert norm and improving estimate of $\op{E}$, we introduce a secondary sequence $n_0 < n_1 < \ldots$ and constants $\aU,\aE\geq1$ such that for each $k\in\F N$
+		\begin{equation}\label{eq: first regularity}
+			n\leq n_k \implies \norm{\var2_n} \lesssim \aU^k, \qquad n\geq n_k \implies \op{E}_0(\var2_n) \lesssim \aE^{-k}.
 		\end{equation}
-		\edit{}{The expanding balls example would become $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq \vars3_U^k\}$, and $\vars3_{\op{E}}$ reflects the smoothness of $\op{E}$ with respect to the Hilbert norm.} The choice of exponential scaling is \edit{very}{more} natural if we consider the $\F{U}^n$ to be the subspace of functions discretised on a uniform mesh. If that mesh is sequentially refined, then the resolution of the mesh will be of order $h^k$ after $k$ refinements and for some $h<1$. The integer $n_k$ should then be the time when the mesh has refined $k$ times. %
-		\edit{The value of $\vars3_U$ is dictated by the smoothness of the norm of $\F{U}$ with respect to that of $\F H$. If $\norm{\var0^*}<\infty$, then the value is $\vars3_U=1$, otherwise there is some damage to the rate of convergence generated by this factor. On the other hand, the value of $\vars3_{\op{E}}$ is dictated by the smoothness of $\op{E}$ at the point $\var0^*$.}{The value $\vars3_U$ reflects the smoothness of the chosen basis measured in $\F H$, and $\vars3_{\op{E}}$ is a measure of efficiency with respect to the structure of $\op{E}$.} %
-		If an efficient basis is used, then $\vars3_{\op{E}}$ is large. The trade-off between $\vars3_{\op{E}}$ and $\vars3_U$ dictates the final convergence rate of the algorithm. \edit{}{If $\vars3_U>1$, then we cannot guarantee the original $n^{-2}$ rate of convergence.}
+		The expanding balls example would become $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq \aU^k\}$ for $n\in[n_k,n_{k+1})$, and $\aE$ reflects the smoothness of $\op{E}$. The choice of exponential scaling \edit{is more}{is introduced to improve stability of Algorithm~\ref{alg: refining FISTA}. It is} natural if we consider the $\F{U}^n$ to be the subspace of functions discretised on a uniform mesh. If that mesh is sequentially refined, then the resolution of the mesh will be of order $h^k$ after $k$ refinements and for some $h<1$. The integer $n_k$ is then the time at which the mesh has refined $k$ times. \edit{The value $\aU$ reflects the smoothness of the chosen basis, and $\aE$ is a measure of efficiency with respect to the structure of $\op{E}$. If an efficient basis is used, then $\aE$ is large.}{} The trade-off between $\aE$ and $\aU$ dictates the final convergence rate of the algorithm. If $\aU>1$, then we cannot guarantee the original $n^{-2}$ rate of convergence.
 	\end{adaptiveStep}
 	
 	\paragraph{Step 3: Generalising the convergence bound}
 	\begin{adaptiveStep}\label{step: step 3 convergence bound}
-		In this step we combine the FISTA stability estimate with the \edit{subspace}{subset} approximation guarantees to provide a sharper estimate of stability with respect to the parameters $\vars3_{\op{E}}$ and $\vars3_U$. For example, if $\F{U}^n$ is of the form 
-		$$ \F{U}^{n_k} = \F{U}^{n_k+1} = \ldots = \F{U}^{n_{k+1}-1},$$
-		then many terms on the right-hand side of \eqref{eq: mini FISTA convergence} telescope to 0. The result of this is presented in Lemma~\ref{thm: mini exponential FISTA convergence} but the moral is that the stability error in \eqref{eq: mini FISTA convergence} should scale in proportion to the $k$ (related to the resolution) rather than the total number of iterations $N$.
+		In this step we combine the FISTA stability estimate with the subset approximation guarantees to provide a sharper estimate of stability with respect to the parameters $\aE$ and $\aU$. For example, if \edit{$\F{U}^n$ is of the form}{for each $k\in\F N$}
+		$$\edit{\F{U}^{n_k} = \F{U}^{n_k+1} = \ldots = \F{U}^{n_{k+1}-1}}{\var2_{n_k}=\var2_{n_k+1}=\ldots \var2_{n_{k+1}-1}},$$
+		then many terms on the right-hand side of \eqref{eq: mini FISTA convergence} telescope to 0. The result of this is presented in Lemma~\ref{thm: mini exponential FISTA convergence}. The key idea is that the stability error in \eqref{eq: mini FISTA convergence} has $K\lesssim\log(N)$ terms, rather than $N$.
 	\end{adaptiveStep}
 	
-	\paragraph{Step 4: Sufficiently fast refinement}
+	\paragraph{Step 4: Sufficiently fast \edit{refinement}{growth}}
 	\begin{adaptiveStep}\label{step: step 4 sufficiently fast}
-		In Step~\ref{step: step 3 convergence bound} we developed a convergence bound, now we wish to show that it is only worse than the classical \eqref{eq: classical FISTA} by a constant factor. In particular, it is equivalent to run Algorithm~\ref{alg: refining FISTA} for $N$ iterations or the classical FISTA algorithm for $N$ iterations on the fixed \edit{subspace}{subset} $\F{U}^N$. The estimate from \eqref{eq: classical FISTA} provides the estimate $N^2\op{E}_0(\var0_N)\lesssim \norm{\var0_0-\var2_N}^2 = O(\vars3_U^{2K})$ for $N\leq n_K$. Lemma~\ref{thm: sufficiently fast} shows that Algorithm~\ref{alg: refining FISTA} can achieve the same order of approximation, so long as $\F{U}^n$ refine sufficiently quickly, i.e. $n_k$ are sufficiently small.
+		In Step~\ref{step: step 3 convergence bound} we developed a convergence bound, now we wish to show that it is only worse than the classical \eqref{eq: classical FISTA} by a constant factor. In particular, it is equivalent to either run Algorithm~\ref{alg: refining FISTA} for $N$ iterations, or the classical FISTA algorithm for $N$ iterations on the fixed subset $\F{U}^N$. The estimate from \eqref{eq: classical FISTA} provides the estimate $N^2\op{E}_0(\var0_N)\lesssim \norm{\var0_0-\var2_N}^2 = O(\aU^{2K})$ for $N\leq n_K$. Lemma~\ref{thm: sufficiently fast} shows that Algorithm~\ref{alg: refining FISTA} can achieve the same order of approximation, so long as $\F{U}^n$ \edit{refine}{grow} sufficiently quickly (in particular $n_k^2\lesssim \aE^k\aU^{2k}$).
 	\end{adaptiveStep}
 	
-	\paragraph{Step 5: Sufficiently slow refinement}
+	\paragraph{Step 5: Sufficiently slow \edit{refinement}{growth}}
 	\begin{adaptiveStep}\label{step: step 5 sufficiently slow}
-		The result of Step~\ref{step: step 4 sufficiently fast} is sufficient to prove convergence, but not yet a rate. If the \edit{subspaces refine}{subsets grow} too quickly, then the influence of \edit{$\norm{\var0^*}=\infty$}{$\norm{\var0_n}\to\infty$} will slow the rate of convergence. If the resolution is too coarse then we are overfitting to the discretised problem, but if the resolution is too fine then convergence of the energy is slow. Lemma~\ref{thm: sufficiently slow} balances these two factors in an optimal way for Algorithm~\ref{alg: refining FISTA} resulting in a convergence rate of 
-		$$ \op{E}_0(\var0_N) \lesssim \frac{\vars3_U^{2K}}{N^2} \lesssim \frac{N^{2\kappa}}{N^2}$$
-		for all $N\in\F N$, some $\kappa\in[0,1)$ depending on $\vars3_U,\vars3_{\op{E}}$. In particular, if \edit{$\var0^*\in\F H$}{the minimum is attained in $\F H$,} then we recover the classical rate with $\kappa=0$.
+		The result of Step~\ref{step: step 4 sufficiently fast} is sufficient to prove convergence, but not yet a rate. If the subsets grow too quickly, then the influence of $\norm{\var0_n}\to\infty$ will slow the rate of convergence. \edit{If the resolution is too coarse then we are overfitting to the discretised problem, but if the resolution is too fine then convergence of the energy is slow.}{If $k$ is too small (coarse discretisation), then we overfit to the discrete problem, but if $k$ is too large, then the energy converges slowly.} Lemma~\ref{thm: sufficiently slow} balances these two factors in an optimal way ($n_k^2\simeq \aE^k\aU^{2k}$) for Algorithm~\ref{alg: refining FISTA} resulting in a convergence rate of 
+		$$ \op{E}_0(\var0_N) \lesssim \frac{\aU^{2K}}{N^2} \lesssim \frac{N^{2\kappa}}{N^2}$$
+		for all $N\in\F N$ and \edit{some }{}$\kappa\edit{}{=\frac{2\log\aU}{\log\aE+2\log\aU}}\in[0,1)$\edit{ depending on $\aU,\aE$}{}. In particular, if the minimum is attained in $\F H$, then we recover the classical rate with $\kappa=0$.
 	\end{adaptiveStep}
 	
 	\paragraph{Step 6: Adaptivity}
 	\begin{adaptiveStep}\label{step: step 6 adaptivity}
-		Up to this point we have implicitly focused on the case where $\F{U}^n$ (and $n_k$) are chosen a priori. Here we emphasise some of the challenges which are faced when extending results to allow for greedy adaptivity.
-		
-		Spatial adaptivity is robust, so long as the scaling properties of Step~\ref{step: step 2 smoothness} are satisfied. The only other constraint is to ensure that the partial telescoping of Step~\ref{step: step 3 convergence bound} still holds. Lemma~\ref{thm: mini exponential FISTA convergence} shows that a sufficient condition is
-		$$\edit{}{\var0_{n_k-1}\in}\F{U}^{n_k}\subset\F{U}^{n_k+1}\subset\ldots\subset\F{U}^{n_{k+1}-1}.$$
+		Up to this point we have implicitly focused on the case where $\F{U}^n$ (and $n_k$) are chosen a priori. 
+		\edit{Here we emphasise some of the challenges which are faced when extending results to allow for greedy adaptivity. 
+			
+		Spatial adaptivity is robust, so long as the scaling properties of Step~\ref{step: step 2 smoothness} are satisfied. The only other constraint is to ensure that the partial telescoping of Step~\ref{step: step 3 convergence bound} still holds.%
+		}{%
+		The main challenge for adaptive choice of $\F{U}^n$ is to guarantee \eqref{eq: first regularity} from Step~\ref{step: step 2 smoothness} using a posteriori estimates. Combined with the partial telescoping requirement in Step~\ref{step: step 3 convergence bound}, a natural choice is $\var2_n=\var0_{n_k-1}$ for $n\in[n_k,n_{k+1}-1)$, i.e. the value of $n_k$ is chosen to be $n+1$ once the iterate $\var0_n$ is observed.
+		}
+		Theorem~\ref{thm: stronger exponential FISTA convergence} shows that a sufficient condition is
+		$$\var0_{n_k-1}\in\F{U}^{n_k}\cap\F{U}^{n_k+1}\cap\ldots\cap\F{U}^{n_{k+1}-1}\edit{.}{, \qquad \norm{\var0_{n_k-1}} \lesssim \aU^k, \quad\text{and}\quad \op{E}_0(\var0_{n_k-1}) \lesssim \aE^{-k}}$$
 		Convergence is most stable if the approximation spaces $\F{U}^n$ satisfy a monotone inclusion, breaking the monotonicity requires more care.
-		
-		Adaptively choosing the time of refinement is more challenging due to the non-descent property of FISTA. The idea is that $\F{U}^n$ should be refined as soon as the value $\op{E}(\var0_n)$ is sufficiently close to $\op{E}(\var2_n)$. This is analysed in Theorem~\ref{thm: stronger exponential FISTA convergence} (sufficient conditions in Lemma~\ref{thm: practical refinement criteria}) which shows convergence results of the form
+		\edit{Adaptively choosing the time of refinement is more challenging due to the non-descent property of FISTA. The idea is that $\F{U}^n$ should be refined as soon as the value $\op{E}(\var0_n)$ is sufficiently close to $\op{E}(\var2_n)$. This is analysed in Theorem~\ref{thm: stronger exponential FISTA convergence} (sufficient conditions in Lemma~\ref{thm: practical refinement criteria}) which shows convergence results of the form}{The only non-trivial property to verify is the energy gap  $\op{E}_0(\var0_n) = \op{E}(\var0_n)-\Emin$. Lemma~\ref{thm: practical refinement criteria}) proposes some sufficient conditions to guarantee the same overall rate of convergence as in Step~\ref{step: step 5 sufficiently slow},}
 		$$ \min_{n\leq N}\op{E}_0(\var0_n) \lesssim \frac{N^{2\kappa}}{N^2}$$
-		for all $N\in\F N$, with the same $\kappa\in[0,1)$ from Step~\ref{step: step 5 sufficiently slow}. The penalty for accelerating the refinement time is a potential loss of stability in $\op{E}(\var0_n)$, however, the asymptotic rate is equivalent and this behaviour has not been seen in numerical experiments.
+		for all $N\in\F N$, with the same $\kappa\in[0,1)$ from Step~\ref{step: step 5 sufficiently slow}. The penalty for accelerating the change of discretisation is a potential loss of stability or monotonicity in $\op{E}(\var0_n)$, although this behaviour has not been seen in numerical experiments.
 	\end{adaptiveStep}
 	
 	\section{Proof of convergence}\label{sec: FISTA convergence}
@@ -247,118 +267,118 @@
 	
 	\subsection{Computing the convergence bound}
 	For Step~\ref{step: step 1 stability} of Section~\ref{sec: recipe} we look to replicate the classical bound of the form in \eqref{eq: classical FISTA} for Algorithm~\ref{alg: refining FISTA}. The proofs in this step follow the classical arguments \cite{Beck2009,Chambolle2015} very closely. 
-	\edit{}{Throughout this section we consider a sequence $(\F{U}^n)_{n\in\F N}$ which generate the iterates $(\var0_n)_{n\in\F N}$ in Algorithm~\ref{alg: refining FISTA} such that
+	Throughout this section we consider a sequence $(\F{U}^n)_{n\in\F N}$ which generate the iterates $(\var0_n)_{n\in\F N}$ in Algorithm~\ref{alg: refining FISTA} such that
 	\begin{equation}\label{eq: refining subspace definition}
 		\var0^{n-1}\in\F{U}^n\subset\F H \quad\text{where }\F{U}^n\text{ is a closed, convex subset for all } n\in\F N.
-	\end{equation}}
+	\end{equation}
 	
 	\subsubsection{Single iterations}
 	We first wish to understand a single iteration of Algorithm~\ref{alg: refining FISTA}. This is done through the following two lemmas.
-	\begin{lemma}[equivalent to {\cite[Lemma \edit{1}{3.1}]{Chambolle2015}}]\label{thm: descent lemma}
+	\begin{lemma}[equivalent to {\cite[Lemma 3.1]{Chambolle2015}}]\label{thm: descent lemma}
 		\Copy{thm: descent lemma}{
-			Suppose $\nabla \op{f}$ is 1-Lipschitz, for any $\bar{\var0}\in \edit{\F{U}^{n}}{\F H}$ define
+			Suppose $\nabla \op{f}$ is 1-Lipschitz, for any $\bar{\var0}\in \F H$ define
 			$$ \var0 \coloneqq \argmin_{\var0\in \F{U}^{n}} \tfrac12\norm{\var0-\bar{\var0}+\nabla \op{f}(\bar{\var0})}^2+\op{g}(\var0).$$
-			Then, for all $\var2\in\edit{\bar{(\F{U}^n)^*}\supset\F H}{\F{U}^n}$, we have
-			\edit{\\\centerline{$\displaystyle \op{E}(\var0) + \tfrac12\norm{\var0-\tens{\Pi}_n\var2}^2 \leq \op{E}(\tens{\Pi}_n\var2) + \tfrac12\norm{\bar{\var0}-\tens{\Pi}_n\var2}^2.$}}{
-			$$\op{E}(\var0) + \tfrac12\norm{\var0-\var2}^2 \leq \op{E}(\var2) + \tfrac12\norm{\bar{\var0}-\var2}^2.$$}
-			\edit{where $\tens{\Pi}_n\colon\bar{(\F{U}^n)^*}\to\F{U}^n$ is the orthogonal projection.}{}
+			Then, for all $\var2\in\F{U}^n$, we have
+			$$\op{E}(\var0) + \tfrac12\norm{\var0-\var2}^2 \leq \op{E}(\var2) + \tfrac12\norm{\bar{\var0}-\var2}^2.$$
+			
 		}
 	\end{lemma}
-	\noindent The proof is exactly the same as in \cite{Chambolle2015} on the \edit{subspace}{subset} $\F{U}^n$. Applying Lemma~\ref{thm: descent lemma} to the iterates from Algorithm~\ref{alg: refining FISTA} gives a more explicit inequality.
+	\noindent The proof is exactly the same as in \cite{Chambolle2015} on the subset $\F{U}^n$. Applying Lemma~\ref{thm: descent lemma} to the iterates from Algorithm~\ref{alg: refining FISTA} gives a more explicit inequality.
 	
-	\begin{lemma}[{\edit{analogous to }{}\cite[\edit{Theorem 2}{(17)}]{Chambolle2015}, \cite[\edit{Theorem 1}{Lemma 4.1}]{Beck2009}}]\label{thm: one step FISTA}
+	\begin{lemma}[{\cite[(17)]{Chambolle2015}, \cite[Lemma 4.1]{Beck2009}}]\label{thm: one step FISTA}
 		\Copy{thm: one step FISTA}{
-			Let \edit{$\F{U}^n\subset\F H\cap\F{U}$, }{}$\var2_n\in\F{U}^n$ be chosen arbitrarily and $\var0_n$/$\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA} for all $n\in\F N$.
+			Let $\var2_n\in\F{U}^n$ be chosen arbitrarily and $\var0_n$/$\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA} for all $n\in\F N$.
 			For all $n\in\F N$, it holds that}
 		\begin{equation}\Copy{thm:eq: one step FISTA}{
 			t_{n}^2(\op{E}(\var0_{n}) - \op{E}(\var2_n)) - (t_{n}^2-t_{n})(\op{E}(\var0_{n-1})-\op{E}(\var2_n)) \leq \tfrac1{2}\left[\norm{\var1_{n-1}}^2-\norm{\var1_{n}}^2\right] + \IP{\var1_{n}-\var1_{n-1}}{\var2_n}.}\label{eq: one-step FISTA}
 		\end{equation}
 	\end{lemma}
-	\noindent The proof is given in Theorem~\ref{app:thm: one step FISTA} and is a result of the convexity of $\op{E}$ for a well chosen $\var2$ in Lemma~\ref{thm: descent lemma}. 
+	\noindent The proof is given in Theorem~\ref{app:thm: one step FISTA} and is a result of the convexity of $\op{E}$ and $\F{U}_n$ for a well chosen $\var2$ in Lemma~\ref{thm: descent lemma}. 
 	
 	\subsubsection{Generic convergence bound}
 	Lemma~\ref{thm: one step FISTA} gives us an understanding of a single iteration of Algorithm~\ref{alg: refining FISTA}, summing over $n$ then gives our generic convergence bound for any variant of Algorithm~\ref{alg: refining FISTA}.
 	
-	\begin{theorem}[\edit{}{analogous to {\cite[Thm 3.2]{Chambolle2015}, \cite[Thm 4.1]{Beck2009}}}]\label{thm: mini FISTA convergence}
+	\begin{theorem}[analogous to {\cite[Thm 3.2]{Chambolle2015}, \cite[Thm 4.1]{Beck2009}}]\label{thm: mini FISTA convergence}
 		\Copy{thm: mini FISTA convergence}{
-			Fix a sequence of \edit{subspaces}{subsets} $(\F{U}^n\edit{\subset\F{U}\cap\F H}{})_{n\in\F N}$ \edit{}{satisfying \eqref{eq: refining subspace definition}}, arbitrary $\var0_0\in \F{U}^0$, and FISTA stepsize choice $(t_n)_{n\in\F N}$. Let $\var0_n$ and $\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA}, then, for any choice of $\var2_n\in\F{U}^n$ and $N\in\F N$ we have
+			Fix a sequence of subsets $(\F{U}^n)_{n\in\F N}$ satisfying \eqref{eq: refining subspace definition}, arbitrary $\var0_0\in \F{U}^0$, and FISTA stepsize choice $(t_n)_{n\in\F N}$. Let $\var0_n$ and $\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA}, then, for any choice of $\var2_n\in\F{U}^n$ and $N\in\F N$ we have
 		}
 		\begin{equation}\label{eq: FISTA inequality}\Copy{thm:eq: mini FISTA convergence}{
 			t_N^2\op{E}_0(\var0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\var0_n) + \frac{\norm{\var1_N-\var2_N}^2}{2} \leq \frac{\norm{\var0_0-\var2_0}^2-\norm{\var2_0}^2+\norm{\var2_N}^2}{2}
 			+ \sum^N_{n=1} t_n\op{E}_0(\var2_n) + \IP{\var1_{n-1}}{\var2_{n-1}-\var2_n}.
 		}\end{equation}
 	\end{theorem}
-	\noindent The proof is given in Theorem~\ref{app:thm: mini FISTA convergence}. This result is the key approximation for showing convergence of FISTA with \edit{refining subspaces}{growing subsets}. In the classical setting, we have $\F{U}^n\edit{=\F{U}}{}=\F H$, $\var2_n\edit{=\var0^*}{\in\argmin_{\var0\in\F H}\op{E}(\var0)}$ and the extra terms on the right-hand side collapse to 0. 
+	\noindent The proof is given in Theorem~\ref{app:thm: mini FISTA convergence}. This result is the key approximation for showing convergence of FISTA with growing subsets. In the classical setting, we have $\F{U}^n=\F H$, $\var2_n=\var2_0\in\argmin_{\var0\in\F H}\op{E}(\var0)$ and the extra terms on the right-hand side collapse to 0. 
 	
-	\edit{The}{If there exists a minimiser $\var0^*\in\argmin_{\var0\in\F H}\op{E}(\var0)$, then the } natural choice in \eqref{eq: FISTA inequality} is $\var2_n=\tens{\Pi}_n\var0^*$\edit{}{ for some projection $\tens{\Pi}_n\colon\F H\to\F{U}^n$}, however, there are simple counter-examples which give $\op{E}(\tens{\Pi}_n\var0^*)=\infty$ and so this inequality becomes useless. For example, if $\op{f}(\var0) = \norm{\var0}_{\edit{2}{L^2([0,1])}}^2$, $\op{g}$ is the indicator on the set $\F D=\{\var0\in L^1([0,1])\st \var0(x) \geq x\}$, and \edit{$\F{U}^n$ is}{$\tens{\Pi}_n$ is the $L^2$ projection onto} a set of piecewise constant functions, then $\var0^*=x\mapsto x$. On the other hand, suppose one of the pixels of the discretisation is $[x_0-\meshsize,x_0+\meshsize]$, then 
-	$$\tens{\Pi}_n\var0^*\left(x_0+\tfrac\meshsize2\right) = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(\var0^*(x)-\vars5)^2dx = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(x-\vars5)^2dx = x_0 < x_0+\tfrac\meshsize2.$$
-	In particular $\tens{\Pi}_n\var0^* \notin\F D$ therefore $\op{E}(\tens{\Pi}_n\var0^*) = \infty$. The choice $\var2_n=\argmin_{\var0\in\F{U}^n}\op{E}(\var0)$ is much more robust and allows us to apply Algorithm~\ref{alg: refining FISTA} more broadly. The penalty for this flexibility is a more complicated analysis, each time the \edit{subspace}{subset} changes, the system receives a `shock' proportional to $\norm{\var2_{n}-\var2_{n+1}}$. 
+	If there exists a minimiser $\var0^*\in\argmin_{\var0\in\F H}\op{E}(\var0)$, then the natural choice in \eqref{eq: FISTA inequality} is $\var2_n=\tens{\Pi}_n\var0^*$ for some projection $\tens{\Pi}_n\colon\F H\to\F{U}^n$, however, there are simple counter-examples which give $\op{E}(\tens{\Pi}_n\var0^*)=\infty$ and so this inequality becomes useless. For example, if $\op{f}(\var0) = \norm{\var0}_{L^2([0,1])}^2$, $\op{g}$ is the indicator on the set $\F D=\{\var0\in L^1([0,1])\st \var0(x) \geq x\}$, and $\tens{\Pi}_n$ is the $L^2$ projection onto a set of piecewise constant functions, then $\var0^*=x\mapsto x$. On the other hand, suppose one of the pixels of the discretisation is $[x_0-\meshsize,x_0+\meshsize]$, then 
+	$$\tens{\Pi}_n\var0^*\left(x_0+\tfrac\meshsize2\right) = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(\var0^*(x)-\vars5)^2\diff x = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(x-\vars5)^2\diff x = x_0 < x_0+\tfrac\meshsize2.$$
+	In particular $\tens{\Pi}_n\var0^* \notin\F D$ therefore $\op{E}(\tens{\Pi}_n\var0^*) = \infty$. The choice $\var2_n=\argmin_{\var0\in\F{U}^n}\op{E}(\var0)$ is much more robust and allows us to apply Algorithm~\ref{alg: refining FISTA} more broadly. The penalty for this flexibility is a more complicated analysis; each time the subset changes, because $\var1_n\in\F{U}_n$, the system receives a `shock' proportional to $\norm{\var1_n}\norm{\var2_{n}-\tens{\Pi}_n\var2_{n+1}}$. 
 	
 	
 	\subsection{Convergence bound with milestones}
-	In standard FISTA, the right-hand side of \eqref{eq: FISTA inequality} is a constant. The following lemma minimises the growth of the `constant' as a function of $N$ by partially telescoping the sum on the right-hand side. Before progressing to the content of Step~\ref{step: step 3 convergence bound}, we will first formalise the definition of the constants $\vars3_U$ and $\vars3_{\op{E}}$ introduced in Step~\ref{step: step 2 smoothness}.
+	In standard FISTA, the right-hand side of \eqref{eq: FISTA inequality} is a constant. The following lemma minimises the growth of the `constant' as a function of $N$ by partially telescoping the sum on the right-hand side. Before progressing to the content of Step~\ref{step: step 3 convergence bound}, we will first formalise the definition of the constants $\aU$ and $\aE$ introduced in Step~\ref{step: step 2 smoothness}.
 	\begin{definition}\label{def: exp subspaces}
-		Fix $\vars3_U,\vars3_{\op{E}}\geq 1$ and a sequence of \edit{subspaces $(\tilde{\F{U}}^k\subset\F H\cap\F{U})_{k\in\F N}$}{closed subsets $\tilde{\F{U}}^k\subset\F H$}. We say that $(\tilde{\F{U}}^k)_{k\in\F N}$ is a \emph{$(\vars3_U,\vars3_{\op{E}})$-discretisation for $\op{E}$} if 
-		$$ \norm{\tilde{\var2}_k}\lesssim \vars3_U^k \qquad\text{and}\qquad \op{E}_0(\tilde{\var2}_k) \lesssim \vars3_{\op{E}}^{-k} $$
-		for all $k\in\F N$ and some choice $\tilde{\var2}_k\in\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$.
+		Fix $\aU,\aE\geq 1$ and a sequence \edit{of closed subsets $\tilde{\F{U}}^k\subset\F H$}{$\tilde{\var2}_k\in\F H$}. We say that $(\edit{\tilde{\F{U}}^k}{\tilde{\var2}_k})_{k\in\F N}$ is an \emph{\edit{$(\aU,\aE)$-discretisation for $\op{E}$}{\aUaE\ }} if 
+		$$ \norm{\tilde{\var2}_k}\lesssim \aU^k \qquad\text{and}\qquad \op{E}_0(\tilde{\var2}_k) \lesssim \aE^{-k} $$
+		for all $k\in\F N$\edit{ and some choice $\tilde{\var2}_k\in\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$}{}.
 	\end{definition}
 	In this section we will simply assume that such sequences exist and in Section~\ref{sec: general examples} we will give some more general examples. 
 	
 	\begin{lemma}\label{thm: mini exponential FISTA convergence}
 		\Copy{thm: mini exponential FISTA convergence}{
-			Let $\var0_n$, $\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA} \edit{}{with $(\F{U}^n)_{n\in\F N}$ satisfying \eqref{eq: refining subspace definition}}, $(n_k\in\F N)_{k\in\F N}$ be a monotone increasing sequence, and choose
+			Let $\var0_n$, $\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA} with $(\F{U}^n)_{n\in\F N}$ satisfying \eqref{eq: refining subspace definition}, $(n_k\in\F N)_{k\in\F N}$ be a monotone increasing sequence, and choose
 			$$\tilde{\var2}_k \in \F{U}^{n_k} \cap \F{U}^{n_k+1}\cap \ldots \cap \F{U}^{n_{k+1}-1}$$
 			for each $k\in\F N$. If such a sequence exists, then for all $K\in\F N$, $n_K\leq N<n_{K+1}$ we have
 		}
 			\begin{multline*}\Copy{thm:eq: mini exponential FISTA convergence}{
-				t_N^2\op{E}_0(\var0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\var0_n) + \frac{\norm{\var1_N-\tilde{\var2}_K}^2}{2} \leq C + \frac{\norm{\tilde{\var2}_K}^2}{2} + \frac{(N+1)^2-n_K^2}{2}\op{E}_0(\tilde{\var2}_K) \\+ \sum_{k=1}^K \frac{n_k^2-n_{k-1}^2}{2}\op{E}_0(\tilde{\var2}_{k-1}) + \IP{\var1_{n_k-1}}{\tilde{\var2}_k-\tilde{\var2}_{k+1}}}
+				t_N^2\op{E}_0(\var0_N) + \sum_{n=1}^{N-1}\rho_n \op{E}_0(\var0_n) + \frac{\norm{\var1_N-\tilde{\var2}_K}^2}{2} \leq C + \frac{\norm{\tilde{\var2}_K}^2}{2} + \frac{(N+1)^2-n_K^2}{2}\op{E}_0(\tilde{\var2}_K) \\+ \sum_{k=1}^K \frac{n_k^2-n_{k-1}^2}{2}\op{E}_0(\tilde{\var2}_{k-1}) + \IP{\var1_{n_k-1}}{\tilde{\var2}_{k-1}-\tilde{\var2}_k}}
 			\end{multline*}
 		\Copy{thm:end: mini exponential FISTA convergence}{
 			where $C = \frac{\norm{\var0_0-\tilde{\var2}_0}^2-\norm{\tilde{\var2}_0}^2}{2}$.
 		}
 	\end{lemma}
+
 	\noindent The proof is given in Lemma~\ref{app:thm: mini exponential FISTA convergence}. The introduction of $n_k$ has greatly compressed the expression of Theorem~\ref{thm: mini FISTA convergence}. On the right-hand side, we now only consider $\op{E}_0$ evaluated on the sequence $\tilde{\var2}_k$ and there are $K$ elements to the sum rather than $N$.
 	
 	\subsection{Refinement without overfitting}
 	The aim of Step~\ref{step: step 4 sufficiently fast} is to show that $n$ iterations of Algorithm~\ref{alg: refining FISTA} is no slower (up to a constant factor) than $n$ iterations of classical FISTA on the space $\F{U}^n$. In other words, we would like to ensure that
 	\begin{equation}
-		\op{E}(\var0_n) - \min_{\var0\in\F{U}^n}\op{E}(\var0) \lesssim \frac{\norm{\var0_0-\argmin_{\var0\in\F{U}^n}\op{E}(\var0)}^2}{n^2}
+		\op{E}(\var0_n) - \min_{\var0\in\F{U}^n}\op{E}(\var0) \lesssim \frac{\norm{\var0_0-\edit{\argmin_{\var0\in\F{U}^n}\op{E}(\var0)}{\tilde{\var2}_k}}^2}{n^2}
 	\end{equation}
-	uniformly in $n$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of \edit{subspaces}{subsets}. This can be interpreted as an overfitting to the discretisation of $\op{E}|_{\F{U}^n}$ rather than the desired function $\op{E}|_{\F H}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\F{U}^n$ grows sufficiently quickly).
+	uniformly in $n$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of subsets. This can be interpreted as an overfitting to the discretisation of $\op{E}|_{\F{U}^n}$ rather than the desired function $\op{E}|_{\F H}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\F{U}^n$ grows sufficiently quickly).
 	
 	\begin{lemma}\label{thm: sufficiently fast}
 		\Copy{thm: sufficiently fast}{
-			Suppose $\F{U}^n,\ \var0_n,\ \var1_n$ and $n_k$ satisfy the conditions of Lemma~\ref{thm: mini exponential FISTA convergence} and $(\tilde{\F{U}}^k)_{k\in\F N}$ forms an \\$(\vars3_U,\vars3_{\op{E}})$-discretisation for $\op{E}$ with
-			$$\tilde{\var2}_k\in \left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]\cap\F{U}^{n_k}\cap\F{U}^{n_k+1}\cap\ldots\cap\F{U}^{n_{k+1}-1}.$$
+			Suppose $\F{U}^n,\ \var0_n,\ \var1_n$ and $n_k$ satisfy the conditions of Lemma~\ref{thm: mini exponential FISTA convergence} and $(\edit{\tilde{\F{U}}^k}{\tilde{\var2}_k})_{k\in\F N}$ forms an \\\edit{$(\aU,\aE)$-discretisation for $\op{E}$}{\aUaE\ } with
+			$$\tilde{\var2}_k\in \edit{\left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]\cap}{}\F{U}^{n_k}\cap\F{U}^{n_k+1}\cap\ldots\cap\F{U}^{n_{k+1}-1}.$$
 			If either:
 			\begin{itemize}
-				\item $\vars3_U>1$ and $n_k^2\lesssim \vars3_{\op{E}}^k\vars3_U^{2k}$,
-				\item or $\vars3_U=1$, $\sum_{k=1}^\infty n_k^2\vars3_{\op{E}}^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty,$
+				\item $\aU>1$ and $n_k^2\lesssim \aE^k\aU^{2k}$,
+				\item or $\aU=1$, $\sum_{k=1}^\infty n_k^2\aE^{-k}<\infty$, and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty,$
 			\end{itemize}
 			then
-			$$ \op{E}_0(\var0_N) \lesssim \frac{\vars3_U^{2K}}{N^2}\qquad \text{for all}\qquad n_K\leq N< n_{K+1}.$$
+			$$ \op{E}_0(\var0_N) \lesssim \frac{\aU^{2K}}{N^2}\qquad \text{for all}\qquad n_K\leq N< n_{K+1}.$$
 		}
 	\end{lemma}
 	
 	\noindent The proof is given in Lemma~\ref{app:thm: sufficiently fast}. We make two observations of the optimality of Lemma~\ref{thm: sufficiently fast}:
 	\begin{itemize}
 		\item The convergence guarantee for $N$ iterations of classical FISTA in the space $\F{U}^N$ is 
-		$$ \op{E}_0(\var0_N) \lesssim \frac{\norm{\var0_0-\argmin_{\var0\in\F{U}^N}\op{E}(\var0)}^2}{N^2} + \min_{\var0\in\F{U}^N}\op{E}_0(\var0) \lesssim \frac{\vars3_U^{2K}}{N^2} + \vars3_{\op{E}}^{-K}.$$
+		$$ \op{E}_0(\var0_N) \lesssim \frac{\norm{\var0_0-\edit{\argmin_{\var0\in\F{U}^N}\op{E}(\var0)}{\tilde{\var2}_K}}^2}{N^2} + \min_{\var0\in\F{U}^N}\op{E}_0(\var0) \lesssim \frac{\aU^{2K}}{N^2} + \aE^{-K}.$$
 		This is equivalent to Lemma~\ref{thm: sufficiently fast} after the assumptions on $n_k$.
-		\item If $\edit{\F{U}}{\F H}$ is finite dimensional, then the $\vars3_U=1$ is almost trivially satisfied. Norms in finite dimensions are equivalent and any discretisation can be achieved with a finite number of refinements (i.e. the sums over $k$ are finite). 
+		\item If $\F H$ is finite dimensional, then the $\aU=1$ is almost trivially satisfied. Norms in finite dimensions are equivalent and any discretisation can be achieved with a finite number of refinements (i.e. the sums over $k$ are finite). 
 	\end{itemize}
 	
 	\subsection{Convergence rate}
 	In Lemma~\ref{thm: sufficiently fast} we show that $\op{E}(\var0_n)$ converges at a rate depending on $k$ and $n$, so long as $k$ grows sufficiently quickly. On the other hand, as $k$ grows, the rate becomes worse and so we need to also put a lower limit on the growth of $n_k$. The following lemma completes Step~\ref{step: step 5 sufficiently slow} by computing the global convergence rate of $\op{E}_0(\var0_n)$ when $k$ grows at the minimum rate which is consistent with Lemma~\ref{thm: sufficiently fast}.
 	
-	As a special case, note that if $\vars3_U=1$ then Lemma~\ref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of that shown in \cite[Prop 3.3]{Aujol2015}. If \edit{$\var0^*\in\F H$}{the minimum is achieved in $\F H$}, then it is not possible to refine `too quickly' and the following lemma is not needed.
+	As a special case, note that if $\aU=1$ then Lemma~\ref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of that shown in \cite[Prop 3.3]{Aujol2015}. If the minimum is achieved in $\F H$, then it is not possible to refine `too quickly' and the following lemma is not needed.
 	
 	\begin{lemma}\label{thm: sufficiently slow}
 		\Copy{thm: sufficiently slow}{
 			Suppose $\var0_n$ and $n_k$ are sequences satisfying 
-			$$\op{E}_0(\var0_N) \lesssim \frac{\vars3_U^{2K}}{N^2} \qquad\text{where} \qquad  n_K^2\gtrsim \vars3_{\op{E}}^K\vars3_U^{2K},$$
+			$$\op{E}_0(\var0_N) \lesssim \frac{\aU^{2K}}{N^2} \qquad\text{where} \qquad  n_K^2\gtrsim \aE^K\aU^{2K},$$
 			then 
-			$$\op{E}_0(\var0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2}.$$}
+			$$\op{E}_0(\var0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2}.$$}
 	\end{lemma}
 	\noindent The proof is given in Lemma~\ref{app:thm: sufficiently slow}.
 	
@@ -366,210 +386,240 @@
 	We can summarise Lemmas~\ref{thm: mini exponential FISTA convergence} to~\ref{thm: sufficiently slow} into a single theorem stating the convergence guarantees when $\F{U}^n$ and $n_k$ are chosen a priori.
 	\begin{theorem}\label{thm: exponential FISTA convergence}
 		\Copy{thm: exponential FISTA convergence}{
-			Let $(\tilde{\F{U}}^k)_{k\in\F N}$ be an $(\vars3_U,\vars3_{\op{E}})$-discretisation for $\op{E}$ and choose any $\F{U}^n$ \edit{}{satisfying \eqref{eq: refining subspace definition} }such that 
-			$$ \tilde{\F{U}}^k = \F{U}^{n_k}, \qquad \tilde{\var2}_k \in \left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}$$
+			Let $(\edit{\tilde{\F{U}}^k}{\tilde{\var2}_k})_{k\in\F N}$ be an \edit{$(\aU,\aE)$-discretisation for $\op{E}$}{\aUaE\ } and choose any $\F{U}^n$ satisfying \eqref{eq: refining subspace definition} such that 
+			$$ \edit{\tilde{\F{U}}^k = \F{U}^{n_k}, \qquad}{} \tilde{\var2}_k \in \edit{\left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]}{\F{U}^{n_k}}\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}$$
 			for all $k\in\F N$. Compute $\var0_n$ and $\var1_n$ by Algorithm~\ref{alg: refining FISTA}.
 			
 			\bigbreak\noindent Suppose that either:
 			\begin{itemize}
-				\item $\vars3_U>1$ and $n_k^2\simeq \vars3_{\op{E}}^k\vars3_U^{2k}$, or
-				\item $\vars3_U=1$, $\sum_{k=1}^\infty n_k^2\vars3_{\op{E}}^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$,
+				\item $\aU>1$ and $n_k^2\simeq \aE^k\aU^{2k}$, or
+				\item $\aU=1$, $\sum_{k=1}^\infty n_k^2\aE^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$,
 			\end{itemize}
 			then
-			$$\op{E}_0(\var0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2} \qquad \text{uniformly for } N\in\F N.$$
+			$$\op{E}_0(\var0_N) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2} \qquad \text{uniformly for } N\in\F N.$$
 		}
 	\end{theorem}
-	\noindent This theorem is very easy to implement numerically and requires very little knowledge of how to estimate $\op{E}_0(\var0_n)$. So long as $\vars3_U$ and $\vars3_{\op{E}}$ can be computed analytically, choosing $\tilde{\F{U}}^k$ to be uniform discretisations and $\tilde{\F{U}}^k = \F{U}^{n_k}=\ldots= \F{U}^{n_{k+1}-1}$ will achieve the stated convergence rate.
+	\noindent \edit{}{Analytically, this theorem gives new rates of convergence for FISTA when the minimiser is not achieved in the Hilbert space. Indeed for the original algorithm ($\F{U}^n=\F H$), if $\var0=0$ for simplicity and $(\tilde{\var2}_k)_{k\in\F N}$ is \emph{any} \aUaE\ exists, the result of Lemma~\ref{thm: mini exponential FISTA convergence} is
+	\begin{equation}\label{eq: slow exact FISTA}
+		\op{E}_0(\var0_N) \leq \inf_{\var2\in\F H} \frac{\norm{\var2}^2+N^2\op{E}_0(\var2)}{2t_N^2} \leq \min_{k\in\F N} \frac{\norm{\tilde{\var2}_k}^2+N^2\op{E}_0(\tilde{\var2}_k)}{2t_N^2} \lesssim \min_{k\in\F N} \frac{\aU^{2k}+N^2\aE^{-k}}{N^2}\lesssim N^{-2(1-\kappa)}.
+	\end{equation}
+	In this sense, we could say that $\op{E}$ converges at the rate $N^{-2(1-\kappa)}$ if and only if such a sequence exists. Nothing is lost (or gained) by choosing $\F{U}_n\subsetneq\F H$.}
+
+	\edit{This theorem is very easy to implement numerically}{Numerically, it is easy to implement the strategy of Theorem~\ref{thm: exponential FISTA convergence}} and requires very little knowledge of how to estimate $\op{E}_0(\var0_n)$. So long as $\aU$ and $\aE$ can be computed analytically, \edit{choosing $\tilde{\F{U}}^k$ to be uniform discretisations and $\tilde{\F{U}}^k = \F{U}^{n_k}=\ldots= \F{U}^{n_{k+1}-1}$ will}{one can choose $\tilde{\var2}_k$ implicitly to be the discrete minimisers of some `uniform' discretisations (e.g. $\F{U}^n=\{\norm{\var0}\leq k\}$ or finite element spaces with uniform mesh) to} achieve the stated convergence rate.
 	
 	
 	\subsubsection{FISTA convergence with adaptivity}
 	There are two properties of the sequence $(\F{U}^n)_{n\in\F N}$ which we may wish to decide adaptively: the refinement times $n_k$ and the discretising spaces $\{\F{U}^n \st n_k\leq n<n_{k+1}\}$. We will refer to these as temporal and spatial adaptivity respectively.
 	
 	Lemma~\ref{thm: sufficiently fast} gives a sufficient condition on $n_k$ for converging at the rate $O(N^{2(\kappa-1)})$, but it is not necessary. Indeed for $n\leq n_k$ the result shows 
-	$$\op{E}_0(\var0_n) \geq \min_{\var0\in\F{U}^n}\op{E}_0(\var0) = O(\vars3_{\op{E}}^{-k}) = O(n^{2(\kappa-1)})$$
-	which suggests that to converge faster than $n^{2(\kappa-1)}$ requires choosing smaller $n_k$. As an example, in Section~\ref{sec: wavelet examples} we will see Algorithm~\ref{alg: refining FISTA} can converge at a linear rate, although this is not possible without adaptive refinement times. On the other hand, choice of spatial adaptivity has no impact on rate but can impact computational efficiency. It will be permitted to use greedy discretisation techniques so long as each collection $\{\F{U}^n \st n_k\leq n<n_{k+1}\}$ satisfies a monotonicity condition.
+	$$\op{E}_0(\var0_n) \geq \min_{\var0\in\F{U}^n}\op{E}_0(\var0) = O(\aE^{-k}) = O(n^{2(\kappa-1)})$$
+	which suggests that to converge faster than $n^{2(\kappa-1)}$ requires choosing smaller $n_k$. As an example, in Section~\ref{sec: wavelet examples} we will see Algorithm~\ref{alg: refining FISTA} can converge at a near-linear rate, although this is not possible without adaptive refinement times. On the other hand, choice of spatial adaptivity has no impact on rate but can impact computational efficiency. It will be permitted to use greedy discretisation techniques so long as it is sufficient to estimate $\op{E}_0(\var0_n)$ accurately.
 	
-	While Theorem~\ref{thm: exponential FISTA convergence} also allows for spatial adaptivity, we will simplify the requirements to a form which seems more practical for implementation and also allows for temporal adaptivity. We make the assumption that the choice of $n_k$ depends only on the value $\op{E}(u_{n_k-1})$ and therefore make $u_{n_k-1}$ the root of our requirements. Lemma~\ref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\op{E}_0(\var0_{n_k-1})\lesssim \vars3_{\op{E}}^{-k}$. However, the value of $\op{E}_0$ may be hard to estimate and so we retain a `backstop' condition which guarantees that convergence is no slower than the rate given by Theorem~\ref{thm: exponential FISTA convergence}. The only constraints on spatial adaptivity are the monotone inclusion properties, $\var0_n\in\F{U}^{n+1}$ and existence of $\tilde{\var2}_k$. This is confirmed by the following theorem.
+	Theorem~\ref{thm: exponential FISTA convergence} already allows for spatial adaptivity, so we focus on temporal adaptivity. Lemma~\ref{thm: sufficiently fast} suggests that a good refinement time strategy is to choose $n_k$ to be the minimal integer such that $\op{E}_0(\var0_{n_k-1})\lesssim \aE^{-k}$. However, the value of $\op{E}_0$ may be hard to estimate and so we retain a `backstop' condition which guarantees that convergence is no slower than the rate given by Theorem~\ref{thm: exponential FISTA convergence}. \edit{This is confirmed by}{In the non-classical case of $\aU>1$, we provide} the following theorem.
 	\begin{theorem}\label{thm: stronger exponential FISTA convergence}
 		\Copy{thm: stronger exponential FISTA convergence}{
-			Let $(\F{U}^n\subset\F H\edit{\cap\F{U}}{})_{n\in\F N}$ be a sequence of \edit{subspaces}{subsets satisfying \eqref{eq: refining subspace definition} }and $n_k\in\F N$ a monotone increasing sequence such that
-			$$ \tilde{\F{U}}^k \coloneqq \F{U}^{n_k}\edit{\ni \var0_{n_k-1}}{}, \qquad \tilde{\var2}_k \in \left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}$$
+			Let $(\F{U}^n\subset\F H)_{n\in\F N}$ be a sequence of subsets satisfying \eqref{eq: refining subspace definition}\edit{}{, $(\tilde{\var2}_k)_{k\in\F N}$ an \aUaE,} and $n_k\in\F N$ a monotone increasing sequence such that
+			$$ \edit{\tilde{\F{U}}^k \coloneqq \F{U}^{n_k}, \qquad}{} \tilde{\var2}_k \in \edit{\left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]}{\F{U}^{n_k}}\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}$$
 			for all $k\in\F N$.
 			Compute $\var0_n$ and $\var1_n$ by Algorithm~\ref{alg: refining FISTA}.
 			
-			\bigbreak\noindent Suppose there exist $\vars3_U,\vars3_{\op{E}}\geq1$ such that either:
+			\edit[0]{\bigbreak\noindent \sout{Suppose there exist $\aU,\aE\geq1$ such that either:}
 			\begin{itemize}
-				\item $\vars3_U>1$ and $n_k^2\lesssim \vars3_{\op{E}}^k\vars3_U^{2k}$, or
-				\item $\vars3_U=1$, $\sum_{k=1}^\infty n_k^2\vars3_{\op{E}}^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$
+				\item \sout{$\aU>1$ and $n_k^2\lesssim \aE^k\aU^{2k}$, or}
+				\item \sout{$\aU=1$, $\sum_{k=1}^\infty n_k^2\aE^{-k}<\infty$ and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$}
 			\end{itemize}
-			and both
-			$$ \norm{\tilde{\var2}_k}\lesssim \vars3_U^k \qquad\text{and}\qquad \op{E}_0(\var0_{n_K-1}) \lesssim \vars3_{\op{E}}^{-K}.$$
-			Whenever these conditions on $n_k$ are satisfied, then
-			$$\min_{n\leq N}\op{E}_0(\var0_n) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2}$$
+			\sout{and both}
+			$$ \norm{\tilde{\var2}_k}\lesssim \aU^k \qquad\text{and}\qquad \op{E}_0(\var0_{n_k-1}) \lesssim \aE^{-k}.$$
+			\sout{Whenever these conditions on $n_k$ are satisfied, }}{If $\aU>1$, $\aE\geq1$, and $n_k^2\lesssim \aE^k\aU^{2k}$, }then
+			$$\min_{n\leq N}\op{E}_0(\var0_n) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2}$$
 			uniformly for $N\in\F N$.
 		}
 	\end{theorem}
-	\noindent The proof is given in Theorem~\ref{app:thm: stronger exponential FISTA convergence}. If we directly compare Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence}, we note that the convergence rate is the same in both theorems but the price for better adaptivity (i.e. relaxed $(\vars3_U,\vars3_{\op{E}})$ assumptions) is a slightly weaker stability guarantee (now convergence of $\min_{n\leq N}\op{E}_0(\var0_n)$). In Theorem~\ref{thm: exponential FISTA convergence}, as in the original FISTA algorithm, the sequence $\op{E}(\var0_n)$ is not monotone but the magnitude of oscillation is guaranteed to decay in time. This behaviour is lost in Theorem~\ref{thm: stronger exponential FISTA convergence} although it still holds on a subsequence. Although we do not prove it here, it can be shown that the stronger condition 
+	\noindent The proof is given in Theorem~\ref{app:thm: stronger exponential FISTA convergence}. If we directly compare Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence}, we note that the convergence rate is the same in both theorems but the price for better adaptivity (i.e. only an upper bound on $n_k$) is a slightly weaker stability guarantee (now convergence of $\min_{n\leq N}\op{E}_0(\var0_n)$). In Theorem~\ref{thm: exponential FISTA convergence}, as in the original FISTA algorithm, the sequence $\op{E}(\var0_n)$ is not monotone but the magnitude of oscillation is guaranteed to decay in time. This behaviour is lost in Theorem~\ref{thm: stronger exponential FISTA convergence}. Although we do not prove it here, it can be shown that the stronger condition 
 	\begin{equation}
-		\tilde{\var2}_k \in \left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}\cap\ldots\cap \F{U}^N
+		\tilde{\var2}_k \in \edit{\left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]}{\F{U}^{n_k}}\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}\cap\ldots\cap \F{U}^N
 	\end{equation}
 	is sufficient to restore the stronger last-iterate guarantee on $\op{E}_0(\var0_N)$. Again, monotonicity of $\F{U}^n$ corresponds with improved stability of Algorithm~\ref{alg: refining FISTA}.
 	
-	To enable a more practical implementation of Theorem~\ref{thm: stronger exponential FISTA convergence}, the following lemma describes several refinement time strategies which provide sufficient condition for $\op{E}_0(\var0_n) \lesssim \vars3_{\op{E}}^{-k}$.
+	To enable a more practical implementation of Theorem~\ref{thm: stronger exponential FISTA convergence}, the following lemma describes several refinement time strategies which provide sufficient condition for $\op{E}_0(\edit{\var0_n}{\tilde{\var2}_k}) \lesssim \aE^{-k}$.
 	\begin{lemma}\label{thm: practical refinement criteria}
 		\Copy{thm: practical refinement criteria}{
-			Let $(\tilde{\F{U}}^k)_{k\in\F N}$ be a sequence of \edit{subspaces}{subsets} with some points $\var0_k\in \tilde{\F{U}}^k$ and $\tilde{\var2}_k\in\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$. Suppose that $\norm{\tilde{\var2}_k}\lesssim \vars3_U^k$. Any of the following conditions are sufficient to show that $\{\tilde{\F{U}}^k\}$ is an $(\vars3_U,\vars3_{\op{E}})$-discretisation for $\op{E}$:
+			Let \edit{$(\tilde{\F{U}}^k)_{k\in\F N}$ be a sequence of subsets with some points $\var0_k\in \tilde{\F{U}}^k$ and $\tilde{\var2}_k\in\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$. Suppose that }{$(\tilde{\var2}_k)_{k\in\F N}$ be a sequence in $\F H$ with} $\norm{\tilde{\var2}_k}\lesssim \aU^k$. \edit{}{Suppose that $\tilde{\var2}_k\in\tilde{\F U}^k\coloneqq\F{U}^{n_k}$ and denote $\op{E}_0(\tilde{\F{U}}^k) \coloneqq \inf_{\var0\in\tilde{\F U}^k}\op{E}_0(\var0)$. }Any of the following conditions are sufficient to show that $\edit{\{\tilde{\F{U}}^k\}}{\tilde{\var2}_k}$ is an \edit{$(\aU,\aE)$-discretisation for $\op{E}$}{\aUaE}:
 			\begin{enumerate}
-				\item Small continuous gap refinement: $ \op{E}_0(\var0_k)\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$.
-				\item Small discrete gap refinement: $\op{E}_0(\tilde{\var2}_k)\leq \vars1\vars3_{\op{E}}^{-k}$ and $ \op{E}_0(\var0_k)-\op{E}_0(\tilde{\var2}_{k-1})\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$.
-				\item Small relative gap refinement: $ \op{E}_0(\var0_k) - \op{E}_0(\tilde{\var2}_{k-1}) \leq \vars1\op{E}_0(\var0_k)$ for all $k\in\F N$, some $0<\vars1\leq \frac{1}{1+\vars3_{\op{E}}}$.
+				\item Small continuous gap refinement: $ \op{E}_0(\edit{\var0_k}{\tilde{\var2}_k})\leq \vars1\aE^{-k}$ for all $k\in\F N$, some $\vars1>0$.
+				\item Small discrete gap refinement: $\op{E}_0(\edit{\tilde{\var2}_k}{\tilde{\F{U}}^k})\leq \vars1\aE^{-k}$ and $ \op{E}_0(\edit{\var0_k}{\tilde{\var2}_k})-\op{E}_0(\edit{\tilde{\var2}_{k-1}}{\tilde{\F{U}}^{k-1}})\leq \vars1\aE^{-k}$ for all $k\in\F N$, some $\vars1>0$.
+				\item Small relative gap refinement: $ \op{E}_0(\edit{\var0_k}{\tilde{\var2}_k}) - \op{E}_0(\edit{\tilde{\var2}_{k-1}}{\tilde{\F{U}}^{k-1}}) \leq \vars1\op{E}_0(\edit{\var0_k}{\tilde{\var2}_k})$ for all $k\in\F N$, some $0<\vars1\leq \frac{1}{1+\aE}$.
 			\end{enumerate}
-			\edit{}{If, furthermore, there exists a Banach space $(\F{U},\Norm\cdot)$ with $\F{U}\supset\F H$ and the sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded, then it is also sufficient that:}
+			\edit{If}{Suppose}, furthermore, there exists a Banach space $(\F{U},\Norm\cdot)$ with $\F{U}\supset\F H$ and \edit{}{dual-norm $\Norm\cdot_*$. If} the sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded, then it is also sufficient that:
 			\begin{enumerate}\setcounter{enumi}{3}
-				\item Small continuous gradient refinement: $ \edit{\Norm{\partial\op{E}(\var0_k)}_*}{\inf_{\var1\in\partial\op{E}(\var0_k)}\Norm{\var1}_*}\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$\edit{, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded}{}.
-				\item Small discrete gradient refinement: $\op{E}_0(\tilde{\var2}_k)\leq \vars1\vars3_{\op{E}}^{-k}$ and $\edit{\Norm{\tens{\Pi}_k\partial\op{E}(\var0_k)}_*}{\sup_{\var0,\tilde{\var0}\in \tilde{\F{U}}^k}\inf_{\var1\in\partial\op{E}(\var0_k)}\frac{|\IP{v}{\var0-\tilde{\var0}}|}{\Norm{\var0-\tilde{\var0}}}}\leq \vars1\vars3_{\op{E}}^{-k}$ for all $k\in\F N$, some $\vars1>0$\edit{, and sublevel sets of $\op{E}$ are $\Norm\cdot$-bounded}{}.
+				\item Small continuous gradient refinement: $ \inf_{\var1\in\partial\op{E}(\edit{\var0_k}{\tilde{\var2}_k})}\Norm{\var1}_*\leq \vars1\aE^{-k}$ for all $k\in\F N$, some $\vars1>0$.
+				\item Small discrete gradient refinement: $\op{E}_0(\edit{\tilde{\var2}_k}{\tilde{\F{U}}^k})\leq \vars1\aE^{-k}$ and $\sup_{\var0,\tilde{\var0}\in \tilde{\F{U}}^k}\inf_{\var1\in\partial\op{E}(\var0_k)}\frac{|\IP{v}{\var0-\tilde{\var0}}|}{\Norm{\var0-\tilde{\var0}}}\leq \vars1\aE^{-k}$ for all $k\in\F N$, some $\vars1>0$.
 			\end{enumerate}
 		}
 	\end{lemma}
 	
-	\noindent The proof is given in Lemma~\ref{app:thm: practical refinement criteria}. The refinement criteria described by Lemma~\ref{thm: practical refinement criteria} can be split into two groups. Cases (1), (3), and (4) justify that any choice of $\tilde{\F{U}}^k\ni\var0_k$ (or $\var0_{n_k-1}$ in Theorem~\ref{thm: stronger exponential FISTA convergence}) satisfies the required conditions. In cases (2) and (5), $\var0_k$ is sufficient to choose the refinement time $n_k$ but not the \edit{subspace}{subset} $\tilde{\F{U}}^k$. In these cases one could, for example, choose $\tilde{\F{U}}^k$ to be a uniform discretisation with apriori estimates.
+	\noindent The proof is given in Lemma~\ref{app:thm: practical refinement criteria}. The refinement criteria described by Lemma~\ref{thm: practical refinement criteria} can be split into two groups. Cases (1), (3), and (4) justify that any choice of \edit{$\tilde{\F{U}}^k\ni\var0_k$ (or $\var0_{n_k-1}$ in Theorem~\ref{thm: stronger exponential FISTA convergence})}{$\F{U}^{n_k}$ containing $\tilde{\var2}_k$} satisfies the required conditions. In cases (2) and (5), $\edit{\var0_k}{\tilde{\var2}_k}$ is sufficient to choose the refinement time $n_k$ but not the subset $\tilde{\F{U}}^k$. In these cases one could, for example, choose $\tilde{\F{U}}^k$ to be a uniform discretisation with a priori estimates.
 	
-	Another splitting of the criteria is into gap and gradient computations. Typically, gradient norms (in (4) and (5)) should be easier to estimate than function gaps because they only require local knowledge rather than global, i.e. $\partial\op{E}(\var0_n)$ rather than an estimate of $\edit{\op{E}(\var0^*)}{\Emin}$. Implicitly, the global information comes from an extra condition on $\op{E}$ to assert that sublevel sets are bounded.
+	Another splitting of the criteria is into gap and gradient computations. Typically, gradient norms (in (4) and (5)) should be easier to estimate than function gaps because they only require local knowledge rather than global, i.e. $\partial\op{E}(\var0_n)$ rather than an estimate of $\Emin$. Implicitly, the global information comes from an extra condition on $\op{E}$ to assert that sublevel sets are bounded.
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\section{General examples}\label{sec: general examples}
-	\edit{In this work we consider the Lasso problem to be both a motivating example and source of numerical examples, however, Algorithm~\ref{alg: refining FISTA} is much more broadly applicable. Here we justify this claim by demonstrating that the constants $\vars3_U$ and $\vars3_{\op{E}}$ can be easily computed in many examples.
-	The cases where $\F{U}$ is finite or countable dimensional are quite straight forward. If the total number of refinements is finite (i.e. $\F{U}^n = \F{U}^N$ for all $n\geq N$, some $N\in\F N$) then $\vars3_U = 1$. This holds for most finite dimensional problems as well as the countable Lasso example discussed in detail in Section~\ref{sec: Lasso definition}. The examples considered here have $\F H = L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ where $\{\tilde{\F{U}}^n\st n\in\F N\}$ are finite dimensional finite-element--like spaces. We will now clarify exactly what is meant by these properties and then demonstrate that they are sufficient to find simple formulae for the values $\vars3_U$ and $\vars3_{\op{E}}$. }{
-	We consider the main use of Algorithm~\ref{alg: refining FISTA} to be where there exists a Banach space $(\F{U},\Norm\cdot)$ such that $\F{U}\supset\F H$ and
+	We consider the main use of Algorithm~\ref{alg: refining FISTA} to be where there exists a Banach space $(\F{U},\Norm\cdot)$ such that $\F{U}\supset\edit{\F H}{\{\var0\in\F{H}\st\op{E}(\var0)<\infty\}}$ and
 	$$\inf_{\var0\in\F H} \op{E}(\var0) = \min_{\var0\in\F{U}}\op{E}(\var0) = \op{E}(\var0^*)$$
-	for some $\var0^*\in\F{U}$. The cases where $\F H$ has finite or countable dimension are quite straightforward. If the total number of refinements is finite (i.e. $\F{U}^n = \F{U}^N$ for all $n\geq N$, some $N\in\F N$), then $\vars3_U = 1$. This holds for most finite dimensional problems as well as the countable example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\vars3_U$ and $\vars3_{\op{E}}$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subsets $(\tilde{\F{U}}^n)_{n\in\F N}$ will be finite dimensional finite-element--like spaces, as defined below.
-	}
+	for some $\var0^*\in\F{U}$. The cases where $\F H$ has finite or countable dimension are quite straightforward; if the total number of refinements is finite (i.e. $\F{U}^n = \F{U}^N$ for all $n\geq N$, some $N\in\F N$), then $\aU = 1$. This holds for most finite dimensional problems as well as the countable example discussed in detail in Section~\ref{sec: Lasso definition}. In this section we give explicit computations of $\aU$ and $\aE$ in the setting where $\F H = L^2(\Domain)$ for some domain $\Domain\subset\R^d$ and the subsets $\F{U}^n$ will be finite dimensional finite-element--like spaces, as defined below.
 			
-	\begin{definition}
-		Suppose $\F{U}\subset L^q(\Domain)$ for some \edit{compact}{connected, bounded} domain $\Domain\subset\R^d$\edit{}{ with sufficiently smooth boundary}. We say that $\F M^k = \{\domain_1^k,\domain_2^k,\ldots\}$ is a \emph{mesh} if 
-		$$\domain_i^k\subset\Domain \qquad\text{and} \qquad |\domain_i^k\cap\domain^k_j| = 0$$
-		for all $i$ and $j$. We say that $\tilde{\F{U}}^k\subset \edit{\F{U}\cap}{}\F H$ is a \emph{finite element space} if there exists a mesh $\F M^k$ such that for all $\var0\in\tilde{\F{U}}^k$ there exists $\var0_i^k\in\tilde{\F{U}}^k$ such that
-		$$\supp(\var0_i^k)\subset \bar{\domain_i^k}, \qquad \var0(\vec{x}) = \var0^k_i(\vec{x}) \qquad \text{ for a.e. }\vec{x}\in\domain_i^k, \text{ all } i\in\F N.$$
+	\begin{definition}\label{def: finite element space}
+		Suppose \edit{}{$\norm\cdot_q\lesssim \Norm\cdot$ (i.e. }$\F{U}\subset L^q(\Domain)$\edit{}{)} for some \edit{}{$q\in[1,\infty]$ and }connected, bounded domain $\Domain\subset\R^d$\edit{ with sufficiently smooth boundary}{}. We say that $\F M^k = \{\domain_1^k,\domain_2^k,\ldots\}$ is a \emph{mesh} if 
+		$$\edit{\domain_i^k\subset}{\bigcup_{\domain\in\F M^k}\domain = } \Domain \qquad\text{and} \qquad |\edit{\domain_i^k\cap\domain^k_j}{\domain\cap\domain'}| = 0\qquad \text{for all \edit{$i$ and $j$}{$\domain,\domain'\in\F M^k,\ \domain\neq\domain'$}.}$$
+		We say that $\tilde{\F{U}}^k\subset \F H$ is a \emph{finite element space} if there exists a mesh $\F M^k$ such that for all $\tilde{\var0}\in\tilde{\F{U}}^k$ \edit{there exists $\var0_i^k\in\tilde{\F{U}}^k$ such that
+		\\$\supp(\var0_i^k)\subset \bar{\domain_i^k}, \qquad \tilde{\var0}(\vec{x}) = \var0^k_i(\vec{x}) \qquad \text{ for a.e. }\vec{x}\in\domain_i^k, \text{ all } i\in\F N.$\\}{%
+		$$\forall\domain\in\F M^k \qquad \exists \var0|_\domain\in \tilde{\F{U}}^k \quad\text{such that}\quad \op{supp}(\var0|_\domain)\subset\bar{\domain}\quad\text{and}\quad\text{for a.e. }\vec{x}\in\domain,\ \tilde{\var0}(\vec{x})=\var0|_\domain(\vec{x}).$$
+		}
 		
-		We say that a sequence of finite element subspaces $(\tilde{\F{U}}^k)_{k=0}^\infty$ is \emph{$\meshsize$-refining} if there exists a basis $\{e_1, \ldots,e_N\}\subset\tilde{\F{U}}^0\cap L^\infty(\Domain)$ such that for any $\var0_i^k\in\tilde{\F{U}}^k$ with $\supp(\var0_i^k)\subset\domain_i^k$ there exist $\vars0\in\R^{d\times d}$, $\vvars1\in\R^d$, $\vvars2\in\R^N$ such that 
-		$$0<\op{det}(\vars0) \lesssim \meshsize^{-kd}, \quad \var0_i^k(\vec{x}) = \sum_{j=1}^N\vars2_je_j(\vars0 \vec{x}+\vvars1) \quad \text{ for a.e. }\vec{x}\in\domain_i^k, \quad \supp(e_j(\vars0\cdot+\vvars1))\subset\bar{\domain_i^k}. $$
+		\edit{We}{Moreover, for $\meshsize\in(0,1)$, we} say that the sequence $(\tilde{\F{U}}^k)_{k\in\F N}$ is \emph{$\meshsize$-refining} if there exists \edit{a basis $\{e_1, \ldots,e_N\}\subset\tilde{\F{U}}^0\cap L^\infty(\Domain)$ such that for any $\var0_i^k\in\tilde{\F{U}}^k$ with $\supp(\var0_i^k)\subset\domain_i^k$ there exist $\vars0\in\R^{d\times d}$, $\vvars1\in\R^d$, $\vvars2\in\R^N$ such that 
+		\\$0<\op{det}(\vars0) \lesssim \meshsize^{-kd}, \quad \var0_i^k(\vec{x}) = \sum_{j=1}^N\vars2_je_j(\vars0 \vec{x}+\vvars1) \quad \text{ for a.e. }\vec{x}\in\domain_i^k, \quad \supp(e_j(\vars0\cdot+\vvars1))\subset\bar{\domain_i^k}. $\\}{%
+		$c_\alpha>0$ such that for each $\tilde{\var0}\in\tilde{\F{U}}^k$ and $\domain\in\F M^k$,
+		$$ \exists (\var0,\alpha,\vec\beta)\in\tilde{\F U}^0\times\R^{d\times d}\times\R^d \quad \text{such that}\quad \op{det}(\alpha)\geq c_\alpha\meshsize^{kd} \quad\text{and}\quad \forall\vec{x}\in\Domain,\ \var0(\vec x) = \var0|_\domain(\alpha \vec{x}+\vec\beta). $$
+		}
 		
-		We say that $(\tilde{\F{U}}^k)_k$ is \emph{of order $p$} if
-		$$\min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*} \lesssim_{\var0^*} \meshsize^{kp}.$$
-		We allow the implicit constant to have any dependence on $\var0^*$ so long as it is finite. For example, in the case of Sobolev spaces we would expect an inequality of the form
-		$\min_{\var2\in\tilde{\F{U}}^k}\norm{\var2-\var0^*}_{W^{0,q}} \lesssim \meshsize^{kp}\norm{\var0^*}_{W^{p,q}}$ \cite{Strang1972}.
+		We say that $(\tilde{\F{U}}^k)_k$ is \emph{of order $p$} if \edit{}{for any $\var0^*\in\argmin_{\var0\in\F U}\op{E}(\var0)$ there exists a sequence $(\tilde{\var2}_k)_{k\in\F N}$ such that}
+		\begin{equation}\label{eq: projection of u*}
+			\edit{\min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*} \lesssim_{\var0^*} \meshsize^{kp}}{\forall k\in\F N, \qquad\tilde{\var2}_k\in\tilde{\F U}^k  \quad\text{and}\quad \Norm{\tilde{\var2}_k-\var0^*}\lesssim_{\var0^*} \meshsize^{kp}}.
+		\end{equation}
+	
+		We allow the implicit constant to have any dependence on $\var0^*$ so long as it is finite. For example, in the case of Sobolev spaces we would expect an inequality of the form $\edit{\min_{\var2\in\tilde{\F{U}}^k}\norm{\var2-\var0^*}_{W^{0,2}}}{\norm{\tilde{\var2}_k-\var0^*}_{W^{0,2}}} \lesssim \meshsize^{kp}\norm{\var0^*}_{W^{p,2}}$ \cite{Strang1972}.
 	\end{definition}
-	We note that any piecewise polynomial finite element \edit{}{(or spline)} space can be used to form a $\meshsize$-refining sequence of subspaces. Wavelets with a compactly supported basis behave like a multi-resolution finite element space as there is always overlap in the supports of basis vectors. Similarly, a Fourier basis does satisfy the scaling properties but each basis vector has global support. Both of these exceptions are important and could be accounted for with further analysis but we focus on the more standard finite element case. The following theorem shows that all finite element spaces achieve the same basic rates of convergence in Algorithm~\ref{alg: refining FISTA}, depending on the particular properties of $\Norm\cdot$ and $\op{E}$.
+
+	We note that any piecewise polynomial finite element (or spline) space can be used to form a $\meshsize$-refining sequence of subspaces. Wavelets with a compactly supported basis behave like a multi-resolution finite element space as there is always overlap in the supports of basis vectors. Similarly, a Fourier basis does satisfy the scaling properties but each basis vector has global support. Both of these exceptions are important and could be accounted for with further analysis but we focus on the more standard finite element case. 
+	\edit{The following theorem shows that all finite element spaces achieve the same basic rates of convergence in Algorithm~\ref{alg: refining FISTA}, depending on the particular properties of $\Norm\cdot$ and $\op{E}$.}{In order to align these discretisation estimates with the assumptions of Theorems~\ref{thm: exponential FISTA convergence} and \ref{thm: stronger exponential FISTA convergence}, we make the following observation.
+	\begin{lemma}\label{thm: pq to p'q'}
+		Fix $\var0^*\in\argmin_{\var0\in\F U}\op{E}(\var0)$ and $p',q'>0$. If a sequence $\tilde{\var2}_k\in\F H$ satisfies
+		$$ \norm{\tilde{\var2}_k}\lesssim \meshsize^{-kq'} \quad\text{and}\quad\op{E}(\tilde{\var2}_k) - \op{E}(\var0^*)\lesssim \meshsize^{kp'},$$
+		then $(\tilde{\var2}_k)_{k\in\F N}$ is an \aUaE\ for $\aU=\meshsize^{-q'}$ and $\aE=\meshsize^{-p'}$.
+	\end{lemma}
+	This is precisely rewriting the statement of Definition~\ref{def: exp subspaces} into terms of resolution and approximation properties. The following theorem shows how to link $p$ and $q$ from Definition~\ref{def: finite element space} with $p'$ and $q'$ from Lemma~\ref{thm: pq to p'q'}.
+	}
+
 	\begin{theorem}\label{thm: generic a_U and a_E}
-		Suppose $\F H= L^2(\Domain)$ for some \edit{compact}{connected, bounded} domain $\Domain\subset\R^d$\edit{}{ with sufficiently smooth boundary} and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. If $(\tilde{\F{U}}^k)_k$ is a sequence of $\meshsize$-refining finite element spaces of order $p$ then
+		Suppose $\F H= L^2(\Domain)$ for some connected, bounded domain $\Domain\subset\R^d$\edit{ with sufficiently smooth boundary}{} and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. \edit{If}{For $p\geq0$ and $\meshsize\in(0,1)$, if} $(\tilde{\F{U}}^k)_{k\in\F N}$ is a sequence of $\meshsize$-refining finite element spaces of order $p$, then \edit{}{$(\tilde{\var2}_k)_{k\in\F N}$ is an \aUaE\ for}
 		\begin{align*}
-			\vars3_U &\leq \splitln{1}{q\geq 2}{\sqrt{\meshsize^{-d}}}{q<2},
-			& \vars3_{\op{E}} &\geq \begin{cases}
-				\meshsize^{-p} & \op{E} \text{ is $\Norm\cdot$-Lipschitz at }\var0^*
-				\\\meshsize^{-2p} & \op{E} \text{ is $\Norm\cdot$-smooth at }\var0^*
-			\end{cases}\ .
+			\aU &\leq \splitln{1}{\text{if }q\geq 2,}{\sqrt{\meshsize^{-d}}}{q<2 \edit{}{\text{ and }\sup_{\var0\in\tilde{\F{U}}^0}\frac{\norm{\var0}_\infty}{\norm{\var0}}<\infty},}
+			& \aE &\geq \begin{cases}
+				\meshsize^{-2p} & \text{if }\op{E} \text{ is $\Norm\cdot$-smooth at }\var0^*,
+				\\\meshsize^{-p}\qquad & \text{if }\op{E} \text{ is $\Norm\cdot$-Lipschitz at }\var0^*,
+				\\ 1 &\text{otherwise.}
+			\end{cases}
 		\end{align*}
-		If $\op{g}$ is not Lipschitz at $\var0^*$ but $\op{f}$ is $\Norm\cdot$-Lipschitz and 
-		$$\min_{\var2\in\tilde{\F{U}}^k}\left\{\Norm{\var2-\var0^*}\st \op{g}(\var2)\leq \op{g}(\var0^*)\right\} \lesssim \min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*},$$
-		then, again, $\vars3_{\op{E}}\geq\meshsize^{-p}$.
+		\edit{If $\op{g}$ is not Lipschitz at $\var0^*$ but $\op{f}$ is $\Norm\cdot$-Lipschitz and 
+		\\$\min_{\var2\in\tilde{\F{U}}^k}\left\{\Norm{\var2-\var0^*}\st \op{g}(\var2)\leq \op{g}(\var0^*)\right\} \lesssim \min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*},$\\
+		then, again, $\aE\geq\meshsize^{-p}$.}{}
 	\end{theorem}
-	The proof of this theorem is in Appendix~\ref{app: generic a_U and a_E}. The main take-home for this theorem is that the computation of $\vars3_U$ and $\vars3_{\op{E}}$ is typically very simple and clear given a particular choice of $\Norm\cdot$ and $\op{E}$. The only non-trivial case is when $\op{g}$ is not smooth enough to estimate directly. So long as $\tilde{\F{U}}^k$ are sufficiently dense in sublevel sets of $\op{g}$, the smoothness of $\op{f}$ is sufficient to give a convergence rate.
+	The proof of this theorem is in Appendix~\ref{app: generic a_U and a_E}. \edit{}{Note that $\sup_{\var0\in\tilde{\F{U}}^0}\frac{\norm{\var0}_\infty}{\norm{\var0}}$ is finite whenever $\tilde{\F{U}}^0\subset L^\infty(\Domain)$ is finite dimensional, so this is not a very strong assumption.} The main take-home for this theorem is that the computation of $\aU$ and $\aE$ is typically very simple and clear given a particular choice of $\Norm\cdot$ and $\op{E}$. \edit{The only non-trivial case is when $\op{g}$ is not smooth enough to estimate directly. So long as $\tilde{\F{U}}^k$ are sufficiently dense in sublevel sets of $\op{g}$, the smoothness of $\op{f}$ is sufficient to give a convergence rate.}{}
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	\section{L1 penalised reconstruction}\label{sec: Lasso definition}
-	\edit{We now focus on the specific example of Lasso}{The canonical example for FISTA is the LASSO problem with a quadratic data fidelity and L1 regularisation. In this section we develop the necessary analytical tools for the variant with general smooth fidelity term} which will be used for numerical results in \edit{Sectoin}{Section}~\ref{sec: numerics}. We consider three forms \edit{of Lasso}{} which will be referred to as the continuous, countable, and discrete \edit{Lasso}{problem} depending on whether the space $\F{U}$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or finite dimensional respectively. In each case, the energy can be written as 
-	\begin{equation}\label{eq: Lasso energy}
-		\op{E}(\var0) = \edit{\tfrac12\norm{\A\var0-\data}_{\ell^2}^2}{\op{f}(\A\var0-\data)} + \mu\Norm{\var0}
+	The canonical example for FISTA is the LASSO problem with a quadratic data fidelity and L1 regularisation. In this section we develop the necessary analytical tools for the variant with general smooth fidelity term which will be used for numerical results in Section~\ref{sec: numerics}. We consider three forms  which will be referred to as the continuous, countable, and discrete problem depending on whether the space $\F{U}$ is $\C M([0,1]^d)$, $\ell^1(\R)$, or \edit{finite dimensional}{$\R^M$} respectively. \edit{}{Let $\A\colon\F{U}\cup\F{H}\to\R^m$ be a linear operator represented by the kernels $\psi_j\in\F{U}^*\cap\F{H}$ such that 
+	\begin{equation}\label{eq: kernels of A}
+		\forall \var0\in\F{U}\cup\F{H},\ j=1,\ldots,m,\qquad (\A\var0)_j = \IP{\psi_j}{\var0}.
 	\end{equation}
-	for some $\A\colon \F{U}\to\R^m$ and $\mu>0$, where $\Norm\cdot=\norm\cdot_1$. \edit{}{We assume $\op{f}\in C^1(\R^m)$ is convex with $\nabla\op{f}$ 1-Lipschitz, and in the continuous-space case, we require $\A^*\colon\R^m\to C^1([0,1]^d)$. }Let $\var0^*\in\argmin_{\var0\in\F{U}}\op{E}(\var0)$.
+	In particular, for the discrete (respectively countable) case we have $\psi_j\in\R^M$ (resp. $\ell^2(\R)$). In the continuous case we will require the additional smoothness $\psi_j\in C^1([0,1]^d)$. In Section~\ref{sec: smoothing operators} we will formally define and estimate several operator semi-norms for $\A$ of this form, for example Lemma~\ref{thm: norm bound L2} confirms that $\A$ is continuous on $\F{H}$ (i.e. $\norm{\A}<\infty$).} In each case, the energy \edit{can be}{we consider is} written as 
+	\begin{equation}\label{eq: Lasso energy}
+		\op{E}(\var0) = \op{f}(\A\var0-\data) + \mu\Norm{\var0}
+	\end{equation}
+	for some \edit{$\A\colon \F{U}\to\R^m$ and }{}$\mu>0$ where $\Norm\cdot=\norm\cdot_1$. We assume $\op{f}\in C^1(\R^m)$ is convex\edit{ with}{, bounded from below, and} $\edit{\nabla\op{f}}{(\norm{\A}^2\nabla\op{f})}$ is 1-Lipschitz\edit{, and in the continuous-space case we also require $\A^*\colon\R^m\to C^1([0,1]^d)$}{}.
+	Let $\var0^*\in\argmin_{\var0\in\F{U}}\op{E}(\var0)$\edit{}{, which is non-empty so long as $\psi_j\in C$ (i.e. $\A$ is sequentially weak-star continuous)}.
 	
-	The aim of this section is to develop all of the necessary tools for implementing Algorithm~\ref{alg: refining FISTA} on the energy \eqref{eq: Lasso energy} using the convergence guarantees of either Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence}. This includes computing the rates $\vars3_U$ and $\vars3_{\op{E}}$, estimating the continuous gap $\op{E}_0(\var0_n)$, and developing an efficient refinement choice for $\F{U}^n$.
+	The aim of this section is to develop all of the necessary tools for implementing Algorithm~\ref{alg: refining FISTA} on the energy \eqref{eq: Lasso energy} using the convergence guarantees of either Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence}. This includes computing the rates $\aU$ and $\aE$, estimating the continuous gap $\op{E}_0(\var0_n)$, and developing an efficient refinement choice for $\F{U}^n$.
 	
 	\subsection{Continuous case}\label{sec: continuous lasso rate}
-	We start by estimating rates in the case $\F{U}=\C M(\Domain)$ where $\Domain =[0,1]^d$. In this case we choose $\tilde{\F{U}}^k$ to be the span of all piecewise constant functions on a mesh of squares with maximum side length $2^{-k}$ (i.e. $\meshsize=\tfrac12$). 
-	
-	Application of Theorem~\ref{thm: generic a_U and a_E} gives $\vars3_U=2^{\frac d2}$ although \edit{although}{} $\Norm\cdot$ is too strong a metric and results in $\vars3_{\op{E}}=2^0$. This can be seen because for any $\var0\in L^1(\Domain)$ and Dirac mass $\delta$ supported in $(0,1)^d$, 
+	We start by estimating rates in the case $\F{U}=\C M(\Domain)$ where $\Domain =[0,1]^d$. In this case we choose $\tilde{\F{U}}^k$ to be the span of all piecewise constant functions on a mesh of squares with maximum side length $2^{-k}$ (i.e. $\meshsize=\tfrac12$) \edit{}{and $$\tilde{\var2}_k\coloneqq \sum_{\domain\in\F M^k}\frac{\var0^*(\domain)}{|\domain|}\1_\domain\quad\text{where}\quad\1_\domain(\vec x)=\splitln{1}{\vec{x}\in\domain}{0}{\text{else}}.$$
+	By construction $\tilde{\var2}\in\tilde{\F{U}}^k$, however note that for any $\var0\in L^1(\Domain)$ and Dirac mass $\delta$ supported in $(0,1)^d$, 
 	\begin{equation}
 		\Norm{\var0-\delta} = \sup_{\varphi\in C(\Domain), \norm{\varphi}_{L^\infty}\leq 1} \IP{\varphi}{\var0-\delta} = \Norm{\var0}+\Norm{\delta} \geq 1 = \meshsize^0.
 	\end{equation}
-	To improve our estimate of $\vars3_{\op{E}}$ requires additional assumptions on $\A$. \edit{}{Note that the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\F{U}}^k$ onto piecewise-constant functions is $\Norm\cdot$-diminishing, therefore }
-	for any $\var0\in\F H$, $\var2\coloneqq \tilde{\tens{\Pi}}_k\var0\in\tilde{\F{U}}^k$ we have
+	Because of this, } application of Theorem~\ref{thm: generic a_U and a_E} gives $\aU=2^{\frac d2}$ \edit{although  $\Norm\cdot$ is too strong a metric and only results in}{but only} $\aE\geq1$.
+	\edit{This can be seen because for any $\var0\in L^1(\Domain)$ and Dirac mass $\delta$ supported in $(0,1)^d$, 
+	\\$\Norm{\var0-\delta} = \sup_{\varphi\in C(\Domain), \norm{\varphi}_{L^\infty}\leq 1} \IP{\varphi}{\var0-\delta} = \Norm{\var0}+\Norm{\delta} \geq 1 = \meshsize^0.$}{}
+	To improve our estimate of $\aE$ requires additional assumptions on $\A$. Note that \edit{the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\F{U}}^k$ onto piecewise-constant functions is $\Norm\cdot$-diminishing}{$\Norm{\tilde{\var2}_k}=\sum_{\domain\in\F M^k}|\var0^*(\domain)|\leq \Norm{\var0^*}$}, therefore \edit{for any $\var0\in\F H$, $\var2\coloneqq \tilde{\tens{\Pi}}_k\var0\in\tilde{\F{U}}^k$}{} we have
 	\begin{align}
-		\op{E}(\var2)-\op{E}(\var0) &= \edit{\tfrac12\norm{\A\var2-\data}_{\ell^2}^2 - \tfrac12\norm{\A\var0-\data}_{\ell^2}^2}{\op{f}(\A\var2-\data)-\op{f}(\A\var0-\data)} + \mu\left(\Norm{\var2}-\Norm{\var0}\right)
-		\\&\leq \ip{\nabla \op{f}(\A\var2-\data)}{\A(\var2-\var0)}
-		\\&\leq\edit{\max(\norm{\A\var2-\data}_{\ell^2},\norm{\A\var0-\data}_{\ell^2})}{\left[\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2} + \norm{\A(\var2-\var0^*)}_{\ell^2}\right]}\norm{\A(\var2-\var0)}_{\ell^2}.
+		\op{E}(\edit{\var2}{\tilde{\var2}_k})-\op{E}(\var0^*) &= \op{f}(\A\edit{\var2}{\tilde{\var2}_k}-\data)-\op{f}(\A\var0^*-\data) + \mu\left(\Norm{\edit{\var2}{\tilde{\var2}_k}}-\Norm{\var0^*}\right)
+		\\&\leq \ip{\nabla \op{f}(\A\edit{\var2}{\tilde{\var2}_k}-\data)}{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}
+		\\&\leq\left[\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2} + \edit{}{\norm{\A}^{-2}}\norm{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}_{\ell^2}\right]\norm{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}_{\ell^2}.
 	\end{align}
-	\edit{Choosing $\var2 = \tilde{\tens{\Pi}}_k\var0^*$ for any bounded linear extension to the orthogonal projection $\tilde{\tens{\Pi}}_k\colon\F{U}\to\tilde{\F{U}}^k$ gives
-	\\\centerline{$\displaystyle\op{E}(\var2)-\op{E}(\var0^*) \lesssim \norm{\A(\tilde{\tens{\Pi}}_k\var0^*-\var0^*)}_{\ell^2} \leq \norm{(\tilde{\tens{\Pi}}_k-\id)\A^*}_{\ell^2\to L^\infty}\Norm{\var0^*}.$}
-	Expanding the operator norm further,
-	\\\centerline{$\displaystyle
-		\norm{(\tilde{\tens{\Pi}}_k-\id)\A^*}_{\ell^2\to L^\infty} = \sup_{\vec{r}\in\R^m}\max_{\vec{x}\in\Domain} \frac{|[\tilde{\tens{\Pi}}_k\A^*\vec{r}](\vec{x})-[\A^*\vec{r}](\vec{x})|}{\norm{\vec{r}}_{\ell^2}} \leq \sup_{\vec{r}\in\R^m} \frac{\sqrt{d}2^{-k}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}}{\norm{\vec{r}}_{\ell^2}} 
-		= \sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1}$}
-	}{Clearly $\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2}$ is a constant. For the second term, recall $\Norm{\var2}\leq \Norm{\var0}$, therefore we can bound
-	\begin{equation}
-	\norm{\A(\var2-\var0^*)}_{\ell^2} = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{\A^*\vec{r}}{\var2-\var0^*} \leq \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} |\A^*\vec{r}|_{L^\infty}\Norm{\var2-\var0^*} \leq |\A^*|_{\ell^2\to C^0}(\Norm{\var0}+\Norm{\var0^*}).
-	\end{equation}
-	Similarly, the final term can be approximated by
-	\begin{multline}
+	Clearly $\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2}$ is a constant. \edit[0]{\sout{For the second term, recall $\Norm{\var2}\leq \Norm{\var0}$, therefore we can bound
+	\\$\norm{\A(\var2-\var0^*)}_{\ell^2} = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{\A^*\vec{r}}{\var2-\var0^*} \leq \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} |\A^*\vec{r}|_{L^\infty}\Norm{\var2-\var0^*} \leq |\A^*|_{\ell^2\to C^0}(\Norm{\var0}+\Norm{\var0^*}).$\\
+	Similarly, the final term can be approximated by}
+	\begin{multline*}
 		\norm{\A(\tilde{\tens{\Pi}}_k\var0-\var0)}_{\ell^2}
 		 = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{(\tilde{\tens{\Pi}}_k-\id)\A^*\vec{r}}{\var0}
 		\leq \sup_{\vec{r}\in\R^m}\max_{\vec{x}\in\Domain}|[\tilde{\tens{\Pi}}_k\A^*\vec{r}](\vec{x})-[\A^*\vec{r}](\vec{x})|\:\norm{\vec{r}}_{\ell^2}^{-1}\Norm{\var0}
 		\\\leq \sup_{\vec{r}\in\R^m}\sqrt{d}2^{-k}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}\: \norm{\vec{r}}_{\ell^2}^{-1} \Norm{\var0}\quad=\sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1} \Norm{\var0}
-	\end{multline}}
-	where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. \edit{}{Sub-levelsets of $\op{E}$ are compact in $L^1(\Domain)$, therefore there exists a weak$^*$-converging minimising sequence $\var0^*_j\in\F H$ such that $\var0^*_j\rightharpoonup\var0^*$ and $\lim_{j\to\infty}\op{E}(\var0^*_j)=\op{E}(\var0^*)$. 
-		Combining these estimates gives 
-		\begin{equation}
-			\inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0^*) = \lim_{j\to\infty} \inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0_j^*) \leq \lim_{j\to\infty} \op{E}(\tilde{\tens{\Pi}}_k\var0_j^*)-\op{E}(\var0_j^*) \lesssim 2^{-k}.
-		\end{equation}}
+	\end{multline*}
+	\sout{where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. Sub-levelsets of $\op{E}$ are compact in $L^1(\Domain)$, therefore there exists a weak$^*$-converging minimising sequence $\var0^*_j\in\F H$ such that $\var0^*_j\rightharpoonup\var0^*$ and $\lim_{j\to\infty}\op{E}(\var0^*_j)=\op{E}(\var0^*)$. 
+	Combining these estimates gives 
+	\\$\inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0^*) = \lim_{j\to\infty} \inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0_j^*) \leq \lim_{j\to\infty} \op{E}(\tilde{\tens{\Pi}}_k\var0_j^*)-\op{E}(\var0_j^*) \lesssim 2^{-k}.$}
+	}{%
+	For the other term, note that for all $\vec{r}\in\R^m$, denote $\varphi\coloneqq\A^*\vec{r}$, then 
+	\begin{multline}
+		\ip{\vec r}{\A(\tilde{\var2}_k-\var0^*)} = \IP{\varphi}{\tilde{\var2}_k-\var0^*} = 
+		\sum_{\domain\in\F M^k}\int_\domain \varphi(\vec{x}) \diff[\tilde{\var2}_k-\var0^*] 
+		= \sum_{\domain\in\F M^k}|\domain|^{-1}\iint_\domain [\varphi(\vec{x}) - \varphi(\vec{y})] \diff\vec{x}\diff\var0^*(\vec{y}) 
+		\\\leq \max_{\domain\in\F M^k}\op{diam}(\domain)\norm{\nabla\varphi}_\infty\Norm{\var0^*}.
+	\end{multline}
+	This gives the estimate
+	\begin{equation}
+		\norm{\A(\tilde{\var2}_k-\var0^*)}_{\ell^2} = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{\A^*\vec{r}}{\tilde{\var2}_k-\var0^*} \leq \sqrt{d}2^{-k}\Norm{\var0^*}\sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}.
+	\end{equation}
+	This last term we denote the semi-norm $|\A^*|_{\ell^2\to C^1}$ which is shown to be finite in Section~\ref{sec: smoothing operators}. For now, assuming that $|\A^*|_{\ell^2\to C^1}<\infty$, we conclude that $\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*)\lesssim 2^{-k}$.}
 	
-	This computation confirms two things, firstly that the scaling constant is indeed $\vars3_{\op{E}} = 2$, and secondly that the required smoothness to achieve a good rate with Algorithm~\ref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. In Section~\ref{sec: smoothing operators} we will show two practical examples where this (semi)norm is accurately computable. 
+	This computation confirms two things, firstly that the scaling constant is indeed $\aE = 2$, and secondly that the required smoothness to achieve a good rate with Algorithm~\ref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. In Section~\ref{sec: smoothing operators} we will show two practical examples where this seminorm is accurately computable. 
 	
 	Inserting the computed rates into Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence} gives the guaranteed convergence rate
 	\begin{equation}\label{eq: Lasso energy rate}
-		\kappa = \frac{\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2} = \frac{d}{1+d} \quad \implies \quad \op{E}_0(\var0_n) \lesssim n^{-2(1-\kappa)} = n^{-\frac{2}{1+d}}.
+		\kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2} = \frac{d}{1+d} \quad \implies \quad \op{E}_0(\var0_n) \lesssim n^{-2(1-\kappa)} = n^{-\frac{2}{1+d}}.
 	\end{equation}
-	This rate can be used to infer the required resolution at each iteration, in particular on iteration $n$ with $n^2\simeq (\vars3_{\op{E}}\vars3_U^2)^k$ we expect the resolution to be
+	This rate can be used to infer the required resolution at each iteration, in particular on iteration $n$ with $n^2\simeq (\aE\aU^2)^k$ we expect the resolution to be
 	\begin{equation}\label{eq: Lasso resolution rate}
-		2^{-k} = \left(\vars3_{\op{E}}\vars3_U^2\right)^{\frac{k}{1+d}} \simeq n^{-\frac{2}{1+d}}.
+		2^{-k} = \left(\aE\aU^2\right)^{\frac{k}{1+d}} \simeq n^{-\frac{2}{1+d}}.
 	\end{equation}
 	
 	\subsection{Countable and discrete case}
-	We now extend the rate computations to the case when $\F{U}=\ell^1(\R)$, or a finite dimensional subspace. The key fact here is that, even when $\F{U}$ is infinite dimensional, it is known (e.g. \cite[\edit{Theorem 2}{Thm 6}]{Unser2016} and \cite[\edit{Corollary 2}{Cor 3.8}]{Boyer2019}) that $\var0^*$ can be chosen to have at most $m$ non-zeros. If this is the case, then $\var0^*\in \ell^2(\R)$; this makes the analysis much simpler than in the continuous case. In this subsection we will ignore the discrete case as a simple sub-case of the countable.
+	We now extend the rate computations to the case when $\F{U}=\ell^1(\R)$, or a finite dimensional subspace. The key fact here is that, even when $\F{U}$ is infinite dimensional, it is known (e.g. \cite[Thm 6]{Unser2016} and \cite[Cor 3.8]{Boyer2019}) that \edit{}{there exists} $\var0^*\edit{}{\in\argmin_{\var0\in\F{U}}\op{E}(\var0)}$ \edit{can be chosen to have}{with} at most $m$ non-zeros. If this is the case, then $\var0^*\in \ell^2(\R)$\edit{;}{, indeed $\norm{\var0^*}_{\ell^2}\leq\sqrt{m}\norm{\var0^*}_{\ell^1}$. } This makes the \edit{analysis}{estimates of $\aE/\aU$} much simpler than in the continuous case\edit{}{ as we can stay in the finite-dimensional Hilbert-space setting}. 
 	
-	For countable \edit{Lasso}{dimensions} we consider discretisation subspaces of the form 
-	$$\tilde{\F{U}}^k = \{\var0\in \ell^1(\R) \st i\notin J_k\implies \var0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\norm{\var0^*}<\infty$, which leads to $\vars3_U=1$ and the expected optimal rate of $n^{-2}$, independent of $\vars3_{\op{E}}$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence} hold trivially.
+	For countable dimensions we consider discretisation subspaces of the form 
+	$$\tilde{\F{U}}^k = \{\var0\in \ell^1(\R) \st i\notin J_k\implies \var0_i=0\}$$ for some sets $J_k\subset\F N$, i.e. infinite vectors with finitely many non-zeros. The key change in analysis from the continuous case is $\norm{\var0^*}<\infty$, which leads to $\aU=1$ and the expected optimal rate of $n^{-2}$, independent of $\aE$ or any additional properties of $\A$. The number of refinements will also be finite, therefore $n_k=\infty$ for some $k$ and the remaining conditions of Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence} hold trivially.
 	
 	\subsection{Refinement metrics}\label{sec: Lasso gap and gradient}
-	Lemma~\ref{thm: practical refinement criteria} shows that adaptive refinement can be performed based on estimates of the function gap or the \edit{gradient}{subdifferential}. In this subsection we provide estimates for these values which can be easily computed.
+	Lemma~\ref{thm: practical refinement criteria} shows that adaptive refinement can be performed based on estimates of the function gap or the subdifferential. In this subsection we provide estimates for these values which can be easily computed.
 	
 	\subsubsection{Bounds for discretised functionals}\label{sec: bound discrete}
-	We start by computing estimates for discretised \edit{Lasso}{energies}. This covers the cases when either the continuous/countable \edit{Lasso}{energy} is projected onto $\F{U}^n$, or $\F{U}$ is finite dimensional. For notation we will use the continuous case, to recover the other cases just replace continuous indexing with discrete (i.e. $\var0(\vec{x}) \leadsto \var0_i$).
+	We start by computing estimates for discretised energies. This covers the cases when either the continuous/countable energy is projected onto $\F{U}^n$, or $\F{U}$ is finite dimensional. For notation we will use the continuous case, to recover the other cases just replace continuous indexing with discrete (i.e. $\var0(\vec{x}) \leadsto \var0_i$).
 	
-	Let $\tens{\Pi}_n\colon\F H\to\F{U}^n$ denote the orthogonal projection. \edit{For Lasso}{In our case}, the discretised function $\var0\mapsto\op{E}(\tens{\Pi}_n\var0)$ is equivalent to replacing $\var0$ with $\tens{\Pi}_n\var0$, and $\A^*$ with $\tens{\Pi}_n\A^*$. 
+	Let $\tens{\Pi}_n\colon\F H\to\F{U}^n$ denote the orthogonal projection. \edit{}{We consider the discretised function $\op{E}|_{\F{U}^n}\colon \F{U}^n\to\R$ and its subdifferential $\partial_n\op{E}(\cdot) = \tens{\Pi}_n\partial\op{E}(\cdot)$.} In our case, the \edit{discretised function $\var0\mapsto\op{E}(\tens{\Pi}_n\var0)$}{behaviour of $\op{E}|_{\F{U}^n}$} is equivalent to replacing $\var0$ with $\tens{\Pi}_n\var0$, and $\A^*$ with $\tens{\Pi}_n\A^*$.
 	
 	\paragraph{Discrete gradient}
 	We can use $\tens{\Pi}_n$ to compute the discrete subdifferential at $\var0_n\in\F{U}^n$:
 	\begin{align}
-		\partial_n \op{E}(\tens{\Pi}_n\var0_n)(\vec{x}) &= [\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)](\vec{x}) + \begin{cases}
+		\partial_n \op{E}(\var0_n)(\vec{x}) &= [\tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)](\vec{x}) + \begin{cases}
 			\{+\mu\} & \var0_n(\vec{x})>0 \\ [-\mu,\mu] & \var0_n(\vec{x})=0 
 			\\\{-\mu\} & \var0_n(\vec{x})<0 
 		\end{cases} 
-		\\&\eqqcolon [\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)](\vec{x}) + \mu\tens{\Pi}_n\sign(\var0_n(\vec{x}))
+		\\&\eqqcolon [\tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)](\vec{x}) + \mu\tens{\Pi}_n\sign(\var0_n(\vec{x}))
 	\end{align}
 	where we define $s+\mu[-1,1] = [s-\mu,s+\mu]$ for all $s\in\R$, $\mu\geq0$. 
 	
 	As $\Norm\cdot = \norm\cdot_1$, the natural metric for $\partial_n\op{E}$ is $\Norm\cdot_* = \norm\cdot_\infty$ which we can estimate
 	\begin{align}
-		\Norm{\partial_n \op{E}(\var0_n)}_* &= \max_{\vec{x}\in\Domain}\min\left\{|\var1| \st \var1\in \tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)(\vec{x}) +  \mu\sign(\var0_n(\vec{x}))\right\}
+		\Norm{\partial_n \op{E}(\var0_n)}_* &= \max_{\vec{x}\in\Domain}\min\left\{|\var1| \st \var1\in \tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)(\vec{x}) +  \mu\tens{\Pi}_n\sign(\var0_n(\vec{x}))\right\}
 		\\&= \max_{\vec{x}\in\Domain}\begin{cases}
-			|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)(\vec{x}) + \mu| & \var0_n(\vec{x})>0
-			\\|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)(\vec{x}) - \mu| & \var0_n(\vec{x})<0
-			\\\max\left(|[\tens{\Pi}_n\A^*\edit{}{\nabla\op{f}}(\A\var0_n-\data)(\vec{x})| - \mu, 0\right) & \var0_n(\vec{x}) = 0
+			|[\tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)(\vec{x}) + \mu| & \var0_n(\vec{x})>0
+			\\|[\tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)(\vec{x}) - \mu| & \var0_n(\vec{x})<0
+			\\\max\left(|[\tens{\Pi}_n\A^*\nabla\op{f}(\A\var0_n-\data)(\vec{x})| - \mu, 0\right) & \var0_n(\vec{x}) = 0
 		\end{cases}
 	\end{align}
 	which can be used directly in Lemma~\ref{thm: practical refinement criteria}.
@@ -577,10 +627,10 @@
 	\paragraph{Discrete gap}
 	We now move on to the discrete gap, $\op{E}(\var0_n)-\min_{\var0\in\F{U}^n}\op{E}(\var0)$. This can be computed with a dual representation (e.g. \cite{Duval2017a}),
 	\begin{align}
-		\min_{\var0\in \F{U}^n} \edit{\tfrac12\norm{\A\var0-\data}_{\ell^2}^2}{\op{f}(\A\var0-\data)} + \mu\Norm{\var0} &= \min_{\var0\in\F H}\max_{\vec{\varphi}\in\R^m} \ip{(\A\tens{\Pi}_n\var0-\data)}{ \vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\edit{\tfrac12\norm{\vec{\varphi}}_{\ell^2}^2}{\op{f}^*(\vec{\varphi})}
-		\\&= \max_{\vec{\varphi}\in\R^m}\min_{\var0\in\F H} \ip{(\A\tens{\Pi}_n\var0-\data)}{\vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\edit{\tfrac12\norm{\vec{\varphi}}_{\ell^2}^2}{\op{f}^*(\vec{\varphi})}
-		\\&= \max_{\vec{\varphi}\in\R^m} \splitln{-\ip{\data}{\vec{\varphi}} -\edit{\tfrac12\norm{\vec{\varphi}}_{\ell^2}^2}{\op{f}^*(\vec{\varphi})}}{\qquad\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu}{-\infty}{\qquad\text{else}}
-		\\&= -\min_{\vec{\varphi}\in\R^m} \underbrace{\edit{\tfrac12\norm{\vec{\varphi}}_{\ell^2}^2}{\op{f}^*(\vec{\varphi})}+\ip{\data}{\vec{\varphi}}}_{\eqqcolon \op{E}^*(\vec{\varphi})}  + \chi(\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu).
+		\min_{\var0\in \F{U}^n} \op{f}(\A\var0-\data) + \mu\Norm{\var0} &= \min_{\var0\in\F H}\max_{\vec{\varphi}\in\R^m} \ip{(\A\tens{\Pi}_n\var0-\data)}{ \vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\op{f}^*(\vec{\varphi})
+		\\&= \max_{\vec{\varphi}\in\R^m}\min_{\var0\in\F H} \ip{(\A\tens{\Pi}_n\var0-\data)}{\vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\op{f}^*(\vec{\varphi})
+		\\&= \max_{\vec{\varphi}\in\R^m} \splitln{-\ip{\data}{\vec{\varphi}} -\op{f}^*(\vec{\varphi})}{\qquad\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu}{-\infty}{\qquad\text{else}}
+		\\&= -\min_{\vec{\varphi}\in\R^m} \underbrace{\op{f}^*(\vec{\varphi})+\ip{\data}{\vec{\varphi}}}_{\eqqcolon \op{E}^*(\vec{\varphi})}  + \chi(\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu).
 	\end{align}
 	In particular,
 	\begin{equation}
@@ -588,32 +638,32 @@
 	\end{equation}
 	for any feasible $\vec{\varphi}\in\R^m$. We further derive the criticality condition, if $(\var0^*,\vec{\varphi}^*)$ is a saddle point, then
 	\begin{equation}
-		\edit{}{\A\var0^*-\data\in\partial\op{f}^*(\vec{\varphi}^*),\qquad\text{or equivalently}\qquad}
-		\vec{\varphi}^* = \edit{}{\nabla\op{f}}(\A\var0^*-\data).
+		\A\var0^*-\data\in\partial\op{f}^*(\vec{\varphi}^*),\qquad\text{or equivalently}\qquad
+		\vec{\varphi}^* = \nabla\op{f}(\A\var0^*-\data).
 	\end{equation}
 	We remark briefly that it is more conventional to include the constraint in the definition of $\op{E}^*$. We choose to omit it here to highlight that it is only the constraint which changes between the discrete and continuous cases; $\op{E}^*$ will remain the same.
 	
 	Given $\var0_n\in \F{U}^n$, the optimality condition motivates a simple rule for choosing $\vec{\varphi}$:
 	\begin{equation}
-		\vec{\varphi}_n\coloneqq \edit{}{\nabla\op{f}}(\A\var0_n - \data), \qquad \op{E}(\var0)-\min_{\var0'\in\F{U}^n}\op{E}(\var0') \leq \op{E}(\var0) +\edit{\min_{\vars2\geq 0}\{}{}\op{E}^*(\vars2\vec{\varphi}_n) \edit{\st \vars2 \Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*\leq \mu\}}{}
+		\vec{\varphi}_n\coloneqq \nabla\op{f}(\A\var0_n - \data), \qquad \op{E}(\var0)-\min_{\var0'\in\F{U}^n}\op{E}(\var0') \leq \op{E}(\var0) +\op{E}^*(\vars2\vec{\varphi}_n)
 	\end{equation}
-	\edit{with optimal choice}{for some $0\leq \vars2\leq\frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*}$. In the case $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$, one can use the optimal choice}
+	for some $0\leq \vars2\leq\frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*}$. In the case $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$, one can use the optimal choice
 	\begin{equation}
 		\vars2 =\max\left(0, \min\left(\frac{-\ip{\data}{\vec{\varphi}_n}}{\norm{\vec{\varphi}_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*}\right)\right).
 	\end{equation}
-	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\A\var0_n-\data)\edit{ = \frac12\norm{\vec{\varphi}_n}_{\ell^2}^2}{}$ and $\tens{\Pi}_n\nabla\op{f}(\A\var0_n-\data)\edit{ = \tens{\Pi}_n\A^*\vec{\varphi}_n}{}$ are easily computable, therefore $\vars2$ and $\op{E}(\var0_n) +\op{E}^*(\vars2\vec{\varphi}_n)$ are also easy to compute.
+	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\A\var0_n-\data)$ and $\tens{\Pi}_n\nabla\op{f}(\A\var0_n-\data)$ are easily computable, therefore $\vars2$ and $\op{E}(\var0_n) +\op{E}^*(\vars2\vec{\varphi}_n)$ are also easy to compute.
 	
 	\subsubsection{Bounds for countable functionals}
-	Extending the results of Section~\ref{sec: bound discrete} to $\F{U}=\ell^1(\R)$ is analytically very simple but computationally relies heavily on the specific choice of $\A$. The computations of \edit{gradients}{subdifferentials} and gaps carry straight over replacing $\tens{\Pi}_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\F{U}^n = \{\var0\in\ell^1\st i\notin J_n\implies \var0_i=0\}$. In particular,
+	Extending the results of Section~\ref{sec: bound discrete} to $\F{U}=\ell^1(\R)$ is analytically very simple but computationally relies heavily on the specific choice of $\A$. The computations of subdifferentials and gaps carry straight over replacing $\tens{\Pi}_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\F{U}^n = \{\var0\in\ell^1\st i\notin J_n\implies \var0_i=0\}$. In particular,
 	\begin{align}
 		\Norm{\partial\op{E}(\var0_n)}_* &= \max_{i\in\F N}\begin{cases}
 			|[\A^*\vec{\varphi}_n]_i + \mu| & [\var0_n]_i>0
 			\\|[\A^*\vec{\varphi}_n]_i - \mu| & [\var0_n]_i<0
 			\\\max\left(|[\A^*\vec{\varphi}_n]_i| - \mu, 0\right) & [\var0_n]_i = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\edit{=\max\left(0, \min\left(\frac{-\ip{\data}{\vec{\varphi}_n}}{\norm{\vec{\varphi}_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right)\right)}{\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]}
+		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]
 	\end{align}
-	where $\vec{\varphi}_n = \edit{}{\nabla\op{f}}(\A\var0_n-\data)\in\R^m$ is always exactly computable.
+	where $\vec{\varphi}_n = \nabla\op{f}(\A\var0_n-\data)\in\R^m$ is always exactly computable.
 	
 	In the countable case, the sets $J_n$ give a clear partition into known/unknown values in these definitions. For $i\in J_n$ the computation is the same as in Section~\ref{sec: bound discrete}, then for $i\notin J_n$ we know $[\var0_n]_i=0$ which simplifies the remaining computations. This leads to:
 	\begin{align}
@@ -625,14 +675,14 @@
 	Both estimates only rely on an upper bound of $\max_{i\notin J_n} |[\A^*\vec{\varphi}_n]_i|$. One example computing this value is seen in Section~\ref{sec: wavelet examples}.
 	
 	\subsubsection{Bounds for continuous functionals}\label{sec: bound continuous}
-	Finally we extend the results of Section~\ref{sec: bound discrete} to continuous \edit{Lasso}{problems}. Similar to the countable case, the exact formulae can be written down immediately:
+	Finally we extend the results of Section~\ref{sec: bound discrete} to continuous problems. Similar to the countable case, the exact formulae can be written down immediately:
 	\begin{align}
 		\Norm{\partial\op{E}(\var0_n)}_* &= \max_{\vec{x}\in\Domain}\begin{cases}
 			|[\A^*\vec{\varphi}_n](\vec{x}) + \mu| & \var0_n(\vec{x})>0
 			\\|[\A^*\vec{\varphi}_n](\vec{x}) - \mu| & \var0_n(\vec{x})<0
 			\\\max\left(|[\A^*\vec{\varphi}_n](\vec{x})| - \mu, 0\right) & \var0_n(\vec{x}) = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\edit{=\max\left(0, \min\left(\frac{-\ip{\data}{\vec{\varphi}_n}}{\norm{\vec{\varphi}_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right)\right)}{\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]}.
+		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right].
 	\end{align}
 	If these quantities are not analytically tractable then we use the mesh $\F M^n$ corresponding to $\F{U}^n$ to decompose the bounds:
 	\begin{align}
@@ -653,21 +703,21 @@
 	\end{equation}
 	A zeroth order expansion would be optimally inefficient (approximating $|[\nabla\A^*\vec{\varphi}_n](\vec{x}_i)|$ with $|\A^*\vec{\varphi}_n|_{C^1}$) and a second order expansion would possibly be more elegant but harder to implement. We found that a first order expansion was simple and efficient.
 	
-	The bounds presented here for continuous \edit{Lasso}{problems} emphasise the twinned properties required for adaptive mesh optimisation. The mesh should be refined greedily to the structures of $\var0^*$, but also must be sufficiently uniform to provide a good estimate for $\op{E}(\var0^*)$. This is a classical exploitation/exploration trade-off; exploiting visible structure whilst searching for other structures which are not yet visible.
+	The bounds presented here for continuous problems emphasise the twinned properties required for adaptive mesh optimisation. The mesh should be refined greedily to the structures of $\var0^*$, but also must be sufficiently uniform to provide a good estimate for $\op{E}(\var0^*)$. This is a classical exploitation/exploration trade-off; exploiting visible structure whilst searching for other structures which are not yet visible.
 	
 	
 	
 	\subsection{Support detection}\label{sec: support detection}
-	The main motivation for using \edit{Lasso}{L1 penalties} in applications is because it recovers sparse signals, in the case of compressed sensing the support of $\var0^*$ is also provably close to the `true' support \cite{Duval2017a,Poon2018}. If $\var0_n\approx \var0^*$ in the appropriate sense, then we should also be able to quantify the statement $\op{supp}(\var0_n)\approx\op{supp}(\var0^*)$. Such methods are referred to as \emph{safe screening} rules \cite{ElGhaoui2010} which gradually identify the support and allow the optimisation algorithm to constrain parts of the reconstruction to 0. In this subsection we propose a new simple screening rule which is capable of generalising to our continuous subspace approximation setting. It is likely that more advanced methods \cite{Bonnefoy2015,Ndiaye2017} can also be adapted, although that is beyond the scope of this work. The key difference is the allowance of inexact computations resulting from estimates such as \eqref{eq: Taylor approximation}.
+	The main motivation for using L1 penalties in applications is because it recovers sparse signals, in the case of compressed sensing the support of $\var0^*$ is also provably close to the `true' support \cite{Duval2017a,Poon2018}. If $\var0_n\approx \var0^*$ in the appropriate sense, then we should also be able to quantify the statement $\op{supp}(\var0_n)\approx\op{supp}(\var0^*)$. Such methods are referred to as \emph{safe screening} rules \cite{ElGhaoui2010} which gradually identify the support and allow the optimisation algorithm to constrain parts of the reconstruction to 0. In this subsection we propose a new simple screening rule which is capable of generalising to our continuous subspace approximation setting. It is likely that more advanced methods \cite{Bonnefoy2015,Ndiaye2017} can also be adapted, although that is beyond the scope of this work. The key difference is the allowance of inexact computations resulting from estimates such as \eqref{eq: Taylor approximation}.
 	
-	The support of $\var0^*$ has already been characterised very precisely \cite{Duval2017a,Poon2018}. In particular, the support is at most $m$ distinct points and are a subset of $\{ \vec{x}\in\Domain \st |\A^*\vec{\varphi}^*|(\vec{x}) = \mu\} $ (an equivalent statement holds for the countable case). Less formally, this can also be seen from the the \edit{gradient}{subdifferential} computations in Section~\ref{sec: Lasso gap and gradient}, for all $\vec{x}\in\supp(\var0^*)$ we have
+	The support of $\var0^*$ has already been characterised very precisely \cite{Duval2017a,Poon2018}. In particular, the support is at most $m$ distinct points and are a subset of $\{ \vec{x}\in\Domain \st |\A^*\vec{\varphi}^*|(\vec{x}) = \mu\} $ (an equivalent statement holds for the countable case). Less formally, this can also be seen from the the subdifferential computations in Section~\ref{sec: Lasso gap and gradient}, for all $\vec{x}\in\supp(\var0^*)$ we have
 	\begin{equation}
 		0\in \partial \op{E}(\var0^*)(\vec{x}) = [\A^*\vec{\varphi}^*](\vec{x}) + \mu\sign(\var0^*(\vec{x})).
 	\end{equation}
 	
 	Heuristically, we will use strong convexity of $\op{E}^*$ and smoothness of $\A^*$ to quantify the statement:
 	$$ \text{if}\quad \op{E}(\var0_n) + \op{E}^*(\vars2_0 \vec{\varphi}_n) \approx 0 \quad \text{then}\quad \left\{\vec{x}\st \mu - |[\A^*\vec{\varphi}_n](\vec{x})|\ll 1\right\} \subset\{\vec{x} \st \var0^*(\vec{x})=0\}.$$
-	\edit{First we use the strong convexity of $\op{E}^*$}{Recall that $\nabla\op{f}$ is 1-Lipschitz if and only if $\op{f}^*$ is 1-strongly convex \cite[Chapter 10, Thm. 4.2.2]{Hiriart2013}. Therefore}, if $\vars2_0\vec{\varphi}_n$ and $\vec{\varphi}^*$ are both dual-feasible, then
+	Recall that $\nabla\op{f}$ is 1-Lipschitz if and only if $\op{f}^*$ is 1-strongly convex \cite[Chapter 10, Thm. 4.2.2]{Hiriart2013}. Therefore, if $\vars2_0\vec{\varphi}_n$ and $\vec{\varphi}^*$ are both dual-feasible, then
 	\begin{equation}
 		\tfrac12\norm{\vars2_0\vec{\varphi}_n-\vec{\varphi}^*}_{\ell^2}^2 \leq \op{E}^*(\vars2_0\vec{\varphi}_n) - \op{E}^*(\vec{\varphi}^*) = \op{E}^*(\vars2_0\vec{\varphi}_n) + \op{E}(\var0^*) \leq \op{E}^*(\vars2_0\vec{\varphi}_n) + \op{E}(\var0_n),
 	\end{equation}
@@ -681,7 +731,7 @@
 	\end{align}
 	Therefore,
 	\begin{equation}
-		|[\tens{\Pi}_n\A^*\vars2_0\vec{\varphi}_n](\vec{x})|< \mu - \sqrt{2(\op{E}(\var0_n)+\op{E}^*(\vars2_0\vec{\varphi}_n))}|\A^*|_{\ell^2\to L^\infty} \qquad \implies \qquad \var0^*(\vec{x})= 0.\label{eq: support equation}
+		|[\tens{\Pi}_n\A^*\vars2_0\vec{\varphi}_n](\vec{x})|< \vars2_0^{-1}\left(\mu - \sqrt{2(\op{E}(\var0_n)+\op{E}^*(\vars2_0\vec{\varphi}_n))}|\A^*|_{\ell^2\to L^\infty}\right) \qquad \implies \qquad \var0^*(\vec{x})= 0.\label{eq: support equation}
 	\end{equation}
 	This equation is valid when $\vec{x}$ is either a continuous or countable index, the only distinction is to switch to $\ell^\infty$ in the norm of $\A^*$. To make the equivalent statement on the discretised problem, simply replace $\vars2_0$ with $\vars2$ and $\A^*$ with $\tens{\Pi}_n\A^*$. There are two short observations on this formula:
 	\begin{itemize}
@@ -691,7 +741,7 @@
 	
 	
 	\subsection{Operator norms}\label{sec: smoothing operators}
-	For numerical implementation of \edit{Lasso}{\eqref{eq: Lasso energy}}, we are required to accurately estimate several operator norms of $\A$. For $\op{f}$ to be 1-Lipschitz we must divide by $|\A\A^*|_{\ell^2\to\ell^2}$, and the adaptivity described in Sections~\ref{sec: continuous lasso rate}, \ref{sec: bound continuous}, and~\ref{sec: support detection} requires the values of $|\A^*|_{\ell^2\to L^\infty}$, $|\A^*|_{\ell^2\to C^1}$, and $|\A^*|_{\ell^2\to C^2}$. The aim for this section is to provide estimates of these norms and seminorms for the numerical examples presented in Section~\ref{sec: numerics}.
+	For numerical implementation of \eqref{eq: Lasso energy}, we are required to accurately estimate several operator norms of $\A$. For $\op{f}$ to be 1-Lipschitz we must divide by $|\A\A^*|_{\ell^2\to\ell^2}$, and the adaptivity described in Sections~\ref{sec: continuous lasso rate}, \ref{sec: bound continuous}, and~\ref{sec: support detection} requires the values of $|\A^*|_{\ell^2\to L^\infty}$, $|\A^*|_{\ell^2\to C^1}$, and $|\A^*|_{\ell^2\to C^2}$. The aim for this section is to provide estimates of these norms and seminorms for the numerical examples presented in Section~\ref{sec: numerics}.
 	
 	We start by specifying the structure of $\A$. By continuity of $\A$, there must exist kernels $\psi_j\in \F H\cap\F{U}^*$ such that $(\A\var0)_j = \IP{\psi_j}{\var0}$ for all $\var0\in \F H\cup\F{U}$, $j=1,\ldots,m$. In this form, the adjoint can be written precisely, $\A^*\colon\R^m\to \F H$ by 
 	\begin{equation}
@@ -732,41 +782,33 @@
 		for $Q = \frac2q$.
 	\qed\end{proof}
 	
-	\edit{
-	We now present explicit examples of the computations in both Lemmas~\ref{thm: norm bound smoothness} and~\ref{thm: norm bound L2} for the numerical results in Section~\ref{sec: numerics}. These examples are common in practical applications and we show the result of Theorem~5 in the main text to demonstrate that, while sometimes hard to compute by hand, the constants can estimated accurately in an efficient manner.
-	\\\bf{Theorem 5}
-		---- Original text moved to Theorem~\ref{thm: norm bound examples}. ----
-	\\\vspace{10pt}
-	
-	\\The sharpest method for estimating these norms is of course to compute them. This is most cumbersome for Gaussian kernels, however, the sums converge faster than exponentially and so the computational burden should be very small.}{
-	The examples in Section~\ref{sec: numerics} require explicit computations of the expressions in Lemmas~\ref{thm: norm bound smoothness} and~\ref{thm: norm bound L2}. These computations are provided in Theorem~\ref{thm: norm bound examples}}
-	
+	The examples in Section~\ref{sec: numerics} require explicit computations of the expressions in Lemmas~\ref{thm: norm bound smoothness} and~\ref{thm: norm bound L2}. These computations are provided in Theorem~\ref{thm: norm bound examples}
 	
 	\section{Numerical examples}\label{sec: numerics}
-	We present four numerical \edit{Lasso }{}examples. The first two are in 1D to demonstrate the performance of different variants of Algorithm~\ref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \cite{Ekanadham2011,Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in Section~\ref{sec: 1D Lasso examples}.
+	We present four numerical examples. The first two are in 1D to demonstrate the performance of different variants of Algorithm~\ref{alg: refining FISTA}, both with and without adaptivity. In particular, we explore sparse Gaussian deconvolution and sparse signal recovery from Fourier data. We compare with the \emph{continuous basis pursuit} (CBP) discretisation \cite{Ekanadham2011,Duval2017b} which is also designed to achieve super-resolution accuracy within a convex framework. More details of this method will be provided in Section~\ref{sec: 1D Lasso examples}.
 	
-	The next example is 2D reconstruction from Radon or X-ray data with wavelet-sparsity\edit{}{ and a robust data fidelity}. As the forward operator is not sufficiently smooth, we must optimise in $\ell^1(\R)$ which naturally leads to the choice of a wavelet basis. 
+	The next example is 2D reconstruction from Radon or X-ray data with wavelet-sparsity and a robust data fidelity. As the forward operator is not sufficiently smooth, we must optimise in $\ell^1(\R)$ which naturally leads to the choice of a wavelet basis. 
 	
 	Finally, we process a dataset which represents a realistic application in biological microscopy, referred to as STORM microscopy. In essence, the task is to perform 2D Gaussian de-blurring/super-resolution and denoising to find the location of sparse spikes of signal.
 	
-	In this section, the main aim is to minimise the exact \edit{Lasso }{}energy $\op{E}_0(\var0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete \edit{Lasso }{}energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
+	In this section, the main aim is to minimise the exact energy $\op{E}_0(\var0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
 	
 	The code to reproduce these examples can be found on github\footnote{\href{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}}.
 	
 	
 	\subsection{1D continuous LASSO}\label{sec: 1D Lasso examples}
-	In this example we choose $\F{U}=\C M([0,1])$\edit{}{, $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$} and $\A\colon \F{U}\to \R^{30}$ with either random Fourier kernels:
+	In this example we choose $\F{U}=\C M([0,1])$, $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$ and $\A\colon \F{U}\to \R^{30}$ with either random Fourier kernels:
 	\begin{equation}
-		(\A\var0)_j = \int_0^1\cos(\vars3_jx)\var0(x), \qquad \vars3_j\sim \op{Uniform}[-100,100],\ j=1,2,\ldots,30,\ \mu =0.02, 
+		(\A\var0)_j = \int_0^1\cos(\vars3_jx)\diff\var0(x), \qquad \vars3_j\sim \op{Uniform}[-100,100],\ j=1,2,\ldots,30,\ \mu =0.02, 
 	\end{equation}
 	or Gaussian kernels on a regular grid:
 	\begin{equation}
-		(\A\var0)_j = (2\pi\sigma^2)^{-\frac12}\int_0^1\exp\left(-\frac{(x-(j-1)\Delta)^2}{2\sigma^2}\right)\var0(x), \quad \sigma=0.12,\ \Delta = \tfrac1{29},\ j=1,2,\ldots,30,\ \mu=0.06.
+		(\A\var0)_j = (2\pi\sigma^2)^{-\frac12}\int_0^1\exp\left(-\frac{(x-(j-1)\Delta)^2}{2\sigma^2}\right)\diff\var0(x), \quad \sigma=0.12,\ \Delta = \tfrac1{29},\ j=1,2,\ldots,30,\ \mu=0.06.
 	\end{equation}
 	
-	Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation.\edit{There are many methods designed to minimise the continuous LASSO energy in \eqref{eq: Lasso energy}}{For this choice of $\op{f}$, we call \eqref{eq: Lasso energy} the continuous LASSO problem, for which there are many numerical methods} (c.f. \cite{Bredies2013,Castro2016,Boyd2017,Catala2019}) however, most \edit{}{require} the solution of a non-convex problem. We have focused on CBP because it approximates $\var0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. The idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen \cite{Ekanadham2011,Duval2017b}. If $\var0^*$ has only one Dirac spike in each pixel, then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
+	Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. For this choice of $\op{f}$, we call \eqref{eq: Lasso energy} the continuous LASSO problem, for which there are many numerical methods (c.f. \cite{Bredies2013,Castro2016,Boyd2017,Catala2019}) however, most require the solution of a non-convex problem. We have focused on CBP because it approximates $\var0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. The idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen \cite{Ekanadham2011,Duval2017b}. If $\var0^*$ has only one Dirac spike in each pixel, then the zeroth order information should correspond to the mass of the spike and additional first order information should determine the location.
 	
-	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\vars3_U = \vars3_{\op{E}} = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}_0(\var0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}_0(\var0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\F{U}^n$ to approximately enforce
+	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\aU = \aE = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}_0(\var0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}_0(\var0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\F{U}^n$ to approximately enforce
 	\begin{equation}
 		\op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n) \leq 2(\op{E}(\var0_n) + \op{E}^*(\vars2\vec{\varphi}_n)),
 	\end{equation}
@@ -778,7 +820,7 @@
 	\begin{equation}
 		\frac{\vars2_0}{\vars2} \approx \frac{\Norm{\A^*\vec{\varphi}_n}_*}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*} = \frac{\max_{\domain_i^n\in\F M^n} \norm{\A^*\vec{\varphi}_n}_{L^\infty(\domain_i^n)}}{\max_{\domain_i^n\in\F M^n} |\tens{\Pi}_n\A^*\vec{\varphi}_n(\domain_i^n)|} \approx \max_{\domain_i^n\in\F M^n}\frac{ \norm{\A^*\vec{\varphi}_n}_{L^\infty(\domain_i^n)}}{|\tens{\Pi}_n\A^*\vec{\varphi}_n(\domain_i^n)|}
 	\end{equation}
-	is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vec{\varphi}_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement using quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\var0^*$. Such refinement is necessary to avoid critical points of $\op{E}$ which are not global minimisers.
+	is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vec{\varphi}_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement using quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\var0^*$. Such refinement is necessary to avoid \edit{critical points}{discrete minimisers} of $\op{E}$ which are not global minimisers.
 	
 	\paragraph{Comparison of discretisation methods}
 	In Fig.~\ref{fig: convergence with ndofs} we compare the three core approaches: fixed uniform
@@ -798,7 +840,7 @@
 		\vspace*{\floatsep}
 		
 		\includegraphics[width=.86\textwidth]{lasso_convergence_short}
-		\caption{\edit{Discrete }{}Convergence plots for solving 1D problems with different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
+		\caption{Convergence plots for solving 1D problems with different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
 	\end{figure}
 	
 	
@@ -808,7 +850,7 @@
 	The key observations are:
 	\begin{itemize}
 		\item Each algorithm displays very similar convergence properties. The main difference is that the reconstructions with fixed discretisations accelerate after $10^4$-$10^5$ iterations.
-		\item During the initial `slow' phase, adaptive and fixed discretisations appear to achieve very similar (discrete) convergence rates. The coarse-to-fine adaptivity is not slower than fixed discretisations in this regime.
+		\item During the initial `slow' phase, adaptive and fixed discretisations appear to achieve very similar (discrete) convergence rates. The coarse-to-fine adaptivity is not slower than fixed discretisations in this regime\edit{}{, consistent with \eqref{eq: slow exact FISTA}}.
 		\item Lemma~\ref{thm: practical refinement criteria} accurately predicts the $\frac1n$ rate of the adaptive methods, mirrored in the fixed discretisations. This suggests that high-resolution discretisations are also initially limited by this $\frac1n$ rate before entering the asymptotic regime.
 		\item The fastest FISTA algorithm is consistently the greedy variant, although $a=20$ is very comparable.
 	\end{itemize}
@@ -856,7 +898,7 @@
 		\caption{Example tree representation of 1D wavelets. Left: nodes, leaves, and mesh of discretisation. Right: arrangement into a tree with index $(j,k)$ and corresponding support of wavelet $w_{j,k}$ underneath.}\label{fig: wavelet tree}
 	\end{figure}
 	
-	\subsection{2D \edit{wavelet Lasso}{robust sparse wavelet reconstruction}}\label{sec: wavelet examples}
+	\subsection{2D robust sparse wavelet reconstruction}\label{sec: wavelet examples}
 	In this example we consider $\A$ to be a 2D Radon transform. In particular, the rows of $\A$ correspond to integrals over the sets $\F{X}^I_i$ where 
 	\begin{equation}
 		\F{X}_i^I = \left\{\vec{x}\in[-\tfrac12,\tfrac12]^2\st \ip{\vec{x}}{\begin{pmatrix}\cos\theta_I\\\sin\theta_I\end{pmatrix}}\in \left[-\tfrac12+\tfrac{i-1}{100},-\tfrac12+\tfrac{i}{100}\right)\right\}, \quad \theta_I=\frac{180^\circ}{51}I
@@ -864,18 +906,17 @@
 	for $i=1,\ldots,50$, $I=1,\ldots,100$.
 	This is not exactly in the form analysed by Theorem~\ref{thm: norm bound examples}, however only the sets $\{\F{X}^I_i\st i\in[100]\}$ for each $I$ are disjoint, therefore we apply Theorem~\ref{thm: norm bound examples} block-wise to estimate
 	\begin{equation}
-		\norm{\A}_{L^2\to\ell^2} \leq \sqrt{\sum_{I\in[50]}\max_{i\in[100]} |\F{X}^I_i|} = \sqrt{\sum_{I\in[50]}\max_{i\in[100]} \int_{\F{X}^I_i}1d\vec{x}}= \sqrt{\sum_{I\in[50]}\max_{i\in[100]}\ (\A\1)_{i,I}}\;.
+		\norm{\A}_{L^2\to\ell^2} \leq \sqrt{\sum_{I\in[50]}\max_{i\in[100]} |\F{X}^I_i|} = \sqrt{\sum_{I\in[50]}\max_{i\in[100]} \int_{\F{X}^I_i}1\diff\vec{x}}= \sqrt{\sum_{I\in[50]}\max_{i\in[100]}\ (\A\1)_{i,I}}\;.
 	\end{equation}
-	$\A$ is not smooth, therefore we can't bound $|\A^*|_{C^k}$ for $k>0$, and so we must look to minimise over $\ell^1$ rather than $L^1$. The natural choice is to promote sparsity in a wavelet basis which can be rearranged into the \edit{Lasso}{} form \edit{}{of \eqref{eq: Lasso energy}}:
+	$\A$ is not smooth, therefore we can't bound $|\A^*|_{C^k}$ for $k>0$, and so we must look to minimise over $\ell^1$ rather than $L^1$. The natural choice is to promote sparsity in a wavelet basis which can be rearranged into the  form of \eqref{eq: Lasso energy}:
 	\begin{equation}
-		\min_{\var0\in \F{U}} \edit{\tfrac12\norm{\A\var0-\data}_{\ell^2}^2}{\op{f}(\A\var0-\data)} + \mu \norm{\tens{W}^{-1}\var0}_{\ell^1} = \min_{\hat{\var0}\in\ell^1(\R)} \edit{\tfrac12\norm{\A\tens{W}\hat{\var0}-\data}_{\ell^2}^2}{\op{f}(\A\tens{W}\hat{\var0}-\data)} + \mu \norm{\hat{\var0}}_{\ell^1}.
+		\min_{\var0\in \F{U}} \op{f}(\A\var0-\data) + \mu \norm{\tens{W}^{-1}\var0}_{\ell^1} = \min_{\hat{\var0}\in\ell^1(\R)} \op{f}(\A\tens{W}\hat{\var0}-\data) + \mu \norm{\hat{\var0}}_{\ell^1}.
 	\end{equation}
 	The minimisers are related by $\var0^* = \tens{W}\hat{\var0}^*$ and, for wavelet bases, $\tens{W}$ is orthonormal so $\norm{\A\tens{W}}_{\ell^2\to\ell^2} = \norm{\A}_{L^2\to\ell^2}$. 
-	\edit{}{ In this example we consider the smoothed robust fidelity \cite{Rosset2007}
+	 In this example we consider the smoothed robust fidelity \cite{Rosset2007}
 		\begin{equation}
 			\op{f}(\vec{\varphi}) = \sum_{i=1}^m \splitln{10^{-4}|\varphi_i|}{|\varphi_i|\geq10^{-4}}{\tfrac12|\varphi_i|^2+\tfrac12 10^{-8}}{\text{else}} \approx 10^{-4}\norm{\vec{\varphi}}_{\ell^1}.
 		\end{equation}
-	}	
 	From Section~\ref{sec: Lasso gap and gradient} we know that to track convergence and perform adaptive refinement, it is sufficient to accurately bound $|[\tens{W}^\top \A^*\vec{\varphi}_n]_j|$ for all $j\notin J_n$. If $\tens{W}$ is a wavelet transformation then its columns, $w_j\in L^2$, are simply the wavelets themselves and we can use the bound 
 	\begin{equation}
 		|\IP{w_j}{\A^*\vec{\varphi}_n}| = \left|\IP{w_j}{\1_{\supp(w_j)}\A^*\vec{\varphi}_n}\right| \leq \norm{\1_{\supp(w_j)} \A^*\vec{\varphi}_n}_{L^2}\leq \norm{\1_{\F{X}} \A^*\vec{\varphi}_n}_{L^2}
@@ -889,27 +930,27 @@
 	In higher dimensions, the only two things which change are the number of children ($2^d$ for non-leaves) and at each node you store the coefficients of $2^d-1$ wavelets. The support on each node is still a disjoint partition of unity consisting of regular cubes of side length $2^{-k}$ at level $k$. The only change in our own implementation is to translate the support to $[-\tfrac12,\tfrac12]^2$. We briefly remark that the tree structuring of wavelets is not novel and appears more frequently in the Bayesian inverse problems literature \cite{Castillo2019,Kekkonen2021}.
 	
 	\paragraph{Continuous gradient estimate}
-	In Section~\ref{sec: 1D Lasso examples} we used the continuous gap as a measure for convergence, for wavelets we will use the continuous \edit{gradient}{subdifferential}. With the tree structure we can easily adapt the results of Section~\ref{sec: Lasso gap and gradient} to estimate \edit{gradients}{subdifferentials} (or function gaps). In particular,
+	In Section~\ref{sec: 1D Lasso examples} we used the continuous gap as a measure for convergence, for wavelets we will use the continuous subdifferential. With the tree structure we can easily adapt the results of Section~\ref{sec: Lasso gap and gradient} to estimate subdifferentials (or function gaps). In particular,
 	\begin{align}
 		\Norm{\partial \op{E}(\var0_n)}_* &=\max\left(\Norm{\partial_n\op{E}(\var0_n)}_*, \max_{j\notin J_n} |\IP{w_j}{\A^*\vec{\varphi}_n}| -\mu \right) \\&\leq\max\left(\Norm{\partial_n\op{E}(\var0_n)}_*, \max_{j\in \op{leaf}(J_n)} \norm{\1_{\supp(w_j)}\A^*\vec{\varphi}_n}_{L^2} -\mu \right).\label{eq: wavelet error metric}
 	\end{align}
 	
 	\paragraph{Numerical results}
-	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. \edit{No noise is added to the Shepp-Logan data but 5\% Gaussian white noise is added to the disc data.}{Both examples are corrupted with \SI{2}{\percent} Laplace distributed noise.} This is visualised in Fig.~\ref{fig: haar data}. All optimisations shown are spatially adaptive using Haar wavelets and initialised with $\F{U}^0= \{x\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^\infty$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
+	We consider two phantoms where the ground-truth is either a binary disc or the Shepp-Logan phantom. Both examples are corrupted with \SI{2}{\percent} Laplace distributed noise. This is visualised in Fig.~\ref{fig: haar data}. All optimisations shown are spatially adaptive using Haar wavelets and initialised with $\F{U}^0= \{x\mapsto c\st c\in\F R\}$. The gradient metric shown throughout is the $\ell^\infty$ norm. Motivated by \eqref{eq: wavelet error metric}, the spatial adaptivity is chosen to refine nodes $j\in\op{leaf}(J_n)$ to ensure that 
 	$$ \norm{\1_{\supp(w_j)}\A^*\vec{\varphi}_n}_{L^2} -\mu  \leq 10\Norm{\partial_n\op{E}(\var0_n)}_*$$
 	for all $j$ and $n$ (i.e. so that the continuous gradient is less than 10 times the discrete gradient).
-	\edit{}{We do not expect wavelet regularisation to have state-of-the-art performance in the examples of Fig.~\ref{fig: haar data}. What they demonstrate is the preference Haar wavelets have to align large discontinuities with a coarse grid, even when the discretisation is allowed to be as fine as necessary. There is an average of $2\cdot10^6$ wavelet coefficients in each discretised reconstruction, although the higher frequencies have much smaller intensities. In limited data scenarios, wavelet regularisation automatically selects a local `resolution' which reflects the quality of data. Particularly in the Shepp-Logan reconstruction, we see that the outer ring is detected with a finer precision than the dark interior ellipses.}
+	We do not expect wavelet regularisation to have state-of-the-art performance in the examples of Fig.~\ref{fig: haar data}. What they demonstrate is the preference Haar wavelets have to align large discontinuities with a coarse grid, even when the discretisation is allowed to be as fine as necessary. There is an average of $2\cdot10^6$ wavelet coefficients in each discretised reconstruction, although the higher frequencies have much smaller intensities. In limited data scenarios, wavelet regularisation automatically selects a local `resolution' which reflects the quality of data. Particularly in the Shepp-Logan reconstruction, we see that the outer ring is detected with a finer precision than the dark interior ellipses.
 	
-	The first numerical results shown in Fig.~\ref{fig: haar convergence} compare the same adaptive FISTA variants as shown in Fig.~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower. \edit{}{Interestingly, in both examples the $a=20$ variant uses half as many wavelets as the Greedy variant, and therefore converges slightly faster in time. }
+	The first numerical results shown in Fig.~\ref{fig: haar convergence} compare the same adaptive FISTA variants as shown in Fig.~\ref{fig: convergence with method}. In these examples we see that the greedy FISTA and the $a=20$ algorithms achieve almost linear convergence while $a=2$ is significantly slower. Interestingly, in both examples the $a=20$ variant uses half as many wavelets as the Greedy variant, and therefore converges slightly faster in time. 
 	
 	\begin{figure}\centering
 		\includegraphics[width=.85\textwidth]{haar_data}
-		\caption{Phantoms\edit{ and}{,} data \edit{used }{and reconstructions }for wavelet-sparse tomography optimisation. \edit{The Shepp-Logan data is exact but the data for the disc-phantom has}{Both examples are corrupted with} \SI{2}{\percent}\ \edit{Gaussian white}{Laplace distributed} noise. }\label{fig: haar data}
+		\caption{Phantoms, data and reconstructions for wavelet-sparse tomography optimisation. Both examples are corrupted with \SI{2}{\percent}\ Laplace distributed noise. }\label{fig: haar data}
 		
 		\vspace*{\floatsep}
 		
 		\includegraphics[width=.85\textwidth]{haar_convergence_short}
-		\caption{\edit{Discrete }{}Convergence of different implementations of Algorithm~\ref{alg: refining FISTA} with an unlimited number of pixels for sparse wavelet optimisation.}\label{fig: haar convergence}
+		\caption{Convergence of different implementations of Algorithm~\ref{alg: refining FISTA} with an unlimited number of pixels for sparse wavelet optimisation.}\label{fig: haar convergence}
 		
 		\vspace*{\floatsep}
 		
@@ -918,11 +959,11 @@
 	\end{figure}
 	
 	\subsection{2D continuous LASSO}
-	Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. In mathematical terms, the observed data is a large number of sparse images which are corrupted by blurring and a large amount of noise, examples are seen in Fig.~\ref{fig: STORM data}. The task is to compute the centres of the spikes of signal in each image and then re-combine into a single super-resolved image, as in Fig.~\ref{fig: STORM results}. This technique is referred to as \emph{Single Molecule Localisation Microscopy} (SMLM), of which we consider the specific example of \emph{Stochastic Optical Reconstruction Microscopy} (STORM). Readers are directed to the references \cite{Sage2015,Sage2019,Schermelleh2019} for further details. The LASSO formulation \edit{}{($\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$) }has previously been shown to be effective in the context of STORM \cite{Huang2017,Denoyelle2019}.
+	Our final application is a super-resolution/de-blurring inverse problem from biological microscopy. In mathematical terms, the observed data is a large number of sparse images which are corrupted by blurring and a large amount of noise, examples are seen in Fig.~\ref{fig: STORM data}. The task is to compute the centres of the spikes of signal in each image and then re-combine into a single super-resolved image, as in Fig.~\ref{fig: STORM results}. This technique is referred to as \emph{Single Molecule Localisation Microscopy} (SMLM), of which we consider the specific example of \emph{Stochastic Optical Reconstruction Microscopy} (STORM). Readers are directed to the references \cite{Sage2015,Sage2019,Schermelleh2019} for further details. The LASSO formulation ($\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$) has previously been shown to be effective in the context of STORM \cite{Huang2017,Denoyelle2019}.
 	
 	Here we use a simulated dataset provided as part of the 2016 SMLM challenge\footnote{\url{http://bigwww.epfl.ch/smlm/challenge2016/datasets/MT4.N2.HD/Data/data.html}} for benchmarking software in this application. The corresponding LASSO formulation is 
 	\begin{equation}
-		(\A\var0)_{i} = (2\pi\sigma^2)^{-1}\int_{[0,6.4]^2} \exp\left(-\frac{1}{2\sigma^2}\left|\vec{x}- \Delta\begin{pmatrix}i_1+\tfrac12 & i_2+\tfrac12\end{pmatrix}^\top \right|^2\right)\var0(\vec{x})\,d\vec{x}, \qquad \sigma=0.2,\ \Delta=0.1
+		(\A\var0)_{i} = (2\pi\sigma^2)^{-1}\int_{[0,6.4]^2} \exp\left(-\frac{1}{2\sigma^2}\left|\vec{x}- \Delta\begin{pmatrix}i_1+\tfrac12 & i_2+\tfrac12\end{pmatrix}^\top \right|^2\right)\var0(\vec{x})\diff\vec{x}, \qquad \sigma=0.2,\ \Delta=0.1
 	\end{equation}
 	for $i_1,i_2 = 1,2,\ldots,64$ and $\F{U}=\C M([0,6.4]^2)$ with lengths in $\SI{}{\micro\meter}$. 3020 frames are provided, examples of which are shown in Fig.~\ref{fig: STORM data}. To process this dataset, image intensities were normalised to $[0,1]$ then a constant was subtracted to approximate 0-mean noise. The greedy FISTA algorithm was used for optimisation with $\mu=0.15$, $10^3$ iterations, and a maximum of $10^5$ pixels per image. 
 	
@@ -966,7 +1007,7 @@
 	\bibliography{references}
 	\appendix
 	\section{Proofs for FISTA convergence}\label{app: FISTA convergence}
-	This section contains all of the statements and proofs of the results contained in Section~\ref{sec: FISTA convergence}. \edit{}{Recall that the subsets $\F{U}^n\subset\F H$ satisfy \eqref{eq: refining subspace definition}.}
+	This section contains all of the statements and proofs of the results contained in Section~\ref{sec: FISTA convergence}. Recall that the subsets $\F{U}^n\subset\F H$ satisfy \eqref{eq: refining subspace definition}.
 	
 	\subsection{Proofs for Step 3}
 	
@@ -978,7 +1019,7 @@
 		\end{equation}
 	\end{theorem}
 	\begin{proof}
-		Modifying \cite[\edit{Theorem 2}{Thm 3.2}]{Chambolle2015}, for $n\geq1$ we apply Lemma~\ref{thm: descent lemma} with $\bar{\var0} = \bar{\var0}_{n-1}$ and $\var2 = (1-\frac{1}{t_{n}})\var0_{n-1} + \frac{1}{t_{n}}\var2_n$. \edit{}{By \eqref{eq: refining subspace definition}, $\var0_{n-1}\in\F{U}^n$ is convex so $\var2\in \F{U}^n$. }This gives
+		Modifying \cite[Thm 3.2]{Chambolle2015}, for $n\geq1$ we apply Lemma~\ref{thm: descent lemma} with $\bar{\var0} = \bar{\var0}_{n-1}$ and $\var2 = (1-\frac{1}{t_{n}})\var0_{n-1} + \frac{1}{t_{n}}\var2_n$. By \eqref{eq: refining subspace definition}, $\var0_{n-1}\in\F{U}^n$ is convex so $\var2\in \F{U}^n$. This gives
 		\begin{equation}
 			\op{E}(\var0_{n}) + \tfrac12\norm{\tfrac{1}{t_{n}}\var1_{n}-\tfrac{1}{t_{n}}\var2_n}^2 \leq \op{E}\left((1-\tfrac{1}{t_{n}})\var0_{n-1}+\tfrac{1}{t_{n}}\var2_n\right) + \tfrac12\norm{\tfrac{1}{t_{n}}\var1_{n-1}-\tfrac{1}{t_{n}}\var2_n}^2.
 		\end{equation}
@@ -986,7 +1027,7 @@
 		\begin{equation}
 			\op{E}(\var0_{n}) - \op{E}(\var2_n) - (1-\tfrac{1}{t_{n}})[\op{E}(\var0_{n-1})-\op{E}(\var2_n)] \leq \tfrac1{2t_{n}^2}\norm{\var1_{n-1}-\var2_n}^2 - \tfrac1{2t_{n}^2}\norm{\var1_{n}-\var2_n}^2 = \tfrac1{2t_{n}^2}\left[\norm{\var1_{n-1}}^2-\norm{\var1_{n}}^2\right] + \tfrac1{t_{n}^2}\IP{\var1_{n}-\var1_{n-1}}{\var2_n}.
 		\end{equation}
-		\edit{}{Multiplying through by $t_n^2$ gives the desired inequality.}
+		Multiplying through by $t_n^2$ gives the desired inequality.
 		\qed\end{proof}
 	
 	
@@ -998,7 +1039,7 @@
 		\end{equation}
 	\end{theorem}
 	\begin{proof}
-		Theorem~\ref{app:thm: mini FISTA convergence} is just a summation of \eqref{app:eq: one-step FISTA} over all $n=1,\ldots,N$. To see this: first add and subtract $\edit{\op{E}(\var0^*)}{\Emin}$ to each term on the left-hand side to convert $\op{E}$ to $\op{E}_0$, then move $\op{E}_0(\var2_n)$ to the right-hand side. Now \eqref{app:eq: one-step FISTA} becomes
+		Theorem~\ref{app:thm: mini FISTA convergence} is just a summation of \eqref{app:eq: one-step FISTA} over all $n=1,\ldots,N$. To see this: first add and subtract $\Emin$ to each term on the left-hand side to convert $\op{E}$ to $\op{E}_0$, then move $\op{E}_0(\var2_n)$ to the right-hand side. Now \eqref{app:eq: one-step FISTA} becomes
 		\begin{equation}
 			t_n^2\op{E}_0(\var0_n) - (t_n^2-t_n)\op{E}_0(\var0_{n-1}) \leq t_n\op{E}_0(\var2_n) + \tfrac1{2}\left[\norm{\var1_{n-1}}^2-\norm{\var1_n}^2\right] + \IP{\var1_n-\var1_{n-1}}{\var2_n}. 
 		\end{equation}
@@ -1039,7 +1080,7 @@
 		\begin{equation}
 			\tfrac12\norm{\var2_N}^2 + \sum^N_{n=1} t_n\op{E}_0(\var2_n) + \IP{\var1_{n-1}}{\var2_{n-1}-\var2_n} = \tfrac12\norm{\tilde{\var2}_K}^2 + \sum_{n=n_K}^Nt_n\op{E}_0(\tilde{\var2}_K) 
 			+ \sum_{k=1}^K\sum_{n=n_{k-1}}^{n_k-1}t_n\op{E}_0(\tilde{\var2}_{k-1}) 
-			+ \IP{\var1_{n_k-1}}{\tilde{\var2}_k-\tilde{\var2}_{k+1}}.
+			+ \IP{\var1_{n_k-1}}{\tilde{\var2}_{k-1}-\tilde{\var2}_k}.
 		\end{equation}
 		By Lemma~\ref{app: tn upper bound}, $t_n\leq n$ so we can further simplify
 		$$\sum_{n=\vars3}^{\vars4-1}t_n \leq \sum_{n=\vars3}^{\vars4-1}n = (\vars4-\vars3)\frac{\vars4-1+\vars3}{2} \leq \frac{\vars4^2-\vars3^2}{2}$$
@@ -1055,45 +1096,45 @@
 		\begin{align}
 			t_N^2\op{E}_0(\var0_N) + \tfrac12\norm{\var1_N-\tilde{\var2}_K}^2 &\leq C + \frac{\norm{\tilde{\var2}_K}^2}{2} + \frac{(N+1)^2-n_K^2}{2}\op{E}_0(\tilde{\var2}_K) \notag
 			\\&\hspace{70pt}+ \sum_{k=1}^K \frac{n_k^2-n_{k-1}^2}{2}\op{E}_0(\tilde{\var2}_{k-1}) + \IP{\var1_{n_k-1}}{\tilde{\var2}_k-\tilde{\var2}_{k+1}}
-			\\& \leq C + \frac{\norm{\tilde{\var2}_K}^2}{2} + \frac{(N+1)^2}{2}\op{E}_0(\tilde{\var2}_K) \notag
-			\\&\hspace{40pt}+\sum_{k=1}^K \frac{n_k^2}{2}\op{E}_0(\tilde{\var2}_{k-1}) + \IP{\var1_{n_k-1}-\tilde{\var2}_{k-1}+\tilde{\var2}_{k-1}}{\tilde{\var2}_k-\tilde{\var2}_{k+1}}.
+			\\& \leq C + \frac{\norm{\tilde{\var2}_K}^2}{2} + \frac{n_{K+1}^2}{2}\op{E}_0(\tilde{\var2}_K) \notag
+			\\&\hspace{40pt}+\sum_{k=1}^K \frac{n_k^2}{2}\op{E}_0(\tilde{\var2}_{k-1}) + \IP{\var1_{n_k-1}-\tilde{\var2}_{k-1}+\tilde{\var2}_{k-1}}{{\tilde{\var2}_{k-1}-\tilde{\var2}_k}}.
 		\end{align}
-		The inductive step now depends on the value of $\vars3_U$.
+		The inductive step now depends on the value of $\aU$.
 		\begin{description}
-			\item[Case $\vars3_U>1$:] We simplify the inequality
+			\item[Case $\aU>1$:] We simplify the inequality
 			\begin{align}
-				t_N^2\op{E}_0(\var0_N) + \tfrac12\norm{\var1_N-\tilde{\var2}_K}^2 &\lesssim \vars3_U^{2K} + (N+1)^2\vars3_{\op{E}}^{-K} + \sum_{k=1}^{K}n_k^2\vars3_{\op{E}}^{-k} + \vars3_U^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}} + \vars3_U^{2k}
-				\\&\leq C_1\left[\vars3_U^{2K+2} + \sum_{k=1}^{K}\vars3_U^{2k} + \vars3_U^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\right]
+				t_N^2\op{E}_0(\var0_N) + \tfrac12\norm{\var1_N-\tilde{\var2}_K}^2 &\lesssim \aU^{2K} + n_{K+1}^2\aE^{-K} + \sum_{k=1}^{K}n_k^2\aE^{-k} + \aU^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}} + \aU^{2k}
+				\\&\leq C_1\left[\aU^{2K+2} + \sum_{k=1}^{K}\aU^{2k} + \aU^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\right]
 			\end{align}
-			for some $C_1>C$. Choose $C_2\geq \norm{\var1_{n_1-1}-\tilde{\var2}_{1-1}}\vars3_U^{-1}$ such that 
+			for some $C_1>C$. Choose $C_2\geq \norm{\var1_{n_1-1}-\tilde{\var2}_{1-1}}\aU^{-1}$ such that 
 			\begin{equation}
-				\frac12C_2^2 \geq \frac{C_1}{\vars3_U^2-1}(C_2+\vars3_U^2).
+				\frac12C_2^2 \geq \frac{C_1}{\aU^2-1}(C_2+\aU^2).
 			\end{equation}
-			Assume $\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\leq C_2\vars3_U^k$ for $1\leq k\leq K$ (trivially true for $K=1$), then for $N=n_{K+1}-1$ we have 
+			Assume $\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\leq C_2\aU^k$ for $1\leq k\leq K$ (trivially true for $K=1$), then for $N=n_{K+1}-1$ we have 
 			\begin{align}
-				\tfrac12\norm{\var1_{n_{K+1}-1}-\tilde{\var2}_K}^2 &\leq C_1\left[\vars3_U^{2K+2} + \sum_{k=1}^{K}\vars3_U^{2k} + \vars3_U^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\right]
-				\\&\leq C_1\left[\vars3_U^{2K+2} + (1+C_2)\frac{\vars3_U^{2K+2}}{\vars3_U^2-1}\right]
-				\\&\leq \frac{C_1\vars3_U^{2K+2}}{\vars3_U^2-1}\left(\vars3_U^2+C_2\right) \leq \tfrac12(C_2\vars3_U^{K+1})^2.
+				\tfrac12\norm{\var1_{n_{K+1}-1}-\tilde{\var2}_K}^2 &\leq C_1\left[\aU^{2K+2} + \sum_{k=1}^{K}\aU^{2k} + \aU^{k}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\right]
+				\\&\leq C_1\left[\aU^{2K+2} + (1+C_2)\frac{\aU^{2K+2}}{\aU^2-1}\right]
+				\\&\leq \frac{C_1\aU^{2K+2}}{\aU^2-1}\left(\aU^2+C_2\right) \leq \tfrac12(C_2\aU^{K+1})^2.
 			\end{align}
 			
-			\item[Case $\vars3_U=1$:] Denote $\vars4_k = \norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}$ and note that $\norm{\tilde{\var2}_{k-1}} \leq \norm{\tilde{\var2}_{0}} + \sum_0^\infty \vars4_k\lesssim 1$. We therefore bound
+			\item[Case $\aU=1$:] Denote $\vars4_k = \norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}$ and note that $\norm{\tilde{\var2}_{k-1}} \leq \norm{\tilde{\var2}_{0}} + \sum_0^\infty \vars4_k\lesssim 1$. We therefore bound
 			\begin{align}
-				t_N^2\op{E}_0(\var0_N) + \tfrac12\norm{\var1_N-\tilde{\var2}_K}^2 &\lesssim 1 + (N+1)^2\vars3_{\op{E}}^{-K} + \sum_{k=1}^{K}n_k^2\vars3_{\op{E}}^{-k} + (\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}} + 1)b_k
-				\\&\leq C_1\left[1 + \sum_{k=1}^{K}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\vars4_k\right]
+				t_N^2\op{E}_0(\var0_N) + \tfrac12\norm{\var1_N-\tilde{\var2}_K}^2 &\lesssim 1 + n_{K+1}^2\aE^{-K} + \sum_{k=1}^{K}n_k^2\aE^{-k} + (\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}} + 1)b_k
+				\\&\leq C_1\left[1 + \sum_{k=1}^{K}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\vars4_{k-1}\right]
 			\end{align}
 			for some $C_1>0$. Choose $C_2\geq \frac{\norm{\var1_{n_1-1}-\tilde{\var2}_{1-1}}}{\sum_0^\infty \vars4_k}$ such that 
 			\begin{equation}
-				\frac12C_2^2 \geq C_1\left(1+C_2\sum_1^\infty\vars4_k\right).
+				\frac12C_2^2 \geq C_1\left(1+C_2\sum_0^\infty\vars4_k\right).
 			\end{equation}
 			Assume $\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\leq C_2$ for $1\leq k\leq K$ (trivially true for $K=1$), then for $N=n_{K+1}-1$ we have 
 			\begin{equation}
-				\tfrac12\norm{\var1_{n_{K+1}-1}-\tilde{\var2}_K}^2 \leq C_1\left[1 + \sum_{k=1}^{K}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\vars4_k\right]
-				\leq C_1\left(1+C_2\sum_1^\infty\vars4_k\right) \leq \frac{C_2^2}{2}
+				\tfrac12\norm{\var1_{n_{K+1}-1}-\tilde{\var2}_K}^2 \leq C_1\left[1 + \sum_{k=1}^{K}\norm{\var1_{n_k-1}-\tilde{\var2}_{k-1}}\vars4_{k-1}\right]
+				\leq C_1\left(1+C_2\sum_0^\infty\vars4_k\right) \leq \frac{C_2^2}{2}
 			\end{equation}
 		\end{description}
 		In both cases, the induction on $\norm{\var1_{n_{K+1}-1}-\tilde{\var2}_K}$ holds for all $K$ and we have 
 		\begin{equation}
-			t_N^2\op{E}_0(\var0_N) \leq \frac{C_2^2}{2}\vars3_U^{2K}
+			t_N^2\op{E}_0(\var0_N) \leq \frac{C_2^2}{2}\aU^{2K}
 		\end{equation}
 		for all $N<n_K-1$.
 		\qed\end{proof}
@@ -1105,12 +1146,12 @@
 	\begin{proof}
 		The proof is direct computation,
 		\begin{equation}
-			\log N^2 \geq \log C + K\left(\log \vars3_{\op{E}} + \log \vars3_U^2\right)
+			\log N^2 \geq \log C + K\left(\log \aE + \log \aU^2\right)
 		\end{equation}
 		which leads to
 		\begin{equation}
-			\vars3_U^{2K} = \exp(K\log \vars3_U^2)
-			\leq \exp\left(\log N^2\frac{\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2} - \frac{\log C\log \vars3_U^2}{\log \vars3_{\op{E}} + \log \vars3_U^2}\right)
+			\aU^{2K} = \exp(K\log \aU^2)
+			\leq \exp\left(\log N^2\frac{\log \aU^2}{\log \aE + \log \aU^2} - \frac{\log C\log \aU^2}{\log \aE + \log \aU^2}\right)
 		\end{equation}
 		as required.
 		\qed\end{proof}
@@ -1123,21 +1164,21 @@
 	\begin{proof}
 		To apply Lemma~\ref{app:thm: sufficiently fast}, we need
 		\begin{equation}
-			n_k^2\lesssim \splitln{(\vars3_{\op{E}}\vars3_U^2)^k}{\vars3_U>1}{k^{-2}\vars3_{\op{E}}^k}{\vars3_U=1}, \qquad \norm{\tilde{\var2}_k}\lesssim \vars3_U^{k}, \qquad \text{ and } \op{E}_0(\tilde{\var2}_k)\lesssim \vars3_{\op{E}}^{-k}
+			n_k^2\lesssim \splitln{(\aE\aU^2)^k}{\aU>1}{k^{-2}\aE^k}{\aU=1}, \qquad \norm{\tilde{\var2}_k}\lesssim \aU^{k}, \qquad \text{ and } \op{E}_0(\tilde{\var2}_k)\lesssim \aE^{-k}
 		\end{equation}
-		and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$ when $\vars3_U=1$. The only one which is not directly assumed is easily verified,
+		and $\sum_{k=1}^\infty\norm{\tilde{\var2}_k-\tilde{\var2}_{k+1}}<\infty$ when $\aU=1$. The only one which is not directly assumed is easily verified,
 		\begin{equation}
-			\op{E}_0(\tilde{\var2}_k) = \min_{\var0\in\F{U}^{n_k}}\op{E}_0(\var0) \leq\op{E}_0(\var0_{n_k-1}) \lesssim \vars3_{\op{E}}^{-k}.
+			\op{E}_0(\tilde{\var2}_k) = \min_{\var0\in\F{U}^{n_k}}\op{E}_0(\var0) \leq\op{E}_0(\var0_{n_k-1}) \lesssim \aE^{-k}.
 		\end{equation}
 		Therefore, the result of Lemma~\ref{app:thm: sufficiently fast} gives
 		\begin{equation}
-			\op{E}_0(\var0_N) \lesssim \frac{\vars3_U^{2K}}{t_N^2} \lesssim \frac{\vars3_U^{2K}}{N^2}.
+			\op{E}_0(\var0_N) \lesssim \frac{\aU^{2K}}{t_N^2} \lesssim \frac{\aU^{2K}}{N^2}.
 		\end{equation}
-		In the case $\vars3_U=1$, this is already the optimal rate and therefore sharp. If this were sharp for general $\vars3_U$ and $\op{E}$, then we gain nothing by refining early (increasing $K$ for fixed $N$) however, we can at least guarantee that refining early does not lose the optimal rate.
+		In the case $\aU=1$, this is already the optimal rate and therefore sharp. If this were sharp for general $\aU$ and $\op{E}$, then we gain nothing by refining early (increasing $K$ for fixed $N$) however, we can at least guarantee that refining early does not lose the optimal rate.
 		
-		If we fix $N^2\lesssim (\vars3_{\op{E}}\vars3_U^2)^k$, then
+		If we fix $N^2\lesssim (\aE\aU^2)^k$, then
 		\begin{equation}
-			\min_{n\leq N} \op{E}_0(\var0_n)\lesssim \splitln{\vars3_{\op{E}}^{-k}}{N>n_k}{ \frac{\vars3_U^{2k}}{N^2}}{N\leq n_k} \lesssim N^{-2}\max(\vars3_U^{2k},\vars3_U^{2k}) \lesssim N^{-2(1-\kappa)}
+			\min_{n\leq N} \op{E}_0(\var0_n)\lesssim \splitln{\aE^{-k}}{N>n_k}{ \frac{\aU^{2k}}{N^2}}{N\leq n_k} \lesssim N^{-2}\max(\aU^{2k},\aU^{2k}) \lesssim N^{-2(1-\kappa)}
 		\end{equation}
 		as required.
 		\qed\end{proof}
@@ -1148,48 +1189,57 @@
 		\Paste{thm: practical refinement criteria}
 	\end{lemma}
 	\begin{proof}
-		The proof is simply to justify that the conditions of Theorem~\ref{app:thm: stronger exponential FISTA convergence} are met for all refinement criteria described here. $\norm{\tilde{\var2}_k}\lesssim \vars3_U^k$ is enforced at every step and condition (2) guarantees the back-stop condition on $n_k$.
+		The proof is simply to justify that the conditions of Theorem~\ref{app:thm: stronger exponential FISTA convergence} are met for all refinement criteria described here. $\norm{\tilde{\var2}_k}\lesssim \aU^k$ is enforced at every step and condition (2) guarantees the back-stop condition on $n_k$.
 		
-		To complete the requirements of Theorem~\ref{app:thm: stronger exponential FISTA convergence}, we first need to show inductively that $\op{E}_0(\tilde{\var2}_{k-1}) \leq C\vars3_{\op{E}}^{-k}$, then it follows that $\op{E}_0(\var0_{n_k-1})\leq C\vars3_{\op{E}}^{-k}$. To be explicit, when $\op{E}$ has bounded sublevel sets, assume that the bound for $\{\var0\in\F H\st \op{E}(\var0)\leq \op{E}(\var0_0)\}$ is $R>0$.
+		To complete the requirements of Theorem~\ref{app:thm: stronger exponential FISTA convergence}, we first need to show inductively that $\op{E}_0(\tilde{\var2}_{k-1}) \leq C\aE^{-k}$, then it follows that $\op{E}_0(\var0_{n_k-1})\leq C\aE^{-k}$. To be explicit, when $\op{E}$ has bounded sublevel sets, assume that the bound for $\{\var0\in\F H\st \op{E}(\var0)\leq \op{E}(\var0_0)\}$ is $R>0$.
 		
-		For (2) and (5) the decay of $\op{E}_0(\tilde{\var2}_{k-1})$ is already assumed but otherwise we need to perform the formal induction. Assume $\op{E}_0(\tilde{\var2}_{k-1}) \leq C\vars3_{\op{E}}^{1-k}$, then for each remaining adaptive criterion:
+		For (2) and (5) the decay of $\op{E}_0(\tilde{\var2}_{k-1})$ is already assumed but otherwise we need to perform the formal induction. Assume $\op{E}_0(\tilde{\var2}_{k-1}) \leq C\aE^{1-k}$, then for each remaining adaptive criterion:
 		\begin{itemize}
-			\item[(1)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k})\leq\vars1 \vars3_{\op{E}}^{-k}$ by definition, the induction holds if $C\geq \vars1$.
-			\item[(3)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k})\leq\frac{\vars1}{1-\vars1}\op{E}_0(\tilde{\var2}_{k-1})$, the induction holds if $\vars1\leq \frac{1}{1+\vars3_{\op{E}}}$.
-			\item[(4)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k}) \leq \IP{\edit{\partial\op{E}(\var0_{k})}{\var1}}{\var0_{n_k-1}-\var0^*} \leq 2R\vars1\vars3_{\op{E}}^{-k}$\edit{}{ for each $\var1\in\partial\op{E}(\var0_{k})$}, the induction holds for $C\geq 2R\vars1$.
+			\item[(1)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k})\leq\vars1 \aE^{-k}$ by definition, the induction holds if $C\geq \vars1$.
+			\item[(3)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k})\leq\frac{\vars1}{1-\vars1}\op{E}_0(\tilde{\var2}_{k-1})$, the induction holds if $\vars1\leq \frac{1}{1+\aE}$.
+			\item[(4)] $\op{E}_0(\tilde{\var2}_k)\leq \op{E}_0(\var0_{k}) \leq \IP{\var1}{\var0_{n_k-1}-\var0^*} \leq 2R\vars1\aE^{-k}$ for each $\var1\in\partial\op{E}(\var0_{k})$, the induction holds for $C\geq 2R\vars1$.
 		\end{itemize}
-		In each case, with $C$ sufficiently large, the induction holds. Now we can return to the precise condition of Theorem~\ref{app:thm: stronger exponential FISTA convergence}, $\op{E}_0(\var0_{n_k-1}) \leq C'\vars3_{\op{E}}^{-k}$. Assume true for $k-1$. For each adaptive criterion:
+		In each case, with $C$ sufficiently large, the induction holds. Now we can return to the precise condition of Theorem~\ref{app:thm: stronger exponential FISTA convergence}, $\op{E}_0(\var0_{n_k-1}) \leq C'\aE^{-k}$. Assume true for $k-1$. For each adaptive criterion:
 		\begin{itemize}
-			\item[(1)] $\op{E}_0(\var0_{k})\leq\vars1 \vars3_{\op{E}}^{-k}$ is by definition.
-			\item[(2)] $\op{E}_0(\var0_{k})\leq\vars1 \vars3_{\op{E}}^{-k} + \op{E}_0(\tilde{\var2}_{k-1})$ requires $C'\geq \vars1+\vars3_{\op{E}}C$.
+			\item[(1)] $\op{E}_0(\var0_{k})\leq\vars1 \aE^{-k}$ is by definition.
+			\item[(2)] $\op{E}_0(\var0_{k})\leq\vars1 \aE^{-k} + \op{E}_0(\tilde{\var2}_{k-1})$ requires $C'\geq \vars1+\aE C$.
 			\item[(3)] $\op{E}_0(\var0_{k})\leq\frac{\vars1}{1-\vars1}\op{E}_0(\tilde{\var2}_{k-1})$ requires $C'\geq \frac{\vars1}{1-\vars1}C$.
-			\item[(4)] $\op{E}_0(\var0_{k}) \leq 2R\vars1\vars3_{\op{E}}^{-k}$, the induction holds for large $C'$.
-			\item[(5)] $\op{E}_0(\var0_{k})\leq 2R\vars1\vars3_{\op{E}}^{-k} + \op{E}_0(\tilde{\var2}_{k-1})$, the induction holds for large $C'\geq 2R\vars1+C$.
+			\item[(4)] $\op{E}_0(\var0_{k}) \leq 2R\vars1\aE^{-k}$, the induction holds for large $C'$.
+			\item[(5)] $\op{E}_0(\var0_{k})\leq 2R\vars1\aE^{-k} + \op{E}_0(\tilde{\var2}_{k-1})$, the induction holds for large $C'\geq 2R\vars1+C$.
 		\end{itemize}
 		This completes the requirements of Theorem~\ref{app:thm: stronger exponential FISTA convergence}, therefore also this proof.
 		\qed\end{proof}
 	
 	
 	\section{Proof of \texorpdfstring{Theorem~\ref{thm: generic a_U and a_E}}{rates for general finite element spaces}}\label{app: generic a_U and a_E}
-	The proof of Theorem~\ref{thm: generic a_U and a_E} is the result of the following three lemmas. The first, Lemma~\ref{app:thm: generic a_U bound}, is a general quantification of the equivalence between $L^q$ and $L^2$ norms on finite dimensional sub-spaces. A special case occurs when $q=1$ because the dual norm is a supremum rather than an integral. In Lemma~\ref{app:thm: specific a_U bound}, this locality is exploited by finite element spaces, which we assumed had a basis with local support. Lemma~\ref{app:thm: generic a_E bound} then performs the computations for the $\vars3_{\op{E}}$ constant depending on the smoothness properties of $\op{E}$.
+	\edit[2]{}{First we recall the setting of Definition~\ref{def: finite element space}, fix: $p\geq0$, $q\in[1,\infty]$, $\meshsize\in(0,1)$, $N\in\F N$, connected and bounded domain $\Domain\subset\R^d$, and $\var0^*\in\argmin_{\var0\in\F U}\op{E}(\var0)$. We assume that $\F H=L^2(\Domain)$, $\norm{\cdot}_q\lesssim\Norm\cdot$, and there exist spaces $(\tilde{\F U}^k)_{k\in\F N}$ with $\tilde{\F{U}}^k\subset \F{U}\cap L^\infty(\Domain)$ containing a sequence $(\tilde{\var2}_k\in \tilde{\F U}^k)_{k\in\F N}$ such that $\Norm{\tilde{\var2}_k - \var0^*} \lesssim \meshsize^{kp}$. Furthermore, there exists constant $c_\alpha>0$ and finite partitions $\F M^k=\{\domain_1^k,\domain_2^k,\ldots\}$ of $\Domain$ such that:
+	\begin{equation}\label{eq: decomposition property}
+		\forall (\tilde{\var0},\domain)\in\tilde{\F{U}}^k\times\F M^k,\quad \exists (\var0,\alpha,\vec\beta)\in\tilde{\F U}^0\times\R^{d\times d}\times\R^d \quad \text{such that}\quad \op{det}(\alpha)\geq c_\alpha\meshsize^{kd} \quad\text{and}\quad \forall\vec{x}\in\Domain,\ \var0(\vec x) = \splitln{\tilde{\var0}(\alpha \vec{x}+\vec\beta)\qquad}{\text{if }\alpha \vec{x}+\vec\beta\in\domain,}{0}{\text{else.}}
+	\end{equation}
+
+	In this section, these assumptions will be summarised simply by saying that $\F H$ and $(\tilde{\F U}^k)_{k\in\F N}$ satisfy Definition~\ref{def: finite element space}.
+	}
+	\edit[2]{The proof of Theorem~\ref{thm: generic a_U and a_E} is}{We prove Theorem~\ref{thm: generic a_U and a_E} as a consequence of Lemma~\ref{thm: pq to p'q'}, namely we compute exponents $p',q'$ with $\aU=\meshsize^{-q'}$ and $\aE=\meshsize^{-p'}$. These values are computed as} the result of the following three lemmas. The first, Lemma~\ref{app:thm: generic a_U bound}, is a quantification of the equivalence between $L^q$ and $L^2$ norms on \edit[2]{finite dimensional}{general} sub-spaces. \edit[2]{A special case occurs when $q=1$ because the dual norm is a supremum rather than an integral. In Lemma~\ref{app:thm: specific a_U bound}, this locality is exploited by finite element spaces, which we assumed had a basis with local support.}{Lemma~\ref{app:thm: specific a_U bound} applies this result to finite-element spaces to compute the value of $q'$. Finally, } 
+	Lemma~\ref{app:thm: generic a_E bound} then performs the computations for \edit[2]{the $\aE$ constant}{$p'$} depending on the smoothness properties of $\op{E}$.
 	
-	\begin{lemma}\label{app:thm: generic a_U bound}
-		Suppose $\F H= L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. Let $\F{U}\subset \edit{\F{U}\cap}{}\F H$ be a finite dimensional subspace with orthonormal basis $\{e_j\st j=1,\ldots,\op{dim}(\F{U})\}\subset\F{U}$ and orthogonal projection $\tens{\Pi}\colon\F H\to\F{U}$. If these conditions hold:
-		\begin{itemize}
-			\item if $q\geq 2$, then $$\norm{\tens{\Pi}\var2} \lesssim \Norm{\var2}, $$
-			\item otherwise, if $e_j\in \F{U}^*$, then
-			\begin{equation}
-				\norm{\tens{\Pi}\var2} \leq \sqrt{\op{dim}(\F{U})}\max_{j\leq \op{dim}(\F{U})}\Norm{e_j}_*\Norm{\var2},
-			\end{equation}
-			\item otherwise, if $e_j\in L^\infty(\Domain)$ and $ |\{j:e_j(\vec{x})\neq 0\}|\leq C$ for almost all $\vec{x}\in\Domain$, then
-			\begin{equation}
-				\norm{\tens{\Pi}\var2} \lesssim \sqrt C\max_{j\leq\op{dim}(\F{U})}\norm{e_j}_{\infty}\Norm{\var2}
-			\end{equation}
-		\end{itemize}
-		uniformly for all $\var2\in \F H$.
+	\begin{lemma}[Equivalence of norms for fixed $k$]\label{app:thm: generic a_U bound}
+		Suppose $\F H= L^2(\Domain)$ for some \edit{compact}{connected, bounded} domain $\Domain\subset\R^d$ and $\norm\cdot_q\edit{\lesssim}{\leq C} \Norm\cdot$ for some $q\in[1,\infty]$\edit{}{, $C>0$}. 
+		\edit[2]{Let $\F{U}\subset \F H$ be a finite dimensional subspace with orthonormal basis $\{\var0_j\st j=1,\ldots,\op{dim}(\tilde{\F{U}})\}$ and orthogonal projection $\tens{\Pi}\colon\F H\to\F{U}$. If these conditions hold:}{For any linear subspace $\tilde{\F{U}}\subset \F{U}\cap L^\infty(\Domain)$ and $\tilde{\var2}\in\tilde{\F U}$,}
+		
+		\edit[2]{\begin{enumerate}
+			\item If $q\geq 2$, then $$\edit{\norm{\tens{\Pi}\var2} \lesssim \Norm{\var2}}{\norm{\tilde{\var2}}\leq \sqrt{|\Domain|}\norm{\tilde{\var2}}_q \lesssim \Norm{\tilde{\var2}}}, $$
+			\item otherwise, if $\var0_j\in \F{U}^*$, then
+			$$\norm{\tens{\Pi}\var2} \leq \sqrt{\op{dim}(\tilde{\F{U}})}\max_{j\leq \op{dim}(\tilde{\F{U}})}\Norm{\var0_j}_*\Norm{\var2}\quad\Norm{\var0_j}= \sup_{\var0\in\F{U}\cap\F{H}}\frac{\IP{\var0_j}{\var0}}{\norm{\var0}},$$
+			\item otherwise, if $\var0_j\in L^\infty(\Domain)$ and $ |\{j:\var0_j(\vec{x})\neq 0\}|\leq N$ for almost every $\vec{x}\in\Domain$, then
+			$$ \norm{\tens{\Pi}\var2} \leq |\Domain|\sqrt N\max_{j\leq\op{dim}(\tilde{\F{U}})}\norm{\var0_j}_\infty\norm{\var2}_q $$
+		\end{enumerate}}
+		{\begin{equation}
+			\norm{\tilde{\var2}}\leq \sup_{\var0,\tilde{\var0}\in\tilde{\F{U}}}\frac{\IP{\var0}{\tilde{\var0}}}{\norm{\var0}\, \Norm{\tilde{\var0}}}\Norm{\tilde{\var2}} \quad\text{where}\quad \sup_{\var0,\tilde{\var0}\in\tilde{\F{U}}}\frac{\IP{\var0}{\tilde{\var0}}}{\norm{\var0}\, \Norm{\tilde{\var0}}} \leq C^{-1}\splitln{|\Domain|^{\frac12-\frac1q}}{\text{ if }q\geq 2\text{, otherwise}}{|\Domain|^{1-\frac1q}\sup_{\var0\in\tilde{\F{U}}}\norm{\var0}_\infty/\norm{\var0}\qquad}{\text{ if }q\in[1,2).}
+		\end{equation}}
+		\edit[2]{uniformly for all $\var2\in\F H$.}{}
 	\end{lemma}
-	\begin{proof}
-		The first statement for $q\geq 2$ is from H\"older's inequality combined with the fact that compact domains have finite volume,
+	\begin{proof}	
+		\edit[2]{The first statement for $q\geq 2$ is from H\"older's inequality combined with the fact that compact domains have finite volume,
 		\begin{equation}
 			\norm{\tens{\Pi}\var2}^2 \leq \norm{\var2}^2 = \norm{\var2}_2^2 = \norm{\var2^2}_1 \lesssim \norm{\var2}_q^2 \lesssim \Norm{\var2}^2.
 		\end{equation}
@@ -1197,69 +1247,87 @@
 		\begin{equation}
 			\norm{\tens{\Pi}\var2} = \frac{\IP{\tens{\Pi}\var2}{\tens{\Pi}\var2}}{\norm{\tens{\Pi}\var2}} = \frac{\IP{\tens{\Pi}\var2}{\var2}}{\norm{\tens{\Pi}\var2}} \leq \frac{\Norm{\tens{\Pi}\var2}_*}{\norm{\tens{\Pi}\var2}}\Norm{\var2},
 		\end{equation}
-		therefore it is sufficient to bound $\frac{\Norm\cdot_*}{\norm\cdot}$ on the subspace $\F{U}$. Switching to the given basis, for $\var0 = \sum_{j=1}^{\op{dim}(\F{U})} r_je_j$ we have
+		therefore it is sufficient to bound $\frac{\Norm\cdot_*}{\norm\cdot}$ on the subspace $\tilde{\F{U}}$. Switching to the given basis, for $\var0 = \sum_{j=1}^{\op{dim}(\tilde{\F{U}})} r_j\var0_j$ we have
 		\begin{align}
-			\norm{\var0}^2 &= \sum_{j=1}^{\op{dim}(\F{U})} r_j^2 = \norm{\vec{r}}_{\ell^2}^2,
-			\\\Norm{\var0}_*&\leq \sum_{j=1}^{\op{dim}(\F{U})} |r_j|\Norm{e_j}_* \leq \max_{j\leq\op{dim}(\F{U})} \Norm{e_j}_*\norm{\vec{r}}_{\ell^1},
-			\\\implies \frac{\Norm{\var0}_*}{\norm{\var0}} &\leq \max_{j\leq \op{dim}(\F{U})}\Norm{e_j}_*\frac{\norm{\vec{r}}_{\ell^1}}{\norm{\vec{r}}_{\ell^2}} \leq \max_{j\leq \op{dim}(\F{U})}\Norm{e_j}_*\sqrt{\op{dim}(\F{U})}.
+			\norm{\var0}^2 &= \sum_{j=1}^{\op{dim}(\tilde{\F{U}})} r_j^2 = \norm{\vec{r}}_{\ell^2}^2,
+			\\\Norm{\var0}_*&\leq \sum_{j=1}^{\op{dim}(\tilde{\F{U}})} |r_j|\Norm{\var0_j}_* \leq \max_{j\leq\op{dim}(\tilde{\F{U}})} \Norm{\var0_j}_*\norm{\vec{r}}_{\ell^1},
+			\\\implies \frac{\Norm{\var0}_*}{\norm{\var0}} &\leq \max_{j\leq \op{dim}(\tilde{\F{U}})}\Norm{\var0_j}_*\frac{\norm{\vec{r}}_{\ell^1}}{\norm{\vec{r}}_{\ell^2}} \leq \max_{j\leq \op{dim}(\tilde{\F{U}})}\Norm{\var0_j}_*\sqrt{\op{dim}(\tilde{\F{U}})}.
 		\end{align}
 		Alternatively, we can use the inequality
 		\begin{equation}
 			\norm{\tens{\Pi}\var2} = \frac{\IP{\tens{\Pi}\var2}{\var2}}{\norm{\tens{\Pi}\var2}} \leq \frac{\norm{\tens{\Pi}\var2}_{\infty}}{\norm{\tens{\Pi}\var2}}\norm{\var2}_1\lesssim  \frac{\norm{\tens{\Pi}\var2}_{\infty}}{\norm{\tens{\Pi}\var2}}\norm{\var2}_q \lesssim \frac{\norm{\tens{\Pi}\var2}_{\infty}}{\norm{\tens{\Pi}\var2}}\Norm{\var2}.
 		\end{equation}
-		This simplifies the equivalence constant because for any $\var0 = \sum r_je_j$ and $\mu>1$, there exists a set of points $\vec{x}\in\Domain$ with non-zero measure such that $\norm{\var0}_\infty\leq \mu|\var0(\vec{x})|$. This gives
+		This simplifies the equivalence constant because for any $\var0 = \sum r_j\var0_j$ and $\mu>1$, there exists a set of points $\vec{x}\in\Domain$ with non-zero measure such that $\norm{\var0}_\infty\leq \mu|\var0(\vec{x})|$. This gives
 		\begin{align}
-			\norm{\var0}^2 &= \sum r_j^2 \geq \sum_{e_j(\vec{x})\neq 0} r_j^2,
-			\\\norm{\var0}_\infty& \leq \mu|\var0(\vec{x})| \leq \mu\sum_{e_j(\vec{x})\neq 0} |r_j|\norm{e_j}_\infty,
-			\\\implies \frac{\norm{\var0}_\infty}{\norm{\var0}} &\leq \mu\max_j\norm{e_j}_\infty\sqrt{C}.
+			\norm{\var0}^2 &= \sum r_j^2 \geq \sum_{\var0_j(\vec{x})\neq 0} r_j^2,
+			\\\norm{\var0}_\infty \leq \mu|\var0(\vec{x})| &\leq \mu\sum_{\var0_j(\vec{x})\neq 0} |r_j|\norm{\var0_j}_\infty.
 		\end{align}
-		This inequality holds for all $\mu>1$ therefore also for $\mu=1$. Essentially, with an extra smoothness assumption on $e_j$, we can reduce the dimension of the problem to $\op{dim}(\F{U})=C $ and use the previous result.
+		$\implies \frac{\norm{\var0}_\infty}{\norm{\var0}} \leq \mu\max_j\norm{e_j}_\infty\sqrt{N}.$
+		This inequality holds for all $\mu>1$ therefore also for $\mu=1$. 
+		Essentially, with an extra smoothness assumption on $\var0_j$, we have reduced the dimension of the problem to $\op{dim}(\tilde{\F{U}})=N $ and then used the previous result.
+	}{%
+		The first statement of the result is by definition, for each $\tilde{\var2}\in\tilde{\F{U}}$
+		$$ \norm{\tilde{\var2}} = \frac{\IP{\tilde{\var2}}{\tilde{\var2}}}{\norm{\tilde{\var2}}} \leq \sup_{\var0\in\tilde{\F{U}}} \frac{\IP{\var0}{\tilde{\var2}}}{\norm{\var0}\,\Norm{\tilde{\var2}}}\Norm{\tilde{\var2}} \leq \sup_{\var0,\tilde{\var0}\in\tilde{\F{U}}} \frac{\IP{\var0}{\tilde{\var0}}}{\norm{\var0}\,\Norm{\tilde{\var0}}}\Norm{\tilde{\var2}}. $$
+		Recall $\Norm\cdot\geq C^{-1}\norm\cdot_q$. To go further we use H\"older's inequality. If $\frac1q+\frac{1}{q^*}=1$, then for any $\var0,\tilde{\var0}\in\tilde{\F U}$
+		\begin{equation}
+			\frac{\IP{\var0}{\tilde{\var0}}}{\norm{\var0}\,\Norm{\tilde{\var0}}} \leq C^{-1}\frac{\IP{\var0}{\tilde{\var0}}}{\norm{\var0}\,\norm{\tilde{\var0}}_q} 
+			\leq C^{-1}\frac{\norm{\var0}_{q^*}}{\norm{\var0}}.
+		\end{equation}
+		If $q\geq2$ we use H\"older's inequality a second time:
+		\begin{equation}
+			\int_\Domain |\var0(\vec x)|^{\frac{q}{q-1}}\diff\vec{x} \leq \left(\int_\Domain 1\diff\vec{x}\right)^{1-\frac{q}{2(q-1)}}\left(\int_\Domain |\var0(\vec x)|^2\diff\vec{x}\right)^{\frac{q}{2(q-1)}} = \left(|\Domain|^{\frac{1}{2} -\frac{1}{q}}\norm{\var0}\right)^{\frac{q}{q-1}}.
+		\end{equation}
+		This confirms the inequality when $q\geq2$. If $q<2$, we can simply upper bound $\norm\cdot_{q^*}\leq |\Domain|^{\frac1{q^*}}\norm\cdot_\infty$ as required.
+	}
 	\qed\end{proof}
 	
-	
 	\begin{lemma}\label{app:thm: specific a_U bound}
-		Suppose $\F H= L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. Let $(\tilde{\F{U}}^k)_k$ be a sequence of $\meshsize$-refining finite element spaces with orthogonal projections $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\F{U}}^k $. If $q\geq 2$,
-		$$\norm{\tilde{\tens{\Pi}}_k\var2} \lesssim \Norm{\var2}, $$
-		otherwise,
-		$$\norm{\tilde{\tens{\Pi}}_k\var2} \lesssim \sqrt{\op{dim}(\tilde{\F{U}}^0)}\meshsize^{-\frac{kd}{2}}\Norm{\var2} $$
-		uniformly for all $\var2\in \F H$.
+		Suppose \edit[2]{$\F H= L^2(\Domain)$ for some compact domain $\Domain\subset\R^d$ and $\norm\cdot_q\lesssim \Norm\cdot$ for some $q\in[1,\infty]$. Let $(\tilde{\F{U}}^k)_k$ be a sequence of $\meshsize$-refining finite element spaces with orthogonal projections $\tilde{\tens{\Pi}}_k\colon\F H\to\tilde{\F{U}}^k $. If $q\geq 2$,}{$\F H$ and $(\tilde{\F U}^k)_{k\in\F N}$ satisfy Definition~\ref{def: finite element space} , then}
+		$$ \norm{\edit{\tilde{\tens{\Pi}}_k\var2}{\tilde{\var2}_k}} \lesssim \splitln{\edit{\Norm{\var2}}{1}}{\text{if }q\geq2, \text{ or}}{\edit{\sqrt{N}\Norm{\var2}}{}\meshsize^{-\frac{kd}{2}} \qquad}{\text{ if }1\leq q<2,\ \edit{}{\sup_{\var0\in\tilde{\F{U}}^0}\frac{\norm{\var0}_\infty}{\norm{\var0}}<\infty}.} \edit{}{\quad\text{in particular, }\quad q' = \splitln{0}{q\geq2}{-\frac{d}{2}}{1\leq q<2.}}$$
 	\end{lemma}
 	\begin{proof}
-		Most of the conditions of Lemma~\ref{app:thm: generic a_U bound} are already satisfied. Denote $C=\op{dim}(\tilde{\F{U}^0})$ and $\{e_j\st j\in[C]\}$ the standard orthonormal basis of $\tilde{\F{U}}^0$. The scaling properties of $\meshsize$-refining finite element spaces guarantee that the value of $C$ satisfies the conditions of Lemma~\ref{app:thm: generic a_U bound} and a basis of $\tilde{\F{U}}^k$ is given by
-		\begin{equation}
-			\left\{\vec{x}\mapsto\var0_j(\vars0^{i,k}\vec{x}+\vvars1^{i,k}) \qquad\st\qquad i=1,\ldots,|\F M^k|,\ j=1,\ldots,C\right\}
-		\end{equation}
-		for some $\vars0^{i,k}\in\R^{d\times d}$, and $\vvars1^{i,k}\in\R^d$ such that $0<\op{det}(\vars0^{i,k})\lesssim \meshsize^{-kd}$.
+		Most of the conditions of Lemma~\ref{app:thm: generic a_U bound} are already satisfied. \edit{}{Furthermore observe that $\Norm{\tilde{\var2}_k}\lesssim \Norm{\var0^*}+\meshsize^{kp}\lesssim 1$. For the $q\geq2$ case, this is already sufficient to conclude $\norm{\tilde{\var2}_k}\lesssim 1$ from Lemma~\ref{app:thm: generic a_U bound}, as required.}
 		
+		\edit[2]{Denote $N=\op{dim}(\tilde{\F{U}^0})$ and let $\{e_j\st j\in[N]\}$ be an orthonormal basis of $\tilde{\F{U}}^0$. The scaling properties of $\meshsize$-refining finite element spaces guarantee that the value of $N$ satisfies the conditions of Lemma~\ref{app:thm: generic a_U bound} and a basis of $\tilde{\F{U}}^k$ is given by	$\left\{\vec{x}\mapsto\var0_j(\vars0^{i,k}\vec{x}+\vvars1^{i,k}) \qquad\st\qquad i=1,\ldots,|\F M^k|,\ j=1,\ldots,N\right\}$\\
+		for some $\vars0^{i,k}\in\R^{d\times d}$, and $\vvars1^{i,k}\in\R^d$ such that $0<\op{det}(\vars0^{i,k})\lesssim \meshsize^{-kd}$.
+
 		We now compute the scaling constant in Lemma~\ref{app:thm: generic a_U bound}:
-		\begin{equation}
-			\frac{\norm{\var0_j(\vars0^{i,k}\cdot+\vvars1^{i,k})}_\infty}{\norm{\var0_j(\vars0^{i,k}\cdot+\vvars1^{i,k})}} = \frac{\norm{\var0_j}_\infty}{\sqrt{\int_{\domain_i^k} e_j(\vars0^{i,k} \vec{x}+\vvars1^{i,k})^2d\vec{x}}} = \frac{\norm{\var0_j}_\infty}{\sqrt{\op{det}(\vars0^{i,k})^{-1}}} \lesssim \meshsize^{-\frac{kd}{2}}.
-		\end{equation}
+		$\frac{\norm{\var0_j(\vars0^{i,k}\cdot+\vvars1^{i,k})}_\infty}{\norm{\var0_j(\vars0^{i,k}\cdot+\vvars1^{i,k})}} = \frac{\norm{\var0_j}_\infty}{\sqrt{\int_{\domain_i^k} e_j(\vars0^{i,k} \vec{x}+\vvars1^{i,k})^2\diff\vec{x}}} = \frac{\norm{\var0_j}_\infty}{\sqrt{\op{det}(\vars0^{i,k})^{-1}}} \lesssim \meshsize^{-\frac{kd}{2}}.$\\
 		This value is independent of $j$ and gives the desired bound as a result of Lemma~\ref{app:thm: generic a_U bound}.
+	}{%
+		For the case $q<2$, from Lemma~\ref{app:thm: generic a_U bound} recall that we are required to bound
+		\begin{equation}
+			\sup_{\tilde{\var0}\in\tilde{\F{U}}^k}\frac{\norm{\tilde{\var0}}_\infty}{\norm{\tilde{\var0}}} = \sup_{\tilde{\var0}\in\tilde{\F{U}}^k}\max_{\domain\in\F M^k} \frac{\norm{\tilde{\var0}}_{L^\infty(\domain)}}{\norm{\tilde{\var0}}_{L^2(\Domain)}} \leq \sup_{\tilde{\var0}\in\tilde{\F{U}}^k}\max_{\domain\in\F M^k} \frac{\norm{\tilde{\var0}}_{L^\infty(\domain)}}{\norm{\tilde{\var0}}_{L^2(\domain)}}.
+		\end{equation}
+		However, due to the decomposition property \eqref{eq: decomposition property}, for each $\domain\in\F M^k$ and $\tilde{\var0}\in\tilde{\F{U}}^k$ there exists $(\var0,\alpha,\vec\beta)\in\tilde{\F{U}}^0\times\R^{d\times d}\times\R^d$ such that
+		\begin{equation}
+			\norm{\var0}_\infty = \norm{\tilde{\var0}}_{L^\infty(\domain)},\qquad  \norm{\var0}^2 = \int_\Domain |\var0(\vec x)|^2\diff\vec{x} = \int_{\alpha\vec x+\vec\beta\in\domain} |\tilde{\var0}(\alpha\vec x+\vec\beta)|^2\diff\vec{x} = \op{det}(\alpha)^{-1}\norm{\tilde{\var0}}_{L^2(\domain)}^2.
+		\end{equation}
+		Combining these two equations confirms $\norm{\tilde{\var2}_k} \lesssim \sqrt{\op{det}(\alpha)^{-1}} \leq c_\alpha^{-\frac12}\meshsize^{-\frac{kd}{2}}$ as required.
+		} 		
 		\qed\end{proof}
 	
-	
 	\begin{lemma}\label{app:thm: generic a_E bound}
-		Let $(\tilde{\F{U}}^k)_k$ be a sequence of $\meshsize$-refining finite element spaces of order $p$ with $\tilde{\var2}^k=\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$.
+		\edit[2]{Let $(\tilde{\F{U}}^k)_k$ be a sequence of $\meshsize$-refining finite element spaces of order $p$ with $\tilde{\var2}_k=\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)$.}{Suppose $\F H$ and $(\tilde{\F U}^k)_{k\in\F N}$ satisfy Definition~\ref{def: finite element space} and $\var0^*$ the minimiser of $E$ such that $\Norm{\tilde{\var2}_k-\var0^*}\lesssim \meshsize^{kp}$.}
 		\begin{enumerate}
 			\item If $\op{E}$ is $\Norm\cdot$-Lipschitz at $\var0^*$, then
-			$\op{E}(\tilde{\var2}^k)-\op{E}(\var0^*) \lesssim \meshsize^p\Norm{\var0^*}.$
+			$\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*) \lesssim \meshsize^{kp}\edit[2]{\Norm{\var0^*}}{}$\edit{}{ (i.e. $p'=p$)}.
 			\item If $\op{E}$ is $\Norm\cdot$-smooth at $\var0^*$, then 
-			$\op{E}(\tilde{\var2}^k)-\op{E}(\var0^*) \lesssim \meshsize^{2p}\Norm{\var0^*}.$
-			\item If $\op{f}$ is $\Norm\cdot$-Lipschitz at $\var0^*$ and 
+			$\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*) \lesssim \meshsize^{2kp}\edit[2]{\Norm{\var0^*}}{}$\edit{}{ (i.e. $p'=2p$)}.
+			\edit[2]{\item If $\op{f}$ is $\Norm\cdot$-Lipschitz at $\var0^*$ and 
 			$$\min_{\var2\in\tilde{\F{U}}^k}\left\{\Norm{\var2-\var0^*}\st \op{g}(\var2)\leq \op{g}(\var0^*)\right\} \lesssim \min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*}$$
 			uniformly for $k\in\F N$, then
-			$\op{E}(\tilde{\var2}^k)-\op{E}(\var0^*) \lesssim \meshsize^p\Norm{\var0^*}.$
+			$\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*) \lesssim \meshsize^p\Norm{\var0^*}.$}{}
 		\end{enumerate}
 	\end{lemma}
 	\begin{proof}
-		Each statement is by definition, observe
+		\edit{Each statement is}{Both statements are true} by definition, observe
 		\begin{gather}
-			\op{E}(\var2)-\op{E}(\var0^*) \leq \op{Lip}(\op{E})\Norm{\var2-\var0^*},
-			\\\op{E}(\var2)-\op{E}(\var0^*) \leq \IP{\nabla\op{E}(\var2)}{\var2-\var0^*} = \IP{\nabla \op{E}(\var2)-\nabla \op{E}(\var0^*)}{ \var2-\var0^*} \leq \op{Lip}(\nabla F)\Norm{\var2-\var0^*}^2,
-			\\\op{E}(\var2)-\op{E}(\var0^*) \leq \op{f}(\var2)-\op{f}(\var0^*) \leq \op{Lip}(\op{f})\Norm{\var2-\var0^*}.
+			\op{E}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{E}(\var0^*) \leq \op{Lip}(\op{E})\Norm{\edit[2]{\var2}{\tilde{\var2}_k}-\var0^*},
+			\\\op{E}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{E}(\var0^*) \leq \IP{\nabla\op{E}(\var2)}{\edit[2]{\var2}{\tilde{\var2}_k}-\var0^*} = \IP{\nabla \op{E}(\edit[2]{\var2}{\tilde{\var2}_k})-\nabla \op{E}(\var0^*)}{ \edit[2]{\var2}{\tilde{\var2}_k}-\var0^*} \leq \op{Lip}(\nabla\op{E})\Norm{\edit[2]{\var2}{\tilde{\var2}_k}-\var0^*}^2\edit[2]{,
+			\\\op{E}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{E}(\var0^*) \leq \op{f}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{f}(\var0^*) \leq \op{Lip}(\op{f})\Norm{\edit[2]{\var2}{\tilde{\var2}_k}-\var0^*}}{}.
 		\end{gather}
-		Minimising over the right-hand side over $\var2$ and substituting the definition of order gives the desired result.
+		\edit[2]{Minimising over the right-hand side over $\var2$ and substituting the definition of order gives the desired result.}{The proof is concluded by using the approximation bounds of $\tilde{\var2}_k$ in Definition~\ref{def: finite element space}.}
 		\qed\end{proof}
 	
 	
@@ -1309,7 +1377,7 @@
 	\begin{proof}[case 3]
 		In the Gaussian case, we build our approximations around the idea that sums of Gaussians should converge very quickly. The first example can be used to approximate the operator norm. Computing the inner products gives
 		\begin{equation}
-			\IP{\psi_i}{\psi_j} = (2\pi\sigma^2)^{-d}\int_{[0,1]^d} \exp\left(-\tfrac{|\vec{x}-\vec{x}_i|^2}{2\sigma^2}-\tfrac{|\vec{x}-\vec{x}_j|^2}{2\sigma^2}\right) \leq (2\pi\sigma^2)^{-d}(\pi\sigma^2)^{\frac{d}{2}}\exp\left(-\tfrac{|\vec{x}_i-\vec{x}_j|^2}{4\sigma^2}\right).
+			\IP{\psi_i}{\psi_j} = (2\pi\sigma^2)^{-d}\int_{[0,1]^d} \exp\left(-\tfrac{|\vec{x}-\vec{x}_i|^2}{2\sigma^2}-\tfrac{|\vec{x}-\vec{x}_j|^2}{2\sigma^2}\right)\diff\vec{x} \leq (2\pi\sigma^2)^{-d}(\pi\sigma^2)^{\frac{d}{2}}\exp\left(-\tfrac{|\vec{x}_i-\vec{x}_j|^2}{4\sigma^2}\right).
 		\end{equation}
 		Estimating the operator norm,
 		\begin{align}

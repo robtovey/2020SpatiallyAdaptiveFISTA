@@ -11,6 +11,7 @@
 	\hyphenchar\font=`\-% allowing hyphenation
 }
 \newcommand{\review}[1]{\texttt{\justify{#1}}}
+\newcommand{\todo}[1]{{\color{red}Todo: #1}}
 \newcommand{\F}[1]{\mathbb{#1}}
 \let\vecf\vec
 \renewcommand{\vec}[1]{\mathbf{#1}}
@@ -25,96 +26,76 @@
 \begin{document}
 \maketitle
 
-We would like to thank both the reviewers for their time and feedback. All changes are marked in the supplementary pdf and a detailed response to each reviewer is given below.
+We would like to thank both the reviewers again for their time and feedback. All changes are marked in the supplementary pdf and a detailed response to each reviewer is given below.
 
 
 \section{Detailed response to first reviewer}
+\review{If I had one more comment it would be that I find it somewhat odd the value of the paper's algorithm is presented ``for use with un-attained minima'' as the key theoretical novelty. As a point of critique: what does it mean to solve an optimization problem that doesn't have a solution? Do the solutions for the $U^n$-problems become meaningless asymptotically? Have the authors observed any odd behavior for large values of $n$? On the other hand, I think the authors sell themselves a bit short with the statement ``key theoretical novelty'' as the analysis could be useful for solving optimal control and PDE-constrained optimization problems with FISTA or related algorithms, where the interplay of mesh-size and algorithm convergence should always be taken into account.}
 
-\begin{enumerate}
-	\item \review{The authors base much of the analysis on the objective function and its convergence properties \ldots it would be interesting to know how the solutions $u_n$ converge for the various versions of FISTA.} 
-	
-	We thank the reviewer for their suggestion but it seems quite challenging to make a general statement. As in your comment, if one has coercivity then the sequence convergences strongly. Similarly, if one has (weakly) compact sub-levelsets, such as in the LASSO examples, then a sub-sequence converges (weakly).
-	
-	Of course there are variants of FISTA that guarantee weak convergence in the Hilbert space setting without any further coercivity or compactness assumptions. It is likely that the same arguments (e.g. [10]) can be made for our adaptive algorithm in a Hilbert space, although we haven't verified this special case. It is beyond the scope of this work to extend these results into the generalised setting and at the moment the question does not appear to be trivial.
-	
-	\item \review{On page 9, line 27 the authors require $\Omega$ to be a compact set. Perhaps I am overseeing something, but I would assume that the authors mean to say that $\Omega$ is a connected, open, and bounded set with sufficiently smooth boundary so that $\bar\Omega$ is compact.}
-	
-	Thank you, we have made the suggested edit.
-
-	\item \review{page 10 line 21 and 38 typos: Sectoin and although although}
-	
-	These typos have been corrected.
-	
-	\item \review{page 10 line 36: In the infinite-dimensional context, I think it is clear what the authors mean with $\lVert\cdot\rVert_1$. They clearly state it as TV in (15), but it is a bit misleading especially later when they use $\lVert\cdot\rVert_\infty$.}
-	
-	This has been clarified in the text, now equations (15) and (20)-(21). The $\lVert\cdot\rVert_\infty$ only appears as the dual-norm of our ${\vert\kern-0.25ex\vert\kern-0.25ex\vert \cdot \vert\kern-0.25ex\vert\kern-0.25ex\vert}$.
-	
-	\item \review{page 12 and elsewhere: $\partial E$ is usually referred to as the subdifferential. I suppose this depends on the literature source you use.}
-	
-	As suggested, we have switched to using the term `subdifferential' throughout the document.
-	
-	\item \review{My only ``disappointment'' with the paper is that the theory is illustrated with LASSO. As a result, $E$ has a rather favorable structure. There are many examples, e.g., in robust statistics, where it would be more appropriate to use the $\ell^1$ norm instead of the $\ell^2$ norm for misfit. Since the favorable properties of the squared $\ell^2$-norm are often used in the derivations (bounds, constants, etc. in Section 6), I wonder how hard it would be to do the same for other relevant examples.}
-	
-	You are right, we can also consider alternative misfits. We have replaced the wavelet example in Section 7.2 with a (Huber-smoothed) robust $\ell^1$ penalty. This also led to a number of small updates to the analysis in Section 6 to generalise for a non-quadratic misfit.
-	
-	\item \review{page 17, line 28: missing word? ``most require''?}
-	
-	Thank you for noticing this typo.
-	
-	\item \review{On page 18, the authors state: ``Suppose that the numerical aim is to find a function $u_n$ with $E_0(u_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms.''}
-	
-	\review{This is used to argue that the adaptive schemes are better as they require smaller problems, less memory and less time to get to this point. However, it would appear that Figure 2 indicates that if a sufficiently accurate solution were desired, instead of a point with $E_0(u_n)\leq 0.1$, then we would still need orders of magnitude of 10 more iterations to get to the same accuracy as the nonadaptive schemes.}
-	
-	We have updated Figure 2 to show both discrete and continuous gaps to improve clarity. The point of Figure 2 (and 3) is to demonstrate the accuracy of our theoretical rate predictions. While the initial rate of convergence is faster for the nonadaptive schemes, Figure 4 confirms that this does not translate to a large practical improvement.
-\end{enumerate}
+Thank you for the constructive feedback. That paragraph in the introduction has been re-worded to take into account some of your points. In an abstract sense one can always attain minima by adding points to the space (e.g. $\operatorname{argmin} e^{-u} = \{\infty\}$), as you say, the challenge is to have some regularity guarantees so that the iterates themselves are not `meaningless'. The meaning of `meaningless' depends on the topology. In the Lasso example, the iterates are meaningless in both $L^2$ and $L^1$, but can be understood in the space of measures (or distributions). In this sense, we have never observed anything unexpected for large $n$. 
 
 \section{Detailed response to second reviewer}
-We are very sorry that you found our manuscript so difficult to read. You were right, the former foundations were not rigorous enough. We have rewritten these sections in line with your suggestion of removing the emphasis on the Banach space. The analysis of the algorithm in the first half of the manuscript is now performed without mention of a Banach space. Consequently, we also realised that the subspace structure and orthogonal projection were not required either. We now allow $U^n$ to be closed convex subsets of $\F H$. The Banach space setting is reserved for examples discussed in Section 5 onwards.
 
 \begin{enumerate}
-	\item \review{The main criticism is on section 2: In this section, there are no assumptions that relate $U$ and $H$. If $U=\bar{H}$ (closure in the norm of $U$?) like on page 1, then $H\subset U$, the subspaces $U_n$ are all subspaces of $H$, and $\Pi_n$ is the Riesz isomorphism on $U_n$, which should be the orthogonal projection of the the Riesz isomorphism on $H$ onto $U_n$. Here it is necessary that $U_n$ is a closed subspace.}
+	\item \review{Do you assume that the norms of $H$, $U$ are related? I.e., do you assume that there is $c>0$ such that $\lVert u\rVert_U\leq c\lVert u\rVert_H$? Please clarify this in the paper.} 
 	
-	As suggested, we now state that $\F U^n$ are closed in (10) and re-referenced throughout the document. The mention of $\F U$ on page 1 is now just a reference to the Lasso example introduced in a later section.
+	There is no such requirement between the spaces, this is now clarified after the bullet points in Section 1.
 	
-	\item \review{If $H$ is not a subspace of $U$ then it is not clear that such a projection $\Pi_n$ exists at all.}
+	\item \review{(7) $u^*$ was not defined here}
 	
-	The projections $\Pi_n$ are now used only on $\F H$.
-	
-	\item \review{I wonder, where in the paper the choice of the Banach space $U$ or the properties of $u^*$ matter. I have the impression that the results are all valid, if $U$ is removed from the paper and $E_0$ is defined as $E_0(u)=E(u)-\inf_{v\in H}E(v)$. Then the resulting algorithm tries to compute the infimum of $E$ on $H$ (which might not be attained).}
-	
-	Thank you for the suggestion. As previously mentioned, the main introduction of $\F U$ is now postponed to around Section 5.
-	
-	\item \review{The line (p2, l 54) defining $\Pi_n$ looks strange: the pairings $\langle\cdot,\cdot\rangle$ cannot both denote the inner product on $H$ as $u\in U_n^*$ might not be in $H$}
+	This has been clarified in the text, immediately above (7)
 
-	As commented before, we define $\Pi_n$ on $\F H$ to remove any ambiguity.
+	\item \review{Lemma 6: what is $|||\cdot|||_*$?}
 	
-	\item \review{p.3: in what topology do you want to consider the closure of $U_n^*$? Why is that necessary at all?}
+	In the statement of Lemma 6 we now clarify that this is the dual norm.
+
+	\item \review{Definition 2: What is $q$? Smoothness of boundary is not needed. What is $h$? A given constant in $(0,1)$? The coefficients $\alpha,\beta$ have to be independent of $u_i^k$, and rather should depend only on $\omega_i^k$. There is a stray $u^*$ in the inequality defining order $p$. Also $U\subset L^q$ restricts $q$ to $[1,2]$.}
 	
-	As commented before, we define $\Pi_n$ on $\F H$ instead of $\F U_n^*$.	
+	Thank you for highlighting the errors in this definition. The values of $q$ and $h$ have been clarified. We have removed all mention of a particular basis, in response to your later comment, and clarified instead the general scaling properties (the $\alpha$ and $\beta$). You're right, the assumption $\F U\supset\F H$ was lazy and not what was intended. We only require $\F U$ to contain sub-levelsets of the energy, now clarified in the text. \todo{It now makes sense to consider $q>2$, even if Theorem 4 confirms that nothing is gained by doing so.}
 	
-	\item \review{These definitions clash in the proof of Lemma 1 (Thm 6): There $w\in U_n+U_{n-1}$ has to be mapped into $U_n^*$ to be able to apply Lemma 2. This happens by means of an unnamed mapping, lets call it $M$, with the property $\Pi_nMw=w$. Again it is not clear whether this mapping exists (under the very abstract setting without any relation between $U$, $H$ and $U_n$, $U_{n-1}$. I think the claimed inequality (68) is wrong if $U_{n-1}$ is not a subspace of $U_n$, as in that case some projections of $u_{n-1}$ onto $U_n$ have to appear in (68).}
+	While it will be most common for $(\alpha,\beta)$ to depend only on $\omega$, it is not necessary. One could imagine an example where each sub-domain supports elements which are translations/rescaling/rotations of an original master element and the angular resolution of rotations also refines as $k$ increases. The only important factor is the volume rescaling, which we have tried to emphasise in Definition 2.
 	
-	Lemma 1 has now been modified to have $w\in \F U^n$. Equation (10) also has the assumption $u_{n-1}\in \F U^n$, instead of the suggested $\F U^{n-1}\subset \F U^n$.
+	\item \review{Theorem 4: I do not understand how Lemmas 14-16 proof the estimate of $a_U$.}
+
+	You're absolutely right, Theorem 4 was not consistent with the lemmas in the appendix. We have kept the statement of Theorem 4 the same other than to remove the special case and remove the implicit assumption that $\tilde{\F U}^0$ was finite dimensional (previously part of Definition 2). We have also added a new lemma (Lemma 7) to improve clarity, it serves as a midpoint between Theorem 4 and Appendix B. The text in Appendix B now makes clear reference to Lemma 7 as part of the proof of Theorem 4.
 	
-	\item \review{On page 1, the functions $f,g$ are defined on $H$ only}
+	\item \review{(15): $A$ has to be continuous on $H$ as well.}
+
+	Old (15) is now (18). This is now emphasised in two places: Lemma 8 is referenced to confirm that $A$ is continuous, and we require that $|A|^2\nabla f$ is 1-Lipschitz.
 	
-	The optimisation is now performed on $\F H$ only.
+	\item \review{page 11, paragraph below (21): Sublevel sets of $E$ are not compact, they are not even bounded without further conditions on $f$ ($f$ bounded from below would be sufficient). How do you construct the minimizing sequence in $H$? How does $E(u^*_j) \to E(u^*)$ follow? I think an assumption is needed to ensure that $A$ is sequentially weak-star continuous, i.e., $A = B^*$ where $B : \mathbb{R}^m \to C([0, 1]^d)$.}
 	
-	\item \review{Does (5) imply strong or weak lower semicontinuity of $g$?}
+	As suggested, we now assume that $f$ is bounded from below and include a comment on weak-star continuity. The general argument has been re-worked to have an explicit sequence $\tilde w_k$ in $H$. We no longer rely on the existence of a minimising sequence (other than the explicit $\tilde w_k$).
 	
-	$g$ only needs to be weakly lower-semicontinuous for the existence of minimisers. This is now clarified further in the text (now equation (4)).
+	\item \review{section 6.2: $l^1\subset l^2$ in the countable case. The sentence ``then $u^*\in l^2$ makes the analysis simpler'' makes no sense.}
 	
-	\item \review{Lemma 1: There is no Lemma 1 in [10]}
+	This comment has been expanded upon in the text. The key point is the problem behaves much more like a finite-dimensional problem than infinite.
 	
-	We apologise for the mistake, the numbering has now been corrected.
+	\item \review{(25) What is $\partial_n E$?}
 	
-	\item \review{Lemma 2 (and its proof): There is no Theorem 2 in [10], not even a theorem that somehow resembles the claimed inequality. Also there is no Theorem 1 in [3], at least not in the version of the paper that can be found on Amir Beck's homepage.}
+	Old (25) is now (27). This refers to the derivative of $E$ on the subspace $\F U^n$, this is now clarified immediately above it in the text.
 	
-	Again, we apologise for these mistakes and have corrected the references.
+	\item \review{Inequalities (61),(62) do not make sense: the quantities on the left and right-hand sides are equal.}
 	
-	\item \review{p. 5, line 47: should be $\lVert u\rVert_{L^2(0,1)}^2$.}
+	It's not quite clear which equations are being referred to here. On the copy I see, the old (61),(62) are now (63),(64) which are equalities. The best match I can see are the current equations (61),(62) in Lemma 9. The first equation is just H\"older's inequality, there is no reason for it to be equality for general $r$. The second inequality comes from the equivalence of norms, $\frac{\lVert\cdot\rVert_q}{\lVert\cdot\rVert_2}$.
 	
-	This has been modified in the text.
+	\todo{I don't understand this. (61),(62) are statements of Fourier/Gaussian data in numerics section, his next point is also on page 18 rather than 17. (51),(52) are in the long align environment in section 6.4 (support detection), those are plausible. (41),(42) are in section 6.3.2 (bounds for countable functions). (59),(60) are the two inequalities of Lemma 9. My best guess is this last pair (which are ironically now (61),(62)...). This is quite a patronising answer given the general standard of his questions thought.}
+	
+	\item \review{page 17, last sentence of first paragraph: the problem is convex, hence all critical points are globally optimal.}
+	
+	You're quite right, we meant criticality in the discrete sense. This has been corrected.
+	
+	\item \review{Lemma 14: domains are open sets, so ``compact domain'' does not make sense. The assumptions already restrict $q$ to $[1, 2]$, so $q > 2$ is impossible. Clash of notations: $\mathbb U$ is used to denote a finite-dimensional subspace of $\mathbb H \subset \mathbb U$. How is the assumption $e_j \in \mathbb U^*$ meant? Quantifier ``$\forall j$'' is missing in items 2,3. The proof uses orthonormality of the basis vectors, this assumption is not mentioned in Section 5. It is also rather unconventional in the context of finite elements. The last sentence of the proof seems to be not belong to the proof.}
+	
+	The old Lemma 14 is now Lemma 15. The domain is now assumed only to be bounded and $\tilde{\F{U}}$ is used as the subspace of $\F U$. We have removed the reference to orthonormal bases and the space $\F{U}^*$ which leads to a shorter and simpler result. 
+		
+	\item \review{Lemma 15: What does ``value of $C$ satisfies the conditions of Lemma 14'' mean? The proof of Lemma 15 seems to use the proof of Lemma 14 but not the result of Lemma 14. It should be $e_j$ in (115) instead of $u_j$ . Also what does ``we compute the scaling constant'' mean? The estimate (116) has to be performed for all elements of $\mathbb U^k$ not only for basis elements.}
+	
+	The old Lemma 15 is now Lemma 16. Again, you were quite right, we now make explicit use of Lemma 15. This combined with the removal of orthonormal bases leaves a much more direct proof.
+	
+	\item \review{Lemma 16: Exponent $k$ is missing in all estimates. What is $u^*$? How is the first inequality in (119) obtained?}
+	
+	The old Lemma 16 is now Lemma 17. We have clarified that $u^*$ is a minimiser of $E$. The third case has been removed, so the old (119) has also been removed.
 \end{enumerate}
 
 \end{document}
