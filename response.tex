@@ -26,7 +26,17 @@
 \begin{document}
 \maketitle
 
-We would like to thank both the reviewers again for their time and feedback. All changes are marked in the supplementary pdf and a detailed response to each reviewer is given below.
+We would like to thank both the reviewers again for their time and feedback. A detailed response to each reviewer's comments is given below. All new text is marked in the manuscript and all deletions outside of the appendix. In particular, the statements of Theorem 7 and Lemmas 14-17 have changed so the proofs are now irrelevant. Changes to the theorems are fully annotated, the original proofs are hidden.
+
+We have also made one change which was not in response to the comments of the reviewer. It became clear to us that the statement of Definition 1 is much more natural as a property of the sequence $w_n$ rather than the sets $\F{U}^n$. Morally, we assume the existence of a `nice' minimising sequence rather than asserting that $w_n$ must be minimisers in $\F{U}^n$. Documenting the changes which are longer than one line:
+\begin{itemize}
+	\item At the end of page 4, emphasis is shifted towards the choice of sequence $w_n$
+	\item Definition 1 has been updated
+	\item At the top of page 8, the relaxation of Definition 1 allows an extra observation. In particular, the choice $\F{U}^n=\F H$ is now valid in Theorems 2 and 3.
+	\item In Theorem 3 we now have the specific choice $\tilde{w}_k = u_{n_k-1}$. The old $a_U=1$ is removed leading to a much simpler proof in the appendix.
+	\item The notation of Lemma 6 (and its proof in Lemma 14) has changed without changing the result, namely $(u_k,E(\tilde{w}_k))\mapsto (\tilde{w}_k, E(\tilde{\F{U}}^k))$.
+	\item The proof of Theorem 3 (i.e. Theorem 7) is now much simpler.
+\end{itemize}
 
 
 \section{Detailed response to first reviewer}
@@ -77,9 +87,7 @@ Thank you for the constructive feedback. That paragraph in the introduction has 
 	
 	\item \review{Inequalities (61),(62) do not make sense: the quantities on the left and right-hand sides are equal.}
 	
-	It's not quite clear which equations are being referred to here. On the copy I see, the old (61),(62) are now (63),(64) which are equalities. The best match I can see are the current equations (61),(62) in Lemma 9. The first equation is just H\"older's inequality, there is no reason for it to be equality for general $r$. The second inequality comes from the equivalence of norms, $\frac{\lVert\cdot\rVert_q}{\lVert\cdot\rVert_2}$.
-	
-	\todo{I don't understand this. (61),(62) are statements of Fourier/Gaussian data in numerics section, his next point is also on page 18 rather than 17. (51),(52) are in the long align environment in section 6.4 (support detection), those are plausible. (41),(42) are in section 6.3.2 (bounds for countable functions). (59),(60) are the two inequalities of Lemma 9. My best guess is this last pair (which are ironically now (61),(62)...). This is quite a patronising answer given the general standard of his questions thought.}
+	Please can the reviewer clarify this point? The old (61-62) are now (63-64) which are equalities. There was a pair of inequalities (59-60), now (61-62), but they are simply statements of H\"older's inequality which we cannot expect to be sharp in general.
 	
 	\item \review{page 17, last sentence of first paragraph: the problem is convex, hence all critical points are globally optimal.}
 	
