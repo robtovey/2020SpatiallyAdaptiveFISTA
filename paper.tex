@@ -118,7 +118,7 @@
 	\begin{equation}\label{eq: min F = fD+fC}
 		\Emin \qquad\text{such that}\qquad \op{E}(\var0)\coloneqq \op{f}(\var0) + \op{g}(\var0),
 	\end{equation}
-	where $\op{f}\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\op{g}\colon\F H\to\bar\R$ is a convex function, whose ``proximity operator'' is easy to compute. \edit{}{Throughout this work we assume that $\op{E}$ is bounded below so that the infimum is finite. }The iterates of the FISTA algorithm will be denoted $\var0_n\in\F H$. It has been shown that $\op{E}(\var0_n) - \Emin$ converges at the optimum rate of $n^{-2}$ \cite{Beck2009}, and later (after a small modification) the convergence of the iterates was also shown in a general Hilbert space setting \cite{Chambolle2015}. Many further works have gone on to demonstrate faster practical convergence rates for slightly modified variants of FISTA \cite{Tao2016,Liang2017,Alamo2019}.
+	\edit{}{for a Hilbert space $\F H$ }where $\op{f}\colon\F H\to\R$ is a convex differentiable function with $L$-Lipschitz gradient and $\op{g}\colon\F H\to\bar\R$ is a convex function, whose ``proximity operator'' is easy to compute. \edit{}{Throughout this work we assume that $\op{E}$ is bounded below so that the infimum is finite. }The iterates of the FISTA algorithm will be denoted $\var0_n\in\F H$. \edit{It }{If, moreover the infimum is achieved, it }has been shown that $\op{E}(\var0_n) - \Emin$ converges at the optimum rate of $n^{-2}$ \cite{Beck2009}, and later (after a small modification) the convergence of the iterates was also shown in a general Hilbert space setting \cite{Chambolle2015}. Many further works have gone on to demonstrate faster practical convergence rates for slightly modified variants of FISTA \cite{Tao2016,Liang2017,Alamo2019}.
 	
 \edit[0]{%
 	\sout{The contribution of this work is a modified FISTA algorithm which achieves two key properties:}
@@ -129,7 +129,7 @@
 	\sout{There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, although we believe that our interpretation for use with un-attained minima is the key theoretical novelty.}
 	
 }{%
-	There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, however, our interpretation is relatively novel. In particular, we emphasise the infinite-dimensional setting where errors come from `discretisation', rather than random or decaying errors in $\F H$, which enables two new perspectives:
+	In this work we address the case where the minimiser possibly fails to exist or lies in a larger space where $\F H$ is dense. There is much overlap between the techniques used in this work and those used in the literature of inexact optimisation, however, our interpretation is relatively novel. In particular, we emphasise the infinite-dimensional setting where errors come from `discretisation', rather than random or decaying errors in $\F H$, which enables two new perspectives:
 	\begin{itemize}
 		\item Analytically, we prove new rates of convergence for FISTA when the minimum energy is not achieved (at least not in $\F H$). The exact rate can be computed by quantifying coercivity and regularity properties of $\op{E}$. If there isn't a minimiser in $\F H$, then this rate is strictly slower than $n^{-2}$.
 		
@@ -192,7 +192,7 @@
 			\State $\displaystyle \var0_{n+1} \gets \argmin_{\var0\in \F{U}^{n+1}} \tfrac12\norm{\var0-\bar{\var0}_n+\nabla \op{f}(\bar{\var0}_n)}^2+\op{g}(\var0)$ \Comment{Only modification, $\F{U}^{n+1}\subset \F{U}$}
 			\State $\var1_{n+1} \gets (1-t_n)\var0_n + t_n\var0_{n+1}$
 			\State $n\gets n+1$
-			\Until{converged}
+			\Until{a stopping criterion is met}
 		\end{algorithmic}
 	\end{algorithm}
 	
@@ -546,15 +546,14 @@
 		\\&\leq \ip{\nabla \op{f}(\A\edit{\var2}{\tilde{\var2}_k}-\data)}{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}
 		\\&\leq\left[\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2} + \norm{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}_{\ell^2}\right]\norm{\A(\edit{\var2}{\tilde{\var2}_k}-\var0^*)}_{\ell^2}.
 	\end{align}
-	Clearly $\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2}$ is a constant. \edit[0]{\sout{For the second term, recall $\Norm{\var2}\leq \Norm{\var0}$, therefore we can bound
+	\edit{}{as $\op{f}$ is convex with 1-Lipschitz gradient.} Clearly $\norm{\nabla\op{f}(\A\var0^*-\data)}_{\ell^2}$ is a constant. \edit[0]{\sout{For the second term, recall $\Norm{\var2}\leq \Norm{\var0}$, therefore we can bound
 	\\$\norm{\A(\var2-\var0^*)}_{\ell^2} = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{\A^*\vec{r}}{\var2-\var0^*} \leq \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} |\A^*\vec{r}|_{L^\infty}\Norm{\var2-\var0^*} \leq |\A^*|_{\ell^2\to C^0}(\Norm{\var0}+\Norm{\var0^*}).$\\
 	Similarly, the final term can be approximated by}
-	\begin{multline*}
-		\norm{\A(\tilde{\tens{\Pi}}_k\var0-\var0)}_{\ell^2}
+	\\\sout{$ \norm{\A(\tilde{\tens{\Pi}}_k\var0-\var0)}_{\ell^2}
 		 = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{(\tilde{\tens{\Pi}}_k-\id)\A^*\vec{r}}{\var0}
-		\leq \sup_{\vec{r}\in\R^m}\max_{\vec{x}\in\Domain}|[\tilde{\tens{\Pi}}_k\A^*\vec{r}](\vec{x})-[\A^*\vec{r}](\vec{x})|\:\norm{\vec{r}}_{\ell^2}^{-1}\Norm{\var0}
-		\\\leq \sup_{\vec{r}\in\R^m}\sqrt{d}2^{-k}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}\: \norm{\vec{r}}_{\ell^2}^{-1} \Norm{\var0}\quad=\sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1} \Norm{\var0}
-	\end{multline*}
+		\leq \sup_{\vec{r}\in\R^m}\max_{\vec{x}\in\Domain}|[\tilde{\tens{\Pi}}_k\A^*\vec{r}](\vec{x})-[\A^*\vec{r}](\vec{x})|\:\norm{\vec{r}}_{\ell^2}^{-1}\Norm{\var0}$}
+	\\\hspace*{80pt} \sout{$\leq \sup_{\vec{r}\in\R^m}\sqrt{d}2^{-k}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}\: \norm{\vec{r}}_{\ell^2}^{-1} \Norm{\var0}\quad=\sqrt{d}2^{-k}|\A^*|_{\ell^2\to C^1} \Norm{\var0}$
+	}\\
 	\sout{where $\sqrt d2^{-k}$ is the diameter of a $d$ dimensional pixel of side length $2^{-k}$. Sub-levelsets of $\op{E}$ are compact in $L^1(\Domain)$, therefore there exists a weak$^*$-converging minimising sequence $\var0^*_j\in\F H$ such that $\var0^*_j\rightharpoonup\var0^*$ and $\lim_{j\to\infty}\op{E}(\var0^*_j)=\op{E}(\var0^*)$. 
 	Combining these estimates gives 
 	\\$\inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0^*) = \lim_{j\to\infty} \inf_{\var2\in\tilde{\F{U}}^k} \op{E}(\var2)-\op{E}(\var0_j^*) \leq \lim_{j\to\infty} \op{E}(\tilde{\tens{\Pi}}_k\var0_j^*)-\op{E}(\var0_j^*) \lesssim 2^{-k}.$}
@@ -569,7 +568,7 @@
 	\begin{equation}
 		\norm{\A(\tilde{\var2}_k-\var0^*)}_{\ell^2} = \sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1} \IP{\A^*\vec{r}}{\tilde{\var2}_k-\var0^*} \leq \sqrt{d}2^{-k}\Norm{\var0^*}\sup_{\vec{r}\in\R^m}\norm{\vec{r}}_{\ell^2}^{-1}\norm{\nabla[\A^*\vec{r}]}_{L^\infty}.
 	\end{equation}
-	In Lemma~\ref{thm: norm bound smoothness} we will show that this last term, which we denote the semi-norm $|\A^*|_{\ell^2\to C^1}$, is bounded by $\sqrt{m}\max_{j\in[m]}\norm{\nabla\Psi_j}_\infty$. We conclude that $\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*)\lesssim 2^{-k}$.}
+	In Lemma~\ref{thm: norm bound smoothness} we will show that this last term, which we denote the semi-norm $|\A^*|_{\ell^2\to C^1}$, is bounded by \\$\sqrt{m}\max_{j\in[m]}\norm{\nabla\Psi_j}_\infty$. We conclude that $\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*)\lesssim 2^{-k}$.}
 	In particular, this computation confirms two things. Firstly that the scaling constant is $\aE = 2$, and secondly that the required smoothness to achieve a good rate with Algorithm~\ref{alg: refining FISTA} is that $\A^*\colon\R^m\to C^1(\Domain)$ is a bounded operator. This accounts for using the weaker topology of $\C M(\Domain)$ rather than $L^1(\Domain)$. \edit{In Section~\ref{sec: smoothing operators} we will show two practical examples where this seminorm is accurately computable.}{}
 	
 	Inserting the computed rates into Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence} gives the guaranteed convergence rate
@@ -623,28 +622,28 @@
 		\min_{\var0\in \F{U}^n} \op{f}(\A\var0-\data) + \mu\Norm{\var0} &= \min_{\var0\in\F H}\max_{\vec{\varphi}\in\R^m} \ip{(\A\tens{\Pi}_n\var0-\data)}{ \vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\op{f}^*(\vec{\varphi})
 		\\&= \max_{\vec{\varphi}\in\R^m}\min_{\var0\in\F H} \ip{(\A\tens{\Pi}_n\var0-\data)}{\vec{\varphi}} +\mu\Norm{\tens{\Pi}_n\var0} -\op{f}^*(\vec{\varphi})
 		\\&= \max_{\vec{\varphi}\in\R^m} \splitln{-\ip{\data}{\vec{\varphi}} -\op{f}^*(\vec{\varphi})}{\qquad\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu}{-\infty}{\qquad\text{else}}
-		\\&= -\min_{\vec{\varphi}\in\R^m} \underbrace{\op{f}^*(\vec{\varphi})+\ip{\data}{\vec{\varphi}}}_{\eqqcolon \op{E}^*(\vec{\varphi})}  + \chi(\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu).
+		\\&= -\min_{\vec{\varphi}\in\R^m} \underbrace{\op{f}^*(\vec{\varphi})+\ip{\data}{\vec{\varphi}}}_{\eqqcolon \op{E}^\dag(\vec{\varphi})} + \chi(\Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu).
 	\end{align}
 	In particular,
 	\begin{equation}
-		\op{E}(\var0) - \min_{\var0\in\F{U}^n}\op{E}(\var0) = \op{E}(\var0) + \min_{\vec{\varphi}\in\R^m\st \Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu} \op{E}^*(\vec{\varphi}) \leq \op{E}(\var0) + \op{E}^*(\vec{\varphi})
+		\op{E}(\var0) - \min_{\var0\in\F{U}^n}\op{E}(\var0) = \op{E}(\var0) + \min_{\vec{\varphi}\in\R^m\st \Norm{\tens{\Pi}_n\A^*\vec{\varphi}}_*\leq \mu} \op{E}^\dag(\vec{\varphi}) \leq \op{E}(\var0) + \op{E}^\dag(\vec{\varphi})
 	\end{equation}
 	for any feasible $\vec{\varphi}\in\R^m$. We further derive the criticality condition, if $(\var0^*,\vec{\varphi}^*)$ is a saddle point, then
 	\begin{equation}
 		\A\var0^*-\data\in\partial\op{f}^*(\vec{\varphi}^*),\qquad\text{or equivalently}\qquad
 		\vec{\varphi}^* = \nabla\op{f}(\A\var0^*-\data).
 	\end{equation}
-	We remark briefly that it is more conventional to include the constraint in the definition of $\op{E}^*$. We choose to omit it here to highlight that it is only the constraint which changes between the discrete and continuous cases; $\op{E}^*$ will remain the same.
+	We remark briefly that \edit{it is more conventional to include the constraint in the definition of $\op{E}^\dag$}{$\op{E}^\dag$ should be thought of as the dual of $\op{E}$ but without the constraint}. We choose to omit it here to highlight that it is only the constraint which changes between the discrete and continuous cases; the value of $\op{E}^\dag$ will remain the same.
 	
 	Given $\var0_n\in \F{U}^n$, the optimality condition motivates a simple rule for choosing $\vec{\varphi}$:
 	\begin{equation}
-		\vec{\varphi}_n\coloneqq \nabla\op{f}(\A\var0_n - \data), \qquad \op{E}(\var0)-\min_{\var0'\in\F{U}^n}\op{E}(\var0') \leq \op{E}(\var0) +\op{E}^*(\vars2\vec{\varphi}_n)
+		\vec{\varphi}_n\coloneqq \nabla\op{f}(\A\var0_n - \data), \qquad \op{E}(\var0)-\min_{\var0'\in\F{U}^n}\op{E}(\var0') \leq \op{E}(\var0) +\op{E}^\dag(\vars2\vec{\varphi}_n)
 	\end{equation}
 	for some $0\leq \vars2\leq\frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*}$. In the case $\op{f}(\cdot)=\frac12\norm{\cdot}_{\ell^2}^2$, one can use the optimal choice
 	\begin{equation}
 		\vars2 =\max\left(0, \min\left(\frac{-\ip{\data}{\vec{\varphi}_n}}{\norm{\vec{\varphi}_n}_{\ell^2}^2}, \frac{\mu}{\Norm{\tens{\Pi}_n\A^*\vec{\varphi}_n}_*}\right)\right).
 	\end{equation}
-	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\A\var0_n-\data)$ and $\tens{\Pi}_n\nabla\op{f}(\A\var0_n-\data)$ are easily computable, therefore $\vars2$ and $\op{E}(\var0_n) +\op{E}^*(\vars2\vec{\varphi}_n)$ are also easy to compute.
+	To apply Algorithm~\ref{alg: refining FISTA}, we are assuming that both $\op{f}(\A\var0_n-\data)$ and $\tens{\Pi}_n\nabla\op{f}(\A\var0_n-\data)$ are easily computable, therefore $\vars2$ and $\op{E}(\var0_n) +\op{E}^\dag(\vars2\vec{\varphi}_n)$ are also easy to compute.
 	
 	\subsubsection{Bounds for countable functionals}
 	Extending the results of Section~\ref{sec: bound discrete} to $\F{U}=\ell^1(\R)$ is analytically very simple but computationally relies heavily on the specific choice of $\A$. The computations of subdifferentials and gaps carry straight over replacing $\tens{\Pi}_n$ with the identity and adding the sets $J_n\subset\F N$ which define $\F{U}^n = \{\var0\in\ell^1\st i\notin J_n\implies \var0_i=0\}$. In particular,
@@ -654,7 +653,7 @@
 			\\|[\A^*\vec{\varphi}_n]_i - \mu| & [\var0_n]_i<0
 			\\\max\left(|[\A^*\vec{\varphi}_n]_i| - \mu, 0\right) & [\var0_n]_i = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]
+		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]
 	\end{align}
 	where $\vec{\varphi}_n = \nabla\op{f}(\A\var0_n-\data)\in\R^m$ is always exactly computable.
 	
@@ -675,7 +674,7 @@
 			\\|[\A^*\vec{\varphi}_n](\vec{x}) - \mu| & \var0_n(\vec{x})<0
 			\\\max\left(|[\A^*\vec{\varphi}_n](\vec{x})| - \mu, 0\right) & \var0_n(\vec{x}) = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right].
+		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right].
 	\end{align}
 	If these quantities are not analytically tractable, then we use the mesh $\F M^n$ corresponding to $\F{U}^n$ to decompose the bounds:
 	\begin{align}
@@ -708,11 +707,11 @@
 		0\in \partial \op{E}(\var0^*)(\vec{x}) = [\A^*\vec{\varphi}^*](\vec{x}) + \mu\sign(\var0^*(\vec{x})).
 	\end{equation}
 	
-	Heuristically, we will use strong convexity of $\op{E}^*$ and smoothness of $\A^*$ to quantify the statement:
-	$$ \text{if}\quad \op{E}(\var0_n) + \op{E}^*(\vars2_0 \vec{\varphi}_n) \approx 0 \quad \text{then}\quad \left\{\vec{x}\st |[\A^*\vec{\varphi}_n](\vec{x})|\ll \mu\right\} \subset\{\vec{x} \st \var0^*(\vec{x})=0\}.$$
+	Heuristically, we will use strong convexity of $\op{E}^\dag$ and smoothness of $\A^*$ to quantify the statement:
+	$$ \text{if}\quad \op{E}(\var0_n) + \op{E}^\dag(\vars2_0 \vec{\varphi}_n) \approx 0 \quad \text{then}\quad \left\{\vec{x}\st |[\A^*\vec{\varphi}_n](\vec{x})|\ll \mu\right\} \subset\{\vec{x} \st \var0^*(\vec{x})=0\}.$$
 	Recall that $\nabla\op{f}$ is 1-Lipschitz if and only if $\op{f}^*$ is 1-strongly convex \cite[Chapter 10, Thm. 4.2.2]{Hiriart2013}. Therefore, if $\vars2_0\vec{\varphi}_n$ and $\vec{\varphi}^*$ are both dual-feasible, then
 	\begin{equation}
-		\tfrac12\norm{\vars2_0\vec{\varphi}_n-\vec{\varphi}^*}_{\ell^2}^2 \leq \op{E}^*(\vars2_0\vec{\varphi}_n) - \op{E}^*(\vec{\varphi}^*) = \op{E}^*(\vars2_0\vec{\varphi}_n) + \op{E}(\var0^*) \leq \op{E}^*(\vars2_0\vec{\varphi}_n) + \op{E}(\var0_n),
+		\tfrac12\norm{\vars2_0\vec{\varphi}_n-\vec{\varphi}^*}_{\ell^2}^2 \leq \op{E}^\dag(\vars2_0\vec{\varphi}_n) - \op{E}^\dag(\vec{\varphi}^*) = \op{E}^\dag(\vars2_0\vec{\varphi}_n) + \op{E}(\var0^*) \leq \op{E}^\dag(\vars2_0\vec{\varphi}_n) + \op{E}(\var0_n),
 	\end{equation}
 	which gives an easily computable bound on $\norm{\vars2_0\vec{\varphi}_n-\vec{\varphi}^*}_{\ell^2}$. Now we estimate $\A^*\vec{\varphi}_n$ on the support of $\var0^*$:
 	\begin{align}
@@ -724,17 +723,17 @@
 	\end{align}
 	Therefore,
 	\begin{equation}
-		|[\tens{\Pi}_n\A^*\vars2_0\vec{\varphi}_n](\vec{x})|< \vars2_0^{-1}\left(\mu - \sqrt{2(\op{E}(\var0_n)+\op{E}^*(\vars2_0\vec{\varphi}_n))}|\A^*|_{\ell^2\to L^\infty}\right) \qquad \implies \qquad \var0^*(\vec{x})= 0.\label{eq: support equation}
+		|[\tens{\Pi}_n\A^* \vec{\varphi}_n](\vec{x})|< \vars2_0^{-1}\left(\mu - \sqrt{2(\op{E}(\var0_n)+\op{E}^\dag(\vars2_0\vec{\varphi}_n))}|\A^*|_{\ell^2\to L^\infty}\right) \qquad \implies \qquad \var0^*(\vec{x})= 0.\label{eq: support equation}
 	\end{equation}
 	This equation is valid when $\vec{x}$ is either a continuous or countable index, the only distinction is to switch to $\ell^\infty$ in the norm of $\A^*$. To make the equivalent statement on the discretised problem, simply replace $\vars2_0$ with $\vars2$ and $\A^*$ with $\tens{\Pi}_n\A^*$. There are two short observations on this formula:
 	\begin{itemize}
-		\item The convergence guarantee from Theorem~\ref{thm: exponential FISTA convergence} is for the quantity $\op{E}(\var0_n)-\op{E}(\var0^*)$, the more relevant quantity here is $\op{E}^*(\vars2_0\vec{\varphi}_n)+\op{E}(\var0^*)$ for which there is no proven rate of convergence.
+		\item The convergence guarantee from Theorem~\ref{thm: exponential FISTA convergence} is for the primal gap $\op{E}(\var0_n)-\op{E}(\var0^*)$, \edit{the more relevant quantity here is}{rather than the primal-dual gap} $\op{E}(\var0_n)+\op{E}^\dag(\vars2_0\vec{\varphi}_n)$ \edit{for which there is no proven rate of convergence. }{used here. Although there is no guaranteed rate for the primal-dual gap, it is much more easily computable than the primal gap.}
 		\item In Section~\ref{sec: continuous lasso rate}, $|\A^*|_{\ell^2\to C^1}<\infty$ was required to compute a rate of convergence for $\op{E}(\var0_n)$, but only $|\A^*|_{\ell^2\to L^\infty}<\infty$ is needed to estimate the support.
 	\end{itemize}
 	
 	
 	\subsection{Operator norms}\label{sec: smoothing operators}
-	For numerical implementation of \eqref{eq: Lasso energy}, we are required to accurately estimate several operator norms of $\A$\edit{}{ of the form in \eqref{eq: kernels of A}. In particular, there are kernels $\psi_j\in\F H$ such that $(\A \var0)_j=\IP{\psi_j}{\var0}$ for each $j\in[m]$}.
+	For numerical implementation of \eqref{eq: Lasso energy}, we are required to accurately estimate several operator norms of $\A$ \edit{}{of the form in \eqref{eq: kernels of A}. In particular, there are kernels $\psi_j\in\F H$ such that $(\A \var0)_j=\IP{\psi_j}{\var0}$ for each $j\in[m]$}.
 	\edit{For $\op{f}$ to be 1-Lipschitz we must normalise by}{Verifying that $\norm{\A}\leq1$ can be performed by computing} $|\A\A^*|_{\ell^2\to\ell^2}$, and the adaptivity described in Sections~\ref{sec: continuous lasso rate}, \ref{sec: bound continuous}, and~\ref{sec: support detection} requires the values of $|\A^*|_{\ell^2\to L^\infty}$, $|\A^*|_{\ell^2\to C^1}$, and $|\A^*|_{\ell^2\to C^2}$. The aim for this section is to provide estimates of these norms and seminorms for the numerical examples presented in Section~\ref{sec: numerics}.
 	
 	\edit{
@@ -784,7 +783,7 @@
 	
 	Finally, we process a dataset which represents a realistic application in biological microscopy, referred to as STORM microscopy. In essence, the task is to perform 2D Gaussian de-blurring/super-resolution and denoising to find the location of sparse spikes of signal.
 	
-	In this section, the main aim is to minimise the exact energy $\op{E}_0(\var0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^*(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
+	In this section, the main aim is to minimise the exact energy $\op{E}_0(\var0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
 	
 	The code to reproduce these examples can be found online\footnote{\href{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}}.
 	
@@ -803,11 +802,11 @@
 	
 	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\aU = \aE = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}_0(\var0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}_0(\var0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\F{U}^n$ to approximately enforce
 	\begin{equation}\label{eq: less than double gap bound}
-		\op{E}(\var0_n) + \op{E}^*(\vars2_0\vec{\varphi}_n) \leq 2(\op{E}(\var0_n) + \op{E}^*(\vars2\vec{\varphi}_n)),
+		\op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n) \leq 2(\op{E}(\var0_n) + \op{E}^\dag(\vars2\vec{\varphi}_n)),
 	\end{equation}
 	i.e. the continuous gap is bounded by twice the discrete gap. In particular, note that for $\vars2_0\approx \vars2$,
 	\begin{equation}
-		\op{E}^*(\vars2_0\vec{\varphi}_n) = \tfrac12\norm{\vars2_0\vec{\varphi}_n}^2 + \vars2_0\ip{\data}{\vec{\varphi}_n} = \frac{\vars2_0}{\vars2}\left(\frac{\vars2_0}{\vars2}\tfrac12\norm{\vars2\vec{\varphi}_n}^2 + \vars2\ip{\data}{\vec{\varphi}_n}\right) \approx \frac{\vars2_0}{\vars2} \op{E}^*(\vars2\vec{\varphi}_n).
+		\op{E}^\dag(\vars2_0\vec{\varphi}_n) = \tfrac12\norm{\vars2_0\vec{\varphi}_n}^2 + \vars2_0\ip{\data}{\vec{\varphi}_n} = \frac{\vars2_0}{\vars2}\left(\frac{\vars2_0}{\vars2}\tfrac12\norm{\vars2\vec{\varphi}_n}^2 + \vars2\ip{\data}{\vec{\varphi}_n}\right) \approx \frac{\vars2_0}{\vars2} \op{E}^\dag(\vars2\vec{\varphi}_n).
 	\end{equation}
 	Converting this into a spatial refinement criteria, recall 
 	\begin{equation}
@@ -845,6 +844,7 @@
 		\item During the initial `slow' phase, adaptive and fixed discretisations appear to achieve very similar (discrete) convergence rates. The coarse-to-fine adaptivity is not slower than fixed discretisations in this regime.
 		\item Lemma~\ref{thm: practical refinement criteria} accurately predicts the $\frac1n$ rate of the adaptive methods, mirrored in the fixed discretisations. This suggests that high-resolution discretisations are also initially limited by this $\frac1n$ rate before entering the asymptotic regime\edit{}{, consistent with \eqref{eq: slow exact FISTA}}.
 		\item The fastest FISTA stepsize choice is consistently the greedy variant, although $a=20$ is very comparable.
+		\item \edit{}{While each adaptive algorithm is allowed to use up to 1024 pixels, in Fig.~\ref{fig: convergence with method} the most used was 235.}
 	\end{itemize}
 	
 	\paragraph{Comparison of fixed and adaptive discretisation}
@@ -961,11 +961,11 @@
 	
 	Finally, all the reconstructions were summed and the result shown in Fig.~\ref{fig: STORM results}. The adaptive scheme used fewer than $10^4$ pixels per frame, a fixed discretisation with equivalent resolution of \SI{1.3}{\nano\meter} would have required more than $3\cdot10^6$ per frame. LASSO is compared with ThunderSTORM \cite{Ovesny2014}, a popular ImageJ plugin \cite{Schindelin2012} which finds the location of signal using Fourier filtering. The performance of ThunderSTORM was rated very highly in the initial SMLM challenge \cite{Sage2015}. Both methods compared here demonstrate the key structures of the reconstruction, however, both are sensitive to tuning parameters. In this examples, LASSO has possibly recovered too little signal and ThunderSTORM contains spurious signal. 
 	
-	Fig.~\ref{fig: STORM convergence} shows slightly faster convergence than $n^{-2/3}$ predicted by \eqref{eq: Lasso resolution rate} in dimension $d=2$. In this example we also implement the suggestion of Section~\ref{sec: support detection} to remove pixels outside of the support of $\var0^*$. From \eqref{eq: support equation}, any pixel $\domain_i^n$ satisfying 
+	Fig.~\ref{fig: STORM convergence} shows \edit{that convergence is}{various convergence metrics for the adaptive reconstructions. The magenta line in the first panel shows that the continuous gap converges }slightly faster than the $n^{-2/3}$ predicted by \eqref{eq: Lasso resolution rate} in dimension $d=2$. In this example we also implement the suggestion of Section~\ref{sec: support detection} to remove pixels outside of the support of $\var0^*$. From \eqref{eq: support equation}, any pixel $\domain_i^n$ satisfying 
 	\begin{equation}
 		\vars2_0 \norm{ \tens{\Pi}_n\A^*\vec{\varphi}_n }_{L^\infty(\domain_i^n)} \leq (1-\op{threshold}_n)\mu
 	\end{equation}
-	guarantees that $\domain_i^n\cap\op{supp}(\var0^*) = \emptyset$. This threshold is plotted in the first panel of Fig.~\ref{fig: STORM convergence}. Once the value becomes less than 1, we can start reducing the number of pixels instead of continual refinement, as seen in the right-hand panel after around 30 iterations.
+	guarantees that $\domain_i^n\cap\op{supp}(\var0^*) = \emptyset$. This threshold is plotted in red in the first panel of Fig.~\ref{fig: STORM convergence}. Once the value becomes less than 1, we can start reducing the number of pixels instead of continual refinement\edit{, as seen in the right-hand panel}{. We see that the resolution decreases steadily (second panel), but the total number of pixels (final panel) stops increasing }after around 30 iterations.
 	
 	\begin{figure}\centering
 		\includegraphics[width=.82\textwidth]{lasso2_convergence}
