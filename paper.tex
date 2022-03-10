@@ -502,7 +502,7 @@
 		\begin{align*}
 			\aU &\leq \splitln{1}{\text{if }q\geq 2,}{\sqrt{\meshsize^{-d}}}{q<2 \edit{}{\text{ and }\sup_{\var0\in\tilde{\F{U}}^0}\frac{\norm{\var0}_{L^\infty(\domain_0)}}{\norm{\var0}_{L^2(\domain_0)}}<\infty},}
 			& \aE &\geq \begin{cases}
-				\meshsize^{-2p} & \text{if }\op{E} \text{ is $\Norm\cdot$-smooth at }\var0^*,
+				\meshsize^{-2p} & \text{if }\nabla\op{E} \text{ is $\Norm\cdot$-Lipschitz at }\var0^*,
 				\\\meshsize^{-p}\qquad & \text{if }\op{E} \text{ is $\Norm\cdot$-Lipschitz at }\var0^*,
 				\\ 1 &\text{otherwise.}
 			\end{cases}
@@ -511,7 +511,7 @@
 		\\$\min_{\var2\in\tilde{\F{U}}^k}\left\{\Norm{\var2-\var0^*}\st \op{g}(\var2)\leq \op{g}(\var0^*)\right\} \lesssim \min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*},$\\
 		then, again, $\aE\geq\meshsize^{-p}$.}{}
 	\end{theorem}
-	The proof of this theorem is in Appendix~\ref{app: generic a_U and a_E}. \edit{}{Note that $\sup_{\var0\in\tilde{\F{U}}^0}\norm{\var0}_{L^\infty(\domain_0)}\norm{\var0}_{L^2(\domain_0)}^{-1}$ is finite whenever $\tilde{\F{U}}^0\subset L^\infty(\Domain)$ is finite dimensional, so this is not a very strong assumption.} The main take-home for this theorem is that the computation of $\aU$ and $\aE$ is typically very simple and clear given a particular choice of $\Norm\cdot$ and $\op{E}$. \edit{The only non-trivial case is when $\op{g}$ is not smooth enough to estimate directly. So long as $\tilde{\F{U}}^k$ are sufficiently dense in sublevel sets of $\op{g}$, the smoothness of $\op{f}$ is sufficient to give a convergence rate.}{}
+	The proof of this theorem is in Appendix~\ref{app: generic a_U and a_E}. \edit{}{Note that $\sup_{\var0\in\tilde{\F{U}}^0}\norm{\var0}_{L^\infty(\domain_0)}\norm{\var0}_{L^2(\domain_0)}^{-1}$ is finite whenever $\tilde{\F{U}}^0\subset L^\infty(\Domain)$ is finite dimensional, so this is not a very strong assumption.} The main take-home for this theorem is that the computation of $\aU$ and $\aE$ is typically very simple and clear given a particular choice of $\Norm\cdot$ and $\op{E}$. \edit{The only non-trivial case is when $\op{g}$ is not smooth enough to estimate directly. So long as $\tilde{\F{U}}^k$ are sufficiently dense in sublevel sets of $\op{g}$, the smoothness of $\op{f}$ is sufficient to give a convergence rate.}{We also briefly remark that the Lipschitz constants in this lemma do not need to be valid globally, only on the sequence $\tilde{\var2}_k$. The same result holds under a local-Lipschitz assumption, for example on the ball of radius $\sup_{k\in\F N}\Norm{\tilde{\var2}_k}$ which is finite whenever $p\geq0$.}
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1317,7 +1317,7 @@
 		\begin{enumerate}
 			\item If $\op{E}$ is $\Norm\cdot$-Lipschitz at $\var0^*$, then
 			$\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*) \lesssim \meshsize^{kp}\edit[2]{\Norm{\var0^*}}{}$ \edit{}{ (i.e. $p'=p$)}.
-			\item If $\op{E}$ is $\Norm\cdot$-smooth at $\var0^*$, then 
+			\item If $\nabla\op{E}$ is $\Norm\cdot$-Lipschitz at $\var0^*$, then 
 			$\op{E}(\tilde{\var2}_k)-\op{E}(\var0^*) \lesssim \meshsize^{2kp}\edit[2]{\Norm{\var0^*}}{}$ \edit{}{ (i.e. $p'=2p$)}.
 			\edit[2]{\item If $\op{f}$ is $\Norm\cdot$-Lipschitz at $\var0^*$ and 
 			$$\min_{\var2\in\tilde{\F{U}}^k}\left\{\Norm{\var2-\var0^*}\st \op{g}(\var2)\leq \op{g}(\var0^*)\right\} \lesssim \min_{\var2\in\tilde{\F{U}}^k}\Norm{\var2-\var0^*}$$
@@ -1333,7 +1333,7 @@
 			\\\op{E}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{E}(\var0^*) \leq \op{f}(\edit[2]{\var2}{\tilde{\var2}_k})-\op{f}(\var0^*) \leq \op{Lip}(\op{f})\Norm{\edit[2]{\var2}{\tilde{\var2}_k}-\var0^*}}{}.
 		\end{gather}
 		\edit[2]{Minimising over the right-hand side over $\var2$ and substituting the definition of order gives the desired result.}{The proof is concluded by using the approximation bounds of $\tilde{\var2}_k$ in Definition~\ref{def: finite element space}.}
-		\qed\end{proof}
+	\qed\end{proof}
 	
 	
 	\section{Operator norms for numerical examples}
