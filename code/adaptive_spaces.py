@@ -3,20 +3,20 @@ Created on 7 Sep 2020
 
 @author: Rob Tovey
 '''
+from pymorton import __part1by1, __part1by2, __unpart1by1, __unpart1by2
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FixedLocator
 from numba import jit, prange
 from numpy import log2
 from numba.typed import List
-__params = {'nopython':True, 'parallel':False, 'fastmath':True, 'cache':True}
+__params = {'nopython': True, 'parallel': False, 'fastmath': True, 'cache': True}
 __pparams = __params.copy(); __pparams['parallel'] = True
 __cparams = __params.copy(); __cparams['cache'] = False
 EPS, FTYPE = 1e-25, 'float64'
 
 pass  # Numba wrapping of pymorton
 
-from pymorton import __part1by1, __part1by2, __unpart1by1, __unpart1by2
 pm_p1b1, pm_p1b2, pm_u1b1, pm_u1b2 = [jit()(f) for f in (__part1by1, __part1by2, __unpart1by1, __unpart1by2)]
 
 
@@ -131,7 +131,7 @@ class adaptive_mesh:  # odl RectPartition
         scale = 2 ** coarse_level
 
         coarse_map = np.empty((scale,) * self.dim + (2,), dtype=int)
-        coarse_map[...,:] = self.size, -1  # identify areas with no pixels
+        coarse_map[..., :] = self.size, -1  # identify areas with no pixels
 
         self._fine2coarse(dof_map, coarse_map, 1 / scale)
         return coarse_map
@@ -502,7 +502,7 @@ class adaptive_func:  # odl DiscretizedSpaceElement
         self.maps = FS if maps is None else maps
         self.x = arr
         self.FS = FS
-        assert self.x.shape[0] == self.dof_map.shape[0] + 1
+        assert self.x.shape[0] == self.dof_map.shape[0]
 
     def asarray(self): return self.x
 
@@ -615,7 +615,7 @@ class adaptive_func:  # odl DiscretizedSpaceElement
         else:
             FS = self.FS
             self.update(FS.old2new(self.x, self.dof_map, copy=False)
-                       +FS.old2new(other.x, other.dof_map, copy=False),
+                        + FS.old2new(other.x, other.dof_map, copy=False),
                         FS)
 
     def __isub__(self, other):
@@ -626,7 +626,7 @@ class adaptive_func:  # odl DiscretizedSpaceElement
         else:
             FS = self.FS
             self.update(FS.old2new(self.x, self.dof_map, copy=False)
-                       -FS.old2new(other.x, other.dof_map, copy=False),
+                        - FS.old2new(other.x, other.dof_map, copy=False),
                         FS)
 
     def __imul__(self, other):
@@ -792,7 +792,7 @@ class sparse_func1D(sparse_func):
             # post-filtering: x[:sz] contains all pixels which have not yet
             #     been discretised (size >2^{-L})
             #     img[L] is the discretisation of pixels size 2^{-L}
-            sz = _sparse2discrete1D(X, DM, x, dm, img[L], 2.** -L)
+            sz = _sparse2discrete1D(X, DM, x, dm, img[L], 2. ** -L)
             # cut off excess buffer for next iteration
             X, DM = x[:sz], dm[:sz]
 
@@ -811,11 +811,11 @@ class sparse_func1D(sparse_func):
         assert img.size == 2 ** level  # power 2 array size
 
         x = np.empty(self.x.size, dtype=FTYPE)
-        _from_sparse1D(x, self.dof_map, 2.** -level, img)
+        _from_sparse1D(x, self.dof_map, 2. ** -level, img)
 
         return self.copy(x)
 
-    def plot(self, level, ax=None, update=None, max_ticks=500, mass=False, background=0, **kwargs):
+    def plot(self, level, ax=None, update=None, max_ticks=500, mass=False, background=0, support=False, **kwargs):
         '''
         out = self.plot(level, ax=None, update=None,
                 max_ticks=500, mass=False, background=0, **kwargs)
@@ -831,26 +831,44 @@ class sparse_func1D(sparse_func):
             This is useful when trying to plot a Dirac delta.
         background : float
             Plots self + background, default is background=0
+        support : bool
+            If true, highlights the support on the plot
 
         kwargs are passed as key-word arguments to matplotlib.pyplot.step
         '''
         y = self.discretise(level, pad=True) + background
         if mass:
-            y *= 2.** -level
+            y *= 2. ** -level
         x = np.linspace(0, 1, 2 ** level + 1)
         if update is not None:
-            update.set_ydata(y)
-            if np.isscalar(max_ticks) and max_ticks >= 1:
-                update.axes.xaxis.set_minor_locator(FixedLocator(self.dof_map[::max(1, self.size // max_ticks), 0]))
-                update.axes.xaxis.set_tick_params(which='minor', length=8, direction='inout')
-            return update
-        ax = ax if ax is not None else plt.gca()
+            step = update[0] if support else update
+            ax = step.axes
+            step.set_ydata(y)
+            if support:  # delete old support boxes
+                [tmp.remove() for tmp in update[1]]
+        else:
+            ax = ax if ax is not None else plt.gca()
+            step = ax.step(x, y, where='post', **kwargs)[0]
+            ax.set_xlim(0, 1)
         if np.isscalar(max_ticks) and max_ticks >= 1:
-            ax.xaxis.set_minor_locator(FixedLocator(self.dof_map[::max(1, self.size // max_ticks), 0]))
+            ticks = np.union1d(self.dof_map[:, 0], self.dof_map.sum(1))
+            ax.xaxis.set_minor_locator(FixedLocator(ticks[::max(1, ticks.size // max_ticks)]))
             ax.xaxis.set_tick_params(which='minor', length=8, direction='inout')
-        ax.set_xlim(0, 1)
-        tmp = ax.step(x, y, where='post', **kwargs)
-        return tmp[0]
+        if support:
+            gaps = self.dof_map[:-1].sum(1), self.dof_map[1:, 0]
+            ind = gaps[0] < gaps[1] - 1e-4
+            gaps = np.hstack((gaps[0][ind, None], gaps[1][ind, None]))
+            kwargs_supp = dict(color='red', fill=False, linewidth=0)
+            if type(support) is dict:
+                kwargs_supp.update(support)
+            update = step, [ax.axvspan(*X, **kwargs_supp) for X in gaps]
+            if self.dof_map[0, 0] > 0:
+                update = update[0], [ax.axvspan(0, self.dof_map[0, 0], **kwargs_supp)] + update[1]
+            if self.dof_map[-1].sum() < 1:
+                update = update[0], update[1] + [ax.axvspan(self.dof_map[-1].sum(), 1, **kwargs_supp)]
+        else:
+            update = step
+        return update
 
     def _copy(self, arr, FS, maps): return sparse_func1D(arr, FS, maps)
 
@@ -881,7 +899,7 @@ class sparse_func2D(sparse_func):
             # post-filtering: x[:sz] contains all pixels which have not yet
             #     been discretised (size >2^{-L})
             #     img[L] is the discretisation of pixels size 2^{-L}
-            sz = _filter_sparse2D(X, DM, x, dm, img[L], 2.** -L)
+            sz = _filter_sparse2D(X, DM, x, dm, img[L], 2. ** -L)
             # cut off excess buffer for next iteration
             X, DM = x[:sz], dm[:sz]
 
@@ -1103,7 +1121,7 @@ class Haar_func2D(wave_func):
             # post-filtering: x[:sz] contains all pixels which have not yet
             #     been discretised (size >2^{-L})
             #     img[L] is the discretisation of pixels size 2^{-L}
-            sz = _filter_Haar2D(X, DM, x, dm, img[L], 2.** (1 - L))
+            sz = _filter_Haar2D(X, DM, x, dm, img[L], 2. ** (1 - L))
             # cut off excess buffer for next iteration
             X, DM = x[:sz], dm[:sz]
         img[0][0, 0] = self.x[0, 0]
@@ -1158,15 +1176,15 @@ class Haar_func2D(wave_func):
             tmp *= 0; eps = 0 * eps + 1
         I = [i for i in range(tmp.size) if tmp[i] <= eps]
         L = ax.hist2d(x[:, 1], x[:, 0], range=[[0, 1], [0, 1]],
-                               bins=min(100, 1 + int(x.shape[0] ** .5 / 10)), density=True)
+                      bins=min(100, 1 + int(x.shape[0] ** .5 / 10)), density=True)
         ax.clear()
         lines.append(ax.imshow(L[0], origin='lower', interpolation='bicubic',
                                cmap='Blues', vmin=0, alpha=.5,
                                extent=[0, 1, 0, 1]))
         from matplotlib.colors import LinearSegmentedColormap
-        cmap = {'red':((0, .1, .1), (1, 1, 1)),
-                'blue':((0, .1, .1), (1, 0, 0)),
-                'green':((0, .1, .1), (1, 0, 0))}
+        cmap = {'red': ((0, .1, .1), (1, 1, 1)),
+                'blue': ((0, .1, .1), (1, 0, 0)),
+                'green': ((0, .1, .1), (1, 0, 0))}
         cmap = LinearSegmentedColormap('k2r', cmap)
         if y.shape[0] < 50 ** 2:
             lines.append(ax.scatter(x[I, 1], x[I, 0], 2, tmp[I], '.', cmap=cmap, **kwargs))
@@ -1233,12 +1251,12 @@ def _refine_tree(new, n_isleaf, old, o_isleaf, indcs, c):
     for i in range(indcs.size):
         I = indcs[i]
         if I <= 0:  # ignore request to coarsen
-            new[j,:] = old[i,:]
+            new[j, :] = old[i, :]
             n_isleaf[j] = o_isleaf[i]
             j += 1
         elif I > 0:
             # keep old pixel
-            new[j,:] = old[i,:]
+            new[j, :] = old[i, :]
             n_isleaf[j] = False
             j += 1
             if o_isleaf[i]:  # perform refinement
@@ -1280,7 +1298,7 @@ def _fine2coarse2(dof_map, CM, dx):
         while True:  # For each j such that CM[j] intersects [x0,x1]x[y0,y1]
             CM[jx, jy, 0] = min(CM[jx, jy, 0], i)
             CM[jx, jy, 1] = max(CM[jx, jy, 1], i + 1)
-            x += dx;  jx += 1
+            x += dx; jx += 1
             if x >= x1:
                 y += dx; jy += 1
                 if y >= y1:
@@ -1311,7 +1329,7 @@ def _old2new_mesh1(new, new_DM, old, old_DM):
         if x[0] >= y[0] + y[1]:  # new box too far ahead
             I += 1
         elif x[0] + x[1] <= y[0]:  # old box too far ahead
-#             new[i] = 0
+            #             new[i] = 0
             i += 1
         elif x[1] <= y[2]:  # new contained in old
             new[i] = old[I]  # transfer average values
@@ -1332,7 +1350,7 @@ def _old2new_mesh2(new, new_DM, old, old_DM):
         if j > J:  # new box too far ahead
             I += 1
         elif j < J:  # old box too far ahead
-#             new[i] = 0
+            #             new[i] = 0
             i += 1
         elif x[2] <= y[2]:  # new contained in old
             new[i] = old[I]
@@ -1350,7 +1368,7 @@ def _old2new_tree1(new, new_DM, old, old_DM):
         if x[0] >= y[0] + y[1]:  # new box too far ahead
             I += 1
         elif x[0] + x[1] <= y[0]:  # old box too far ahead
-#             new[i] = 0
+            #             new[i] = 0
             i += 1
         else:  # new equals old
             new[i] = old[I]
@@ -1368,7 +1386,7 @@ def _old2new_tree2(new, new_DM, old, old_DM):
         if j > J:  # new box too far ahead
             I += 1
         elif j < J:  # old box too far ahead
-#             new[i] = 0
+            #             new[i] = 0
             i += 1
         else:  # new equals old
             new[i] = old[I]
@@ -1610,13 +1628,15 @@ if __name__ == '__main__':
         mesh = sparse_mesh(2, 2, 1)
         assert mesh.age == 2
         assert mesh.h == 1 / 4
-        tmp = ([0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [3, 0], [2, 1], [3, 1], [0, 2], [1, 2], [0, 3], [1, 3], [2, 2], [3, 2], [2, 3], [3, 3])
-        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
+        tmp = ([0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [3, 0], [2, 1], [3, 1],
+               [0, 2], [1, 2], [0, 3], [1, 3], [2, 2], [3, 2], [2, 3], [3, 3])
+        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
         assert all(tuple(mesh.coarse_map[i0, i1]) == (4 * j, 4 * j + 4) for j, (i0, i1) in enumerate(tmp[:4]))
         mesh.update(2)
         assert all(tuple(mesh.coarse_map[i0, i1]) == (j, j + 1) for j, (i0, i1) in enumerate(tmp))
         mesh.update(3)
-        assert all(tuple(mesh.coarse_map[I0, I1]) == (j, j + 1) for j, (i0, i1) in enumerate(tmp) for I0 in (2 * i0, 2 * i0 + 1) for I1 in (2 * i1, 2 * i1 + 1))
+        assert all(tuple(mesh.coarse_map[I0, I1]) == (j, j + 1) for j, (i0, i1) in enumerate(tmp)
+                   for I0 in (2 * i0, 2 * i0 + 1) for I1 in (2 * i1, 2 * i1 + 1))
         print('Mesh construction 2D checked')
 
         mesh = sparse_mesh(2, 1, 2)
@@ -1631,10 +1651,12 @@ if __name__ == '__main__':
         mesh.refine([0, 1, 0, -1])
         assert mesh.age == 2
         assert mesh.h == 1 / 4
-        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(
+        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(
             ([0, 0], [2, 0], [3, 0], [2, 1], [3, 1], [0, 2])))
-        tmp = ((slice(2), slice(2), 0, 1), (2, 0, 1, 2), (3, 0, 2, 3), (2, 1, 3, 4), (3, 1, 4, 5), (slice(2), slice(2, 4), 5, 6), (slice(2, 4), slice(2, 4), 6, -1))
-        assert all(abs(mesh.coarse_map[x[:2]][..., 0] - x[2]).max() + abs(mesh.coarse_map[x[:2]][..., 1] - x[3]).max() < EPS for x in tmp)
+        tmp = ((slice(2), slice(2), 0, 1), (2, 0, 1, 2), (3, 0, 2, 3), (2, 1, 3, 4),
+               (3, 1, 4, 5), (slice(2), slice(2, 4), 5, 6), (slice(2, 4), slice(2, 4), 6, -1))
+        assert all(abs(mesh.coarse_map[x[:2]][..., 0] - x[2]).max() +
+                   abs(mesh.coarse_map[x[:2]][..., 1] - x[3]).max() < EPS for x in tmp)
         print('Re-meshing 2D checked')
 
     elif test == 1.5:  # sparse_tree initiation and refining
@@ -1655,14 +1677,15 @@ if __name__ == '__main__':
         assert mesh.h == 1 / 4
         tmp = ([0, 0], [0, 0], [0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [2, 0], [3, 0], [2, 1], [3, 1],
                [0, 2], [0, 2], [1, 2], [0, 3], [1, 3], [2, 2], [2, 2], [3, 2], [2, 3], [3, 3])
-        assert all(abs(4 * mesh.dof_map[i,:2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
+        assert all(abs(4 * mesh.dof_map[i, :2] - np.array(j)).max() < EPS for i, j in enumerate(tmp))
         assert all(tuple(mesh.coarse_map.reshape(-1, 2)[i]) == (0, j) for i, j in enumerate((6, 16, 11, 21)))
         mesh.update(2)
         tmp = np.array((3, 5, 13, 15, 4, 6, 14, 16, 8, 10, 18, 20, 9, 11, 19, 21)).reshape(4, 4)
         assert abs(mesh.coarse_map[..., 0]).max() == 0
         assert all(mesh.coarse_map[..., 1].ravel() == tmp.ravel())
         mesh.update(3)
-        assert all(abs(mesh.coarse_map[2 * i:2 * i + 2, 2 * j:2 * j + 2, 1] - tmp[i, j]).max() == 0 for i in range(4) for j in range(4))
+        assert all(abs(mesh.coarse_map[2 * i:2 * i + 2, 2 * j:2 * j + 2, 1] -
+                       tmp[i, j]).max() == 0 for i in range(4) for j in range(4))
         print('Mesh construction 2D checked')
 
         mesh = sparse_tree(2, 1, 2)
@@ -1677,9 +1700,11 @@ if __name__ == '__main__':
         mesh.refine([1, 1, 0, 1, -1])
         assert mesh.age == 2
         assert mesh.h == 1 / 4
-        assert abs(4 * mesh.dof_map - np.array([int(i) for i in '004002001101011111202022021121031131222']).reshape(-1, 3)).max() == 0
+        assert abs(4 * mesh.dof_map - np.array([int(i)
+                                                for i in '004002001101011111202022021121031131222']).reshape(-1, 3)).max() == 0
         assert abs(mesh.coarse_map[..., 0]).max() == 0
-        assert abs(mesh.coarse_map[..., 1] - np.array([3, 5, 9, 11, 4, 6, 10, 12, 7, 7, 13, 13, 7, 7, 13, 13]).reshape(4, 4)).max() == 0
+        assert abs(mesh.coarse_map[..., 1] - np.array([3, 5, 9, 11, 4, 6, 10,
+                                                       12, 7, 7, 13, 13, 7, 7, 13, 13]).reshape(4, 4)).max() == 0
         print('Re-meshing 2D checked')
 
     elif test == 2:

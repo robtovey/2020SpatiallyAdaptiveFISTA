@@ -65,8 +65,9 @@ def _unknown_grad_tomo(res, g, slope, centre, dof_map, isleaf, out):
                         break
                     elif g[k + 1] > t - r:
                         value += res[j, k] ** 2 * abs(
-                            line_intersect_square(g[k + 1] * slope[j, 1], -g[k + 1] * slope[j, 0], slope[j], b0x, b0y, b1x, b1y)
-                            -line_intersect_square(g[k] * slope[j, 1], -g[k] * slope[j, 0], slope[j], b0x, b0y, b1x, b1y))
+                            line_intersect_square(g[k + 1] * slope[j, 1], -g[k + 1] *
+                                                  slope[j, 0], slope[j], b0x, b0y, b1x, b1y)
+                            - line_intersect_square(g[k] * slope[j, 1], -g[k] * slope[j, 0], slope[j], b0x, b0y, b1x, b1y))
 
                 big_value += sqrt(value)
             out[i] = big_value
@@ -98,7 +99,7 @@ def wavelet_children(tree, *ind, parent=None):
 
 
 def copy_tree(tree):
-    new = {i:wavelet_node(*i) for i in tree}
+    new = {i: wavelet_node(*i) for i in tree}
 
     for i in tree:
         root = (0,) * len(i)
@@ -181,13 +182,13 @@ def Haar_denoising(n_points, alpha, iters=None, prnt=True, plot=True, vid=None, 
 
     data = random.rand(n_points)
 
-    pms = {'i':0, 'eps':1e-18}
+    pms = {'i': 0, 'eps': 1e-18}
     recon = Haar(0, Haar_space(2, dim=1))
 
     def residual(u):
         return array([u.x[0, 0] * sqrt(L[j])
-                      +interval_integral(grid[j:j + 2], u.x[1:], u.dof_map) / sqrt(L[j]) - data[j]
-             for j in range(n_points)], dtype='float64')
+                      + interval_integral(grid[j:j + 2], u.x[1:], u.dof_map) / sqrt(L[j]) - data[j]
+                      for j in range(n_points)], dtype='float64')
 
     def energy(u):
         refine(u, True)
@@ -207,7 +208,7 @@ def Haar_denoising(n_points, alpha, iters=None, prnt=True, plot=True, vid=None, 
             if supp0 < x[1] and supp1 > x[0]:
                 midpoint, scale = .5 * (supp0 + supp1), (.5 / h) ** .5
                 value += scale * arr[i, 0] * (len_intersect(midpoint, supp1, x[0], x[1])
-                                  -len_intersect(supp0, midpoint, x[0], x[1]))
+                                              - len_intersect(supp0, midpoint, x[0], x[1]))
         return value
 
     def gradF(u, refine_flag=True):
@@ -237,7 +238,8 @@ def Haar_denoising(n_points, alpha, iters=None, prnt=True, plot=True, vid=None, 
         ax = pms['axes'][0]
         if pms.get('recon plot', None) is None:
             pms['recon plot'] = (u.plot(ax=ax, level=10, linewidth=2, color='red', linestyle=':', label='Reconstruction'),
-                                 ax.step(grid, data2func(residual(u) + data), linewidth=3, color='red', linestyle='-', where='pre', label='Projection of reconstruction')[0],
+                                 ax.step(grid, data2func(residual(u) + data), linewidth=3, color='red',
+                                         linestyle='-', where='pre', label='Projection of reconstruction')[0],
                                  ax.step(grid, data2func(data), linewidth=3, color='blue', where='pre', label='Data')[0])
             ax.set_xlim(0, 1)
             ax.legend(loc='upper right')
@@ -252,7 +254,7 @@ def Haar_denoising(n_points, alpha, iters=None, prnt=True, plot=True, vid=None, 
             pms['recon stars'] = u.plot_tree(ax=ax)  # , max_ticks=100)
             ax.set_title('Coefficients')
         else:
-#             u.plot_tree(ax=pms['recon stars'], max_ticks=100, update=True)
+            #             u.plot_tree(ax=pms['recon stars'], max_ticks=100, update=True)
             u.plot_tree(update=pms['recon stars'])
 
         ax = pms['axes'][2]
@@ -330,21 +332,21 @@ def Haar_denoising(n_points, alpha, iters=None, prnt=True, plot=True, vid=None, 
     def custom_stop(*_, d=None, extras=None, **__): return (d + extras[2] < 1e-12)
 
     stop_crit = stopping_criterion(iters[0], custom_stop, frequency=iters[1], prnt=prnt, record=True,
-                              energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
-                              callback=doPlot if plot else lambda *args:None)
+                                   energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
+                                   callback=doPlot if plot else lambda *args: None)
 
     if type(algorithm) is str:
         algorithm = algorithm, {}
     if algorithm[0] is 'Greedy':
-        default = {'xi':0.95, 'S':1}
+        default = {'xi': 0.95, 'S': 1}
         default.update(algorithm[1])
         recon = faster_FISTA(recon, 1, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FISTA':
-        default = {'a':10, 'restarting':False}
+        default = {'a': 10, 'restarting': False}
         default.update(algorithm[1])
         recon = FISTA(recon, 1, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FB':
-        default = {'scale':2}
+        default = {'scale': 2}
         default.update(algorithm[1])
         recon = FB(recon, default['scale'], gradF, proxG, stop_crit)
 
@@ -505,7 +507,7 @@ class Haar2Sino(op):
 
         self.angles, self.d = angles, directions
         self.grid, self.centre = grid, centre
-        self.FS, self._buf = FS, {'DM':None}
+        self.FS, self._buf = FS, {'DM': None}
         self._parallel = parallel
 
         self.scale = self.fwrd(Haar(1, Haar_space(dim=2)))  # A good preconditioner to make each angle have norm 1
@@ -534,7 +536,8 @@ class Haar2Sino(op):
                 total_sz *= 2
 
         tot = ptr.max()
-        self._buf['bwrd_mat'] = csr_matrix((data[:tot], indcs[:tot], ptr), shape=(3 + DM.shape[0] * 3, self.d.shape[0] * (self.grid.size - 1)))
+        self._buf['bwrd_mat'] = csr_matrix((data[:tot], indcs[:tot], ptr), shape=(
+            3 + DM.shape[0] * 3, self.d.shape[0] * (self.grid.size - 1)))
         self._buf['fwrd_mat'] = self._buf['bwrd_mat'].T.tocsr()
         self._buf['fwrd_mat'].sort_indices()
         self._buf['data'], self._buf['indcs'], self._buf['ptr'] = data, indcs, ptr
@@ -604,11 +607,12 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
     '''
     random.seed(101)
 
-    pms = {'i':0, 'eps':1e-18, 'refineI':2}
+    pms = {'i': 0, 'eps': 1e-18, 'refineI': 2}
     recon = Haar(0, Haar_space(2, dim=2))
     A.update(recon.FS)
 
     from numba import vectorize
+
     @vectorize(identity=0, nopython=True)
     def Huber(x):
         x = abs(x)
@@ -616,6 +620,7 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
             return .5 * x * x
         else:
             return huber * (x - .5 * huber)
+
     @vectorize(identity=0, nopython=True)
     def Huber_grad(x):
         if abs(x) < huber:
@@ -640,7 +645,8 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
         pms['i'] += 1
         if pms['i'] >= pms['refineI']:
             u = refine(u)
-            pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.15)  # 20 refinements for each factor of 10 iterations
+            # 20 refinements for each factor of 10 iterations
+            pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.15)
 #             pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.30)  #  9 refinements for each factor of 10 iterations
         return A.bwrd(Huber_grad(A(u) - data), like=u)
 
@@ -650,9 +656,9 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
         return U
 
     def doPlot(i, u, fig, plt):
-#         print('energy = %.2f, reg = %.2f' % (Huber(A(u) - data).sum() / Huber(A(gt) - data).sum(),
-#                                            abs(u.x[1:]).sum() / abs(gt.x[1:]).sum()),
-#         u.x.size, -log2(u.FS.h))
+        #         print('energy = %.2f, reg = %.2f' % (Huber(A(u) - data).sum() / Huber(A(gt) - data).sum(),
+        #                                            abs(u.x[1:]).sum() / abs(gt.x[1:]).sum()),
+        #         u.x.size, -log2(u.FS.h))
 
         s = data.max()
 
@@ -765,21 +771,21 @@ def Haar_tomo(A, data, alpha, huber, iters=None, prnt=True, plot=True, vid=None,
     def custom_stop(*_, d=None, extras=None, **__): return (d + extras[2] < 1e-12)
 
     stop_crit = stopping_criterion(iters[0], custom_stop, frequency=iters[1], prnt=prnt, record=True,
-                              energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
-                              callback=doPlot if plot else lambda *args:None)
+                                   energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
+                                   callback=doPlot if plot else lambda *args: None)
 
     if type(algorithm) is str:
         algorithm = algorithm, {}
     if algorithm[0] is 'Greedy':
-        default = {'xi':0.95, 'S':1}
+        default = {'xi': 0.95, 'S': 1}
         default.update(algorithm[1])
         recon = faster_FISTA(recon, huber / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FISTA':
-        default = {'a':10, 'restarting':False}
+        default = {'a': 10, 'restarting': False}
         default.update(algorithm[1])
         recon = FISTA(recon, huber / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FB':
-        default = {'scale':2}
+        default = {'scale': 2}
         default.update(algorithm[1])
         recon = FB(recon, default['scale'] * huber / A.norm ** 2, gradF, proxG, stop_crit)
 
@@ -793,7 +799,7 @@ if __name__ == '__main__':
     from numpy import linspace
 #     plt.figure(figsize=(18, 10))
 
-    test = 4
+    test = 1
     # 1  : 1D wavlet functionality test
     # 1.5: 1D wavlet plotting test
     # 2  : 1D denoising example
@@ -828,10 +834,11 @@ if __name__ == '__main__':
         plt.show()
 
     elif test == 2:  # 1D optimisation problem
-#         raise NotImplementedError
+        #         raise NotImplementedError
         peaks = 10  # 10 or 100
         iters = ((1000, 10) if peaks > 10 else (150, 2))
-        vid = {'filename':'haar_vid_1D_denoising_' + ('large' if peaks > 10 else 'small'), 'fps':int(iters[0] / iters[1] / 30) + 1}
+        vid = {'filename': 'haar_vid_1D_denoising_' +
+               ('large' if peaks > 10 else 'small'), 'fps': int(iters[0] / iters[1] / 30) + 1}
         vid = None
         recon, record = Haar_denoising(peaks, .01, vid=vid, iters=iters)
         if vid is None:
@@ -861,7 +868,7 @@ if __name__ == '__main__':
             new_wave = my_wave.from_discrete(my_func)
             ax1.cla()
             new_wave.plot(ax=ax1, level=level, vmin=0, vmax=1)
-            plt.title('h = ' + str(2.** -init))
+            plt.title('h = ' + str(2. ** -init))
             ax2.cla()
             new_wave.plot_tree(ax=ax2)
             plt.tight_layout()
@@ -914,7 +921,7 @@ if __name__ == '__main__':
         data += Norm(data) * random.laplace(0, noise, data.shape) * (.5 / data.size) ** .5  # Laplacian noise
 
         iters = (1000, 1.1)
-        vid = {'filename':'haar_vid_2D_disc', 'fps':int(iters[0] / iters[1] / 30) + 1}
+        vid = {'filename': 'haar_vid_2D_disc', 'fps': int(iters[0] / iters[1] / 30) + 1}
         vid = None
         recon, record = Haar_tomo(A, data, .1, .002, vid=vid, iters=iters, prnt=False)
         if vid is None:
@@ -934,7 +941,7 @@ if __name__ == '__main__':
         data += Norm(data) * random.laplace(0, noise, data.shape) * (.5 / data.size) ** .5  # Laplacian noise
 
         iters = (1000, 1.1)
-        vid = {'filename':'haar_vid_2D_shepp', 'fps':int(iters[0] / iters[1] / 30) + 1}
+        vid = {'filename': 'haar_vid_2D_shepp', 'fps': int(iters[0] / iters[1] / 30) + 1}
         vid = None
 
         recon, record = Haar_tomo(A, data, .1, .001, vid=vid, iters=iters)

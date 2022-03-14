@@ -28,7 +28,7 @@
 
 We would like to thank both the reviewers again for their time and feedback. A detailed response to each reviewer's comments is given below. All new text is marked in the manuscript and all deletions outside of the appendix. In particular, the statements of Theorem 7 and Lemmas 14-17 have changed so the old proofs are now irrelevant. Changes to the theorems are fully annotated, the original proofs are hidden.
 
-We have also made one change which was not in response to the comments of the reviewer. It became clear to us that the statement of Definition 1 is much more natural as a property of the sequence $w_n$ rather than the sets $\F{U}^n$. Morally, we assume the existence of a `nice' minimising sequence rather than asserting that $w_n$ must be minimisers in $\F{U}^n$. Documenting the changes which are longer than one line:
+We have also made one change which was not in response to the comments of the reviewer. It became clear to us that the statement of Definition 1 is much more natural as a property of the sequence $w_n$ rather than the sets $\F{U}^n$. Morally, we assume the existence of a `nice' minimising sequence rather than asserting that $w_n$ must be minimisers in $\F{U}^n$. Highlighting the changes which are longer than one line:
 \begin{itemize}
 	\item At the end of page 4, emphasis is shifted towards the choice of sequence $w_n$
 	\item Definition 1 has been updated
@@ -43,7 +43,7 @@ We have also made one change which was not in response to the comments of the re
 
 Thank you for the constructive feedback. That paragraph in the introduction has been re-worded to take into account some of your points. In answer to your questions, in an abstract sense one can always `attain' minima by adding points to (i.e. `completing') the space. As you say, the challenge is to have some regularity guarantees so that the iterates themselves are not `meaningless', but the meaning of meaningless depends on the topology. 
 
-A simple 1D example, if $E(u) = e^{-u}$ for $u\geq0$, then numerically I get $u_n\approx 4\log(n)$. Clearly $|u_n-\infty|\not\to0$, but in a `weak sense', certainly $u_n\to\infty$. This seems to be representative of the general behaviour. In the Lasso example, the iterates are meaningless in both $L^2$ and $L^1$, but can be understood in the space of measures (or distributions). In this sense, we have never observed anything unexpected for large $n$. Unfortunately this behaviour can't be understood from the values of $a_E$ and $a_U$ alone.
+A simple 1D example, if $E(u) = e^{-u}$ for $u\geq0$, then numerically I get $u_n\approx 4\log(n)$. Clearly $|u_n-\infty|\not\to0$, but in a `weaker sense', certainly $u_n\to\infty$. This seems to be representative of the general behaviour. In the Lasso example, the convergence of iterates is meaningless in both $L^2$ and $L^1$, but can be understood in the space of measures. In this sense, we have never observed anything unexpected for large $n$, the iterates do converge to tall/thin Dirac-like functions. Unfortunately this behaviour can't be understood from the values of $a_E$ and $a_U$ alone.
 
 \section{Detailed response to second reviewer}
 Thank you for such detailed comments, they have definitely greatly improved the quality of this manuscript. We are sorry that this has required so much work from you in the process.
@@ -77,6 +77,14 @@ Thank you for such detailed comments, they have definitely greatly improved the 
 
 	Old (15) is now (18). The assumptions on $A$, including continuity on $\F H$, are now just above (18).
 	
+	\begin{quote}
+		\edit{}{Let $A\colon\F{U}\cap\F{H}\to\F R^m$ be a linear operator represented by the kernels $\psi_j\in\F{H}$ such that 
+		\begin{equation*}\label{eq: kernels of A}
+			\forall u\in\F{U}\cap\F{H},\ j=1,\ldots,m,\qquad (Au)_j = \langle \psi_j, u\rangle.
+		\end{equation*}
+		In the continuous case we will assume the additional smoothness $\psi_j\in C^1([0,1]^d)$. In Section~6.5 we will formally define and estimate several operator semi-norms for $A$ of this form, for example Lemma~8 confirms that $A$ is continuous on $\F{H}$ (without loss of generality $\|A\|\leq 1$).} 
+	\end{quote}
+	
 	\item \review{page 11, paragraph below (21): Sublevel sets of $E$ are not compact, they are not even bounded without further conditions on $f$ ($f$ bounded from below would be sufficient). How do you construct the minimizing sequence in $H$? How does $E(u^*_j) \to E(u^*)$ follow? I think an assumption is needed to ensure that $A$ is sequentially weak-star continuous, i.e., $A = B^*$ where $B : \mathbb{R}^m \to C([0, 1]^d)$.}
 	
 	As suggested, we now assume that $f$ is bounded from below and include a reference to justify that minimisers exist when $A^*$ maps into $C([0,1]^d)$. The general argument has been re-worked to have an explicit sequence $\tilde w_k$ in $H$ (approximately (19-24)). We no longer rely on the existence of a minimising sequence, other than the explicit choice of $\tilde w_k$ which we prove is minimising.
@@ -97,7 +105,7 @@ Thank you for such detailed comments, they have definitely greatly improved the 
 	
 	\item \review{Inequalities (61),(62) do not make sense: the quantities on the left and right-hand sides are equal.}
 	
-	Please can the reviewer clarify this point? The old (61-62) are now (60-61) which are equalities. There was a pair of inequalities (59-60), now (58-59), but they are simply statements of H\"older's inequality.
+	Please can the reviewer clarify this point? The old (61-62) are now (60-61) which are equalities. There was a pair of inequalities (59-60), now (58-59), but they do not seem to fit the comment. They are just statements of H\"older's inequality.
 	
 	\item \review{page 17, last sentence of first paragraph: the problem is convex, hence all critical points are globally optimal.}
 	

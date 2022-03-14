@@ -148,10 +148,11 @@
 	
 	
 	\section{Definitions and notation}\label{sec: prelims}
-	We consider optimisation of \eqref{eq: min F = fD+fC} over a Hilbert space $(\F H,\IP\cdot\cdot,\norm\cdot)$ with the translated energy
+	We consider optimisation of \eqref{eq: min F = fD+fC} over a Hilbert space $(\F H,\IP\cdot\cdot,\norm\cdot)$. In the more analytical section (Sections~\ref{sec: recipe} and \ref{sec: FISTA convergence}) it will be more convenient to use the translated energy
 	\begin{equation}
-		\op{E}_0\colon\F H\to \R,\qquad \op{E}_0(\var0) \coloneqq \op{E}(\var0)-\Emin[\tilde{\var0}].
+		\op{E}_0\colon\F H\to \R,\qquad \op{E}_0(\var0) \coloneqq \op{E}(\var0)-\Emin[\tilde{\var0}]
 	\end{equation}
+	so that $\inf_{\var0\in\F{H}}\op{E}_0(\var0) = 0$, although access to this function is not assumed for numerical examples.
 
 	
 	The proposed generalised FISTA algorithm is stated in Algorithm~\ref{alg: refining FISTA} for an arbitrary choice of closed convex subsets $\F{U}^n\subset \F H$ for $n\in\F N$. The only difference from standard FISTA is that on iteration $n$, all computations are performed in the subset $\F{U}^n$. If $\F{U}^n=\F H$, then we recover the original algorithm. More generally, the idea is that $\F{U}^n$ are `growing', for example $\F{U}^n\subset\F{U}^{n+1}$, but this assumption is not necessary in most of the results.
@@ -192,17 +193,17 @@
 			\State $\displaystyle \var0_{n+1} \gets \argmin_{\var0\in \F{U}^{n+1}} \tfrac12\norm{\var0-\bar{\var0}_n+\nabla \op{f}(\bar{\var0}_n)}^2+\op{g}(\var0)$ \Comment{Only modification, $\F{U}^{n+1}\subset \F{U}$}
 			\State $\var1_{n+1} \gets (1-t_n)\var0_n + t_n\var0_{n+1}$
 			\State $n\gets n+1$
-			\Until{a stopping criterion is met}
+			\Until{some stopping criterion is met}
 		\end{algorithmic}
 	\end{algorithm}
 	
 	
 	\section{General proof recipe}\label{sec: recipe}
-	In this section we give an intuitive outline of the full proof for convergence of Algorithm~\ref{alg: refining FISTA} before giving formal theorems and proofs in the next section. First we recall the classical FISTA convergence guarantee given by \cite[Thm 3.1]{Chambolle2015}\edit{:}{; if there exists $\var0^*\in \argmin_{\var0\in\F H}\op{E}(\var0)$, then}
+	In this section we give an intuitive outline of the full proof for convergence of Algorithm~\ref{alg: refining FISTA} before giving formal theorems and proofs in the next section. First we recall the classical FISTA convergence guarantee given by \cite[Thm 3.1]{Chambolle2015}\edit{:}{; if there exists $\var0^*\in \argmin_{\var0\in\F H}\op{E}_0(\var0)$, then}
 	\begin{equation}\label{eq: classical FISTA}
 		t_N^2\op{E}_0(\var0_N) + \sum^{N-1}_{n=1}\rho_n\op{E}_0(\var0_n) + \tfrac12\norm{\var1_N-\var0^*}^2 \leq \tfrac12\norm{\var0_0-\var0^*}^2
 	\end{equation}
-	for \edit{some $\var0^*\in \argmin_{\var0\in\F H}\op{E}(\var0)$, and}{any} FISTA stepsize choice $t_N\simeq N$ such that $\rho_n\geq0$.
+	for \edit{some $\var0^*\in \argmin_{\var0\in\F H}\op{E}_0(\var0)$, and}{any} FISTA stepsize choice $t_N\simeq N$ such that $\rho_n\geq0$.
 	
 	\paragraph{Step 1: Quantifying the stability}
 	\begin{adaptiveStep}\label{step: step 1 stability}
@@ -217,11 +218,11 @@
 	
 	\paragraph{Step 2: Quantifying the scaling properties}
 	\begin{adaptiveStep}\label{step: step 2 smoothness}
-		To show that the extra terms in \eqref{eq: mini FISTA convergence} are small, we need to quantify the approximation properties of $\F{U}^n$. \edit{The idea is that $\F{U}^n$ are locally compact, so that minimisers are achieved, but `growing' so that $\min_{\var0\in\F{U}^n}\op{E}(\var0) \to \inf_{\var0\in\F H}\op{E}(\var0)$.  A canonical example might be $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq n\}$.}{The idea is that there is a sequence $\var2_n\in\F{U}^n$, $n\in\F N$ such that $\norm{\var2_n}$ grows slowly and $\op{E}_0(\var2_n)$ decreases quickly.} To quantify \edit{the}{this} balance\edit{ between a growing Hilbert norm and improving estimate of $\op{E}$}{}, we introduce a secondary sequence $n_0 < n_1 < \ldots$ and constants $\aU,\aE\geq1$ such that for each $k\in\F N$
+		To show that the extra terms in \eqref{eq: mini FISTA convergence} are small, we need to quantify the approximation properties of $\F{U}^n$. \edit{The idea is that $\F{U}^n$ are locally compact, so that minimisers are achieved, but `growing' so that $\min_{\var0\in\F{U}^n}\op{E}_0(\var0) \to \inf_{\var0\in\F H}\op{E}_0(\var0)$.  A canonical example might be $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq n\}$.}{The idea is that there is a sequence $\var2_n\in\F{U}^n$, $n\in\F N$ such that $\norm{\var2_n}$ grows slowly and $\op{E}_0(\var2_n)$ decreases quickly.} To quantify \edit{the}{this} balance\edit{ between a growing Hilbert norm and improving estimate of $\op{E}$}{}, we introduce a secondary sequence $n_0 < n_1 < \ldots$ and constants $\aU,\aE\geq1$ such that for each $k\in\F N$
 		\begin{equation}\label{eq: first regularity}
 			n\leq n_k \implies \norm{\var2_n} \lesssim \aU^k, \qquad n\geq n_k \implies \op{E}_0(\var2_n) \lesssim \aE^{-k}.
 		\end{equation}
-		\edit{The expanding balls example would become}{A canonical example would be} $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq \aU^k\}$ for $n\in[n_k,n_{k+1})$, then $\aE$ reflects the smoothness of $\op{E}$. The choice of exponential scaling \edit{is more}{is introduced to improve stability of Algorithm~\ref{alg: refining FISTA}. It is} natural if we consider the $\F{U}^n$ to be the subspace of functions discretised on a uniform mesh. If that mesh is sequentially refined, then the resolution of the mesh will be of order $h^k$ after $k$ refinements and for some $h<1$. The integer $n_k$ is then the time at which the mesh has refined $k$ times. \edit{The value $\aU$ reflects the smoothness of the chosen basis, and $\aE$ is a measure of efficiency with respect to the structure of $\op{E}$. If an efficient basis is used, then $\aE$ is large.}{} The trade-off between $\aE$ and $\aU$ dictates the final convergence rate of the algorithm. If $\aU>1$, then we cannot guarantee the original $n^{-2}$ rate of convergence.
+		\edit{The expanding balls example would become}{A canonical example would be} $\F{U}^n=\{\var0\in\F H\st \norm{\var0}\leq \aU^k\}$ for $n\in[n_k,n_{k+1})$, then $\aE$ reflects the smoothness of $\op{E}_0$. The choice of exponential scaling \edit{is more}{is introduced to improve stability of Algorithm~\ref{alg: refining FISTA}. It is} natural if we consider the $\F{U}^n$ to be the subspace of functions discretised on a uniform mesh. If that mesh is sequentially refined, then the resolution of the mesh will be of order $h^k$ after $k$ refinements and for some $h<1$. The integer $n_k$ is then the time at which the mesh has refined $k$ times. \edit{The value $\aU$ reflects the smoothness of the chosen basis, and $\aE$ is a measure of efficiency with respect to the structure of $\op{E}$. If an efficient basis is used, then $\aE$ is large.}{} The trade-off between $\aE$ and $\aU$ dictates the final convergence rate of the algorithm. If $\aU>1$, then we cannot guarantee the original $n^{-2}$ rate of convergence.
 	\end{adaptiveStep}
 	
 	\paragraph{Step 3: Generalising the convergence bound}
@@ -255,9 +256,9 @@
 		Theorem~\ref{thm: stronger exponential FISTA convergence} shows that a sufficient condition is
 		$$\var0_{n_k-1}\in\F{U}^{n_k}\cap\F{U}^{n_k+1}\cap\ldots\cap\F{U}^{n_{k+1}-1}\edit{}{, \qquad \norm{\var0_{n_k-1}} \lesssim \aU^k, \quad\text{and}\quad \op{E}_0(\var0_{n_k-1}) \lesssim \aE^{-k}}.$$
 		Convergence is most stable if the approximation spaces $\F{U}^n$ satisfy a monotone inclusion, breaking the monotonicity requires more care.
-		\edit{Adaptively choosing the time of refinement is more challenging due to the non-descent property of FISTA. The idea is that $\F{U}^n$ should be refined as soon as the value $\op{E}(\var0_n)$ is sufficiently close to $\op{E}(\var2_n)$. This is analysed in Theorem~\ref{thm: stronger exponential FISTA convergence} (sufficient conditions in Lemma~\ref{thm: practical refinement criteria}) which shows convergence results of the form}{The only non-trivial property to verify is the energy gap  $\op{E}_0(\var0_n) = \op{E}(\var0_n)-\Emin$. Lemma~\ref{thm: practical refinement criteria} proposes some sufficient conditions to guarantee the same overall rate of convergence as in Step~\ref{step: step 5 sufficiently slow},}
+		\edit{Adaptively choosing the time of refinement is more challenging due to the non-descent property of FISTA. The idea is that $\F{U}^n$ should be refined as soon as the value $\op{E}_0(\var0_n)$ is sufficiently close to $\op{E}_0(\var2_n)$. This is analysed in Theorem~\ref{thm: stronger exponential FISTA convergence} (sufficient conditions in Lemma~\ref{thm: practical refinement criteria}) which shows convergence results of the form}{The only non-trivial property to verify is the energy gap  $\op{E}_0(\var0_n) = \op{E}(\var0_n)-\Emin$. Lemma~\ref{thm: practical refinement criteria} proposes some sufficient conditions to guarantee the same overall rate of convergence as in Step~\ref{step: step 5 sufficiently slow},}
 		$$ \min_{n\leq N}\op{E}_0(\var0_n) \lesssim \frac{N^{2\kappa}}{N^2}$$
-		for all $N\in\F N$, with the same $\kappa\in[0,1)$ from Step~\ref{step: step 5 sufficiently slow}. The penalty for accelerating the change of discretisation is a potential loss of stability or monotonicity in $\op{E}(\var0_n)$, although this behaviour has not been seen in numerical experiments.
+		for all $N\in\F N$, with the same $\kappa\in[0,1)$ from Step~\ref{step: step 5 sufficiently slow}. The penalty for accelerating the change of discretisation is a potential loss of stability or monotonicity in $\op{E}_0(\var0_n)$, although this behaviour has not been seen in numerical experiments.
 	\end{adaptiveStep}
 	
 	\section{Proof of convergence}\label{sec: FISTA convergence}
@@ -277,7 +278,7 @@
 			Suppose $\nabla \op{f}$ is 1-Lipschitz, for any $\bar{\var0}\in \F H$ define
 			$$ \var0 \coloneqq \argmin_{\var0\in \F{U}^{n}} \tfrac12\norm{\var0-\bar{\var0}+\nabla \op{f}(\bar{\var0})}^2+\op{g}(\var0).$$
 			Then, for all $\var2\in\F{U}^n$, we have
-			$$\op{E}(\var0) + \tfrac12\norm{\var0-\var2}^2 \leq \op{E}(\var2) + \tfrac12\norm{\bar{\var0}-\var2}^2.$$
+			$$\op{E}_0(\var0) + \tfrac12\norm{\var0-\var2}^2 \leq \op{E}_0(\var2) + \tfrac12\norm{\bar{\var0}-\var2}^2.$$
 			
 		}
 	\end{lemma}
@@ -288,10 +289,10 @@
 			Let $\var2_n\in\F{U}^n$ be chosen arbitrarily and $\var0_n$/$\var1_n$ be generated by Algorithm~\ref{alg: refining FISTA} for all $n\in\F N$.
 			For all $n\in\F N$, it holds that}
 		\begin{equation}\Copy{thm:eq: one step FISTA}{
-			t_{n}^2(\op{E}(\var0_{n}) - \op{E}(\var2_n)) - (t_{n}^2-t_{n})(\op{E}(\var0_{n-1})-\op{E}(\var2_n)) \leq \tfrac1{2}\left[\norm{\var1_{n-1}}^2-\norm{\var1_{n}}^2\right] + \IP{\var1_{n}-\var1_{n-1}}{\var2_n}.}\label{eq: one-step FISTA}
+			t_{n}^2(\op{E}_0(\var0_{n}) - \op{E}_0(\var2_n)) - (t_{n}^2-t_{n})(\op{E}_0(\var0_{n-1})-\op{E}_0(\var2_n)) \leq \tfrac1{2}\left[\norm{\var1_{n-1}}^2-\norm{\var1_{n}}^2\right] + \IP{\var1_{n}-\var1_{n-1}}{\var2_n}.}\label{eq: one-step FISTA}
 		\end{equation}
 	\end{lemma}
-	\noindent The proof is given in Theorem~\ref{app:thm: one step FISTA} and is a result of the convexity of $\op{E}$ and $\F{U}_n$ for a well chosen $\var2$ in Lemma~\ref{thm: descent lemma}. 
+	\noindent The proof is given in Theorem~\ref{app:thm: one step FISTA} and is a result of the convexity of $\op{E}_0$ and $\F{U}_n$ for a well chosen $\var2$ in Lemma~\ref{thm: descent lemma}. 
 	
 	\subsubsection{Generic convergence bound}
 	Lemma~\ref{thm: one step FISTA} gives us an understanding of a single iteration of Algorithm~\ref{alg: refining FISTA}, summing over $n$ then gives our generic convergence bound for any variant of Algorithm~\ref{alg: refining FISTA}.
@@ -305,11 +306,11 @@
 			+ \sum^N_{n=1} t_n\op{E}_0(\var2_n) + \IP{\var1_{n-1}}{\var2_{n-1}-\var2_n}.
 		}\end{equation}
 	\end{theorem}
-	\noindent The proof is given in Theorem~\ref{app:thm: mini FISTA convergence}. This result is the key approximation for showing convergence of FISTA with changing subsets. In the classical setting, we have $\F{U}^n=\F H$, $\var2_n=\var2_0\in\argmin_{\var0\in\F H}\op{E}(\var0)$ and the extra terms on the right-hand side collapse to 0. 
+	\noindent The proof is given in Theorem~\ref{app:thm: mini FISTA convergence}. This result is the key approximation for showing convergence of FISTA with changing subsets. In the classical setting, we have $\F{U}^n=\F H$, $\var2_n=\var2_0\in\argmin_{\var0\in\F H}\op{E}_0(\var0)$ and the extra terms on the right-hand side collapse to 0. 
 	
-	If there exists a minimiser $\var0^*\in\argmin_{\var0\in\F H}\op{E}(\var0)$, then the natural choice in \eqref{eq: FISTA inequality} is $\var2_n=\tens{\Pi}_n\var0^*$ for some projection $\tens{\Pi}_n\colon\F H\to\F{U}^n$, however, there are simple counter-examples which give $\op{E}(\tens{\Pi}_n\var0^*)=\infty$ and so this inequality becomes useless. For example, if $\op{f}(\var0) = \norm{\var0}_{L^2([0,1])}^2$, $\op{g}$ is the indicator on the set $\F D=\{\var0\in L^1([0,1])\st \var0(x) \geq x\}$, and $\tens{\Pi}_n$ is the $L^2$ projection onto a set of piecewise constant functions, then $\var0^*=x\mapsto x$. On the other hand, suppose one of the pixels of the discretisation is $[x_0-\meshsize,x_0+\meshsize]$, then 
+	If there exists a minimiser $\var0^*\in\argmin_{\var0\in\F H}\op{E}_0(\var0)$, then the natural choice in \eqref{eq: FISTA inequality} is $\var2_n=\tens{\Pi}_n\var0^*$ for some projection $\tens{\Pi}_n\colon\F H\to\F{U}^n$, however, there are simple counter-examples which give $\op{E}_0(\tens{\Pi}_n\var0^*)=\infty$ and so this inequality becomes useless. For example, if $\op{f}(\var0) = \norm{\var0}_{L^2([0,1])}^2$, $\op{g}$ is the indicator on the set $\F D=\{\var0\in L^1([0,1])\st \var0(x) \geq x\}$, and $\tens{\Pi}_n$ is the $L^2$ projection onto a set of piecewise constant functions, then $\var0^*=x\mapsto x$. On the other hand, suppose one of the pixels of the discretisation is $[x_0-\meshsize,x_0+\meshsize]$, then 
 	$$\tens{\Pi}_n\var0^*\left(x_0+\tfrac\meshsize2\right) = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(\var0^*(x)-\vars5)^2\diff x = \argmin_{\vars5\in\R}\int_{x_0-\meshsize}^{x_0+\meshsize}(x-\vars5)^2\diff x = x_0 < x_0+\tfrac\meshsize2.$$
-	In particular $\tens{\Pi}_n\var0^* \notin\F D$ therefore $\op{E}(\tens{\Pi}_n\var0^*) = \infty$. The choice $\var2_n=\argmin_{\var0\in\F{U}^n}\op{E}(\var0)$ is much more robust and allows us to apply Algorithm~\ref{alg: refining FISTA} more broadly. The penalty for this flexibility is a more complicated analysis; each time the subset changes, because $\var1_n\in\F{U}_n$, the system receives a `shock' proportional to $\norm{\var1_n}\norm{\var2_{n}-\tens{\Pi}_n\var2_{n+1}}$. 
+	In particular $\tens{\Pi}_n\var0^* \notin\F D$ therefore $\op{E}_0(\tens{\Pi}_n\var0^*) = \infty$. The choice $\var2_n=\argmin_{\var0\in\F{U}^n}\op{E}_0(\var0)$ is much more robust and allows us to apply Algorithm~\ref{alg: refining FISTA} more broadly. The penalty for this flexibility is a more complicated analysis; each time the subset changes, because $\var1_n\in\F{U}_n$, the system receives a `shock' proportional to $\norm{\var1_n}\norm{\var2_{n}-\tens{\Pi}_n\var2_{n+1}}$. 
 	
 	
 	\subsection{Convergence bound with milestones}
@@ -340,9 +341,9 @@
 	\subsection{Refinement without overfitting}
 	The aim of Step~\ref{step: step 4 sufficiently fast} is to show that $n$ iterations of Algorithm~\ref{alg: refining FISTA} is no slower (up to a constant factor) than $n$ iterations of classical FISTA on the space $\F{U}^n$. In other words, we would like to ensure that
 	\begin{equation}
-		\op{E}(\var0_n) - \min_{\var0\in\F{U}^n}\op{E}(\var0) \lesssim \frac{\norm{\var0_0-\edit{\argmin_{\var0\in\F{U}^n}\op{E}(\var0)}{\tilde{\var2}_k}}^2}{n^2}
+		\op{E}_0(\var0_n) = \op{E}(\var0_n) - \min_{\var0\in\F{U}^n}\op{E}(\var0) \lesssim \frac{\norm{\var0_0-\edit{\argmin_{\var0\in\F{U}^n}\op{E}(\var0)}{\tilde{\var2}_k}}^2}{n^2}
 	\end{equation}
-	uniformly for $n\in[n_k,n_{k+1})$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of subsets. This can be interpreted as an overfitting to the discretisation of $\op{E}|_{\F{U}^n}$ rather than the desired function $\op{E}|_{\F H}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\F{U}^n$ grows sufficiently quickly).
+	uniformly for $n\in[n_k,n_{k+1})$. If this condition is not satisfied, then it indicates that computational effort has been wasted by a poor choice of subsets. This can be interpreted as an overfitting to the discretisation of $\op{E}_0|_{\F{U}^n}$ rather than the desired function $\op{E}_0|_{\F H}$. Combining the assumptions given by Definition~\ref{def: exp subspaces} and the result of Lemma~\ref{thm: mini exponential FISTA convergence}, the following lemma proves the convergence of Algorithm~\ref{alg: refining FISTA} provided that the refinement times $n_k$ are sufficiently small (i.e. $\F{U}^n$ grows sufficiently quickly).
 	
 	\begin{lemma}\label{thm: sufficiently fast}
 		\Copy{thm: sufficiently fast}{
@@ -367,7 +368,7 @@
 	\end{itemize}
 	
 	\subsection{Convergence rate}
-	In Lemma~\ref{thm: sufficiently fast} we show that $\op{E}(\var0_n)$ converges at a rate depending on $k$ and $n$, so long as $k$ grows sufficiently quickly. On the other hand, as $k$ grows, the rate becomes worse and so we need to also put a lower limit on the growth of $n_k$. The following lemma completes Step~\ref{step: step 5 sufficiently slow} by computing the global convergence rate of $\op{E}_0(\var0_n)$ when $k$ grows at the minimum rate which is consistent with Lemma~\ref{thm: sufficiently fast}.
+	In Lemma~\ref{thm: sufficiently fast} we show that $\op{E}_0(\var0_n)$ converges at a rate depending on $k$ and $n$, so long as $k$ grows sufficiently quickly. On the other hand, as $k$ grows, the rate becomes worse and so we need to also put a lower limit on the growth of $n_k$. The following lemma completes Step~\ref{step: step 5 sufficiently slow} by computing the global convergence rate of $\op{E}_0(\var0_n)$ when $k$ grows at the minimum rate which is consistent with Lemma~\ref{thm: sufficiently fast}.
 	
 	As a special case, note that if $\aU=1$ then Lemma~\ref{thm: sufficiently fast} already gives the optimal $O(N^{-2})$ convergence rate. This is in fact a special case of that shown in \cite[Prop 3.3]{Aujol2015}. If the minimum is achieved in $\F H$, then it is not possible to refine `too quickly' and the following lemma is not needed.
 	
@@ -401,7 +402,7 @@
 	\begin{equation}\label{eq: slow exact FISTA}
 		\op{E}_0(\var0_N) \leq \inf_{\var2\in\F H} \frac{\norm{\var2}^2+N^2\op{E}_0(\var2)}{2t_N^2} \leq \min_{k\in\F N} \frac{\norm{\tilde{\var2}_k}^2+N^2\op{E}_0(\tilde{\var2}_k)}{2t_N^2} \lesssim \min_{k\in\F N} \frac{\aU^{2k}+N^2\aE^{-k}}{N^2}\lesssim N^{-2(1-\kappa)}.
 	\end{equation}
-	In this sense, we could say that $\op{E}$ converges at the rate $N^{-2(1-\kappa)}$ if and only if such a sequence exists. Nothing is lost (or gained) analytically by choosing $\F{U}_n\subsetneq\F H$.}
+	In this sense, we could say that $\op{E}_0$ converges at the rate $N^{-2(1-\kappa)}$ if and only if such a sequence exists. Nothing is lost (or gained) analytically by choosing $\F{U}_n\subsetneq\F H$.}
 
 	\edit{This theorem is very easy to implement numerically}{Numerically, it is easy to implement the strategy of Theorem~\ref{thm: exponential FISTA convergence}} and requires very little knowledge of how to estimate $\op{E}_0(\var0_n)$. So long as $\aU$ and $\aE$ can be computed analytically, \edit{choosing $\tilde{\F{U}}^k$ to be uniform discretisations and $\tilde{\F{U}}^k = \F{U}^{n_k}=\ldots= \F{U}^{n_{k+1}-1}$ will}{one can choose $\tilde{\var2}_k$ implicitly to be the discrete minimisers of some `uniform' discretisations (e.g. $\F{U}^n=\{\norm{\var0}\leq k\}$ or finite element spaces with uniform mesh) to} achieve the stated convergence rate.
 	
@@ -429,11 +430,11 @@
 			\sout{and both}
 			$$ \norm{\tilde{\var2}_k}\lesssim \aU^k \qquad\text{and}\qquad \op{E}_0(\var0_{n_k-1}) \lesssim \aE^{-k}.$$
 			\sout{Whenever these conditions on $n_k$ are satisfied, }}{If $(\tilde{\var2}_k)_{k\in\F N}$ is an \aUaE\ with $\aU>1$ and $n_k^2\lesssim \aE^k\aU^{2k}$, }then
-			$$\min_{n\leq N}\op{E}_0(\var0_n) \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2}$$
+			$$\min_{n\leq N}\op{E}_0(\var0_n) = \min_{n\leq N} \op{E}(\var0_n) - \Emin \lesssim \frac{1}{N^{2(1-\kappa)}}\qquad \text{ where } \qquad \kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2}$$
 			uniformly for $N\in\F N$.
 		}
 	\end{theorem}
-	\noindent The proof is given in Theorem~\ref{app:thm: stronger exponential FISTA convergence}. If we directly compare Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence}, \edit{}{both are a direct result of Lemma~\ref{thm: sufficiently fast} assuming a specific choice of $n_k$ or $\tilde{\var2}_k$ respectively.} We note that the convergence rate is the same in both theorems but the price for better adaptivity (i.e. only an upper bound on $n_k$) is a slightly weaker stability guarantee (now convergence of $\min_{n\leq N}\op{E}_0(\var0_n)$). In Theorem~\ref{thm: exponential FISTA convergence}, as in the original FISTA algorithm, the sequence $\op{E}(\var0_n)$ is not monotone but the magnitude of oscillation is guaranteed to decay in time. This behaviour is lost in Theorem~\ref{thm: stronger exponential FISTA convergence}. Although we do not prove it here, it can be shown that the stronger condition 
+	\noindent The proof is given in Theorem~\ref{app:thm: stronger exponential FISTA convergence}. If we directly compare Theorems~\ref{thm: exponential FISTA convergence} and~\ref{thm: stronger exponential FISTA convergence}, \edit{}{both are a direct result of Lemma~\ref{thm: sufficiently fast} assuming a specific choice of $n_k$ or $\tilde{\var2}_k$ respectively.} We note that the convergence rate is the same in both theorems but the price for better adaptivity (i.e. only an upper bound on $n_k$) is a slightly weaker stability guarantee (now convergence of $\min_{n\leq N}\op{E}_0(\var0_n)$). In Theorem~\ref{thm: exponential FISTA convergence}, as in the original FISTA algorithm, the sequence $\op{E}_0(\var0_n)$ is not monotone but the magnitude of oscillation is guaranteed to decay in time. This behaviour is lost in Theorem~\ref{thm: stronger exponential FISTA convergence}. Although we do not prove it here, it can be shown that the stronger condition 
 	\begin{equation}
 		\tilde{\var2}_k \in \edit{\left[\argmin_{\var0\in\tilde{\F{U}}^k}\op{E}(\var0)\right]}{\F{U}^{n_k}}\cap\F{U}^{n_k+1} \cap\ldots\cap \F{U}^{n_{k+1}-1}\cap\ldots\cap \F{U}^N
 	\end{equation}
@@ -573,7 +574,7 @@
 	
 	Inserting the computed rates into Theorem~\ref{thm: exponential FISTA convergence} or Theorem~\ref{thm: stronger exponential FISTA convergence} gives the guaranteed convergence rate
 	\begin{equation}\label{eq: Lasso energy rate}
-		\kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2} = \frac{d}{1+d} \quad \implies \quad \op{E}_0(\var0_n) \lesssim n^{-2(1-\kappa)} = n^{-\frac{2}{1+d}}.
+		\kappa = \frac{\log \aU^2}{\log \aE + \log \aU^2} = \frac{d}{1+d} \quad \implies \quad \op{E}(\var0_n)-\Emin \lesssim n^{-2(1-\kappa)} = n^{-\frac{2}{1+d}}.
 	\end{equation}
 	This rate can be used to infer the required resolution at each iteration, in particular on iteration $n$ with $n^2\simeq (\aE\aU^2)^k$ we expect the resolution to be
 	\begin{equation}\label{eq: Lasso resolution rate}
@@ -653,7 +654,7 @@
 			\\|[\A^*\vec{\varphi}_n]_i - \mu| & [\var0_n]_i<0
 			\\\max\left(|[\A^*\vec{\varphi}_n]_i| - \mu, 0\right) & [\var0_n]_i = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]
+		\\ \op{E}(\var0_n)-\Emin &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right]
 	\end{align}
 	where $\vec{\varphi}_n = \nabla\op{f}(\A\var0_n-\data)\in\R^m$ is always exactly computable.
 	
@@ -674,7 +675,7 @@
 			\\|[\A^*\vec{\varphi}_n](\vec{x}) - \mu| & \var0_n(\vec{x})<0
 			\\\max\left(|[\A^*\vec{\varphi}_n](\vec{x})| - \mu, 0\right) & \var0_n(\vec{x}) = 0
 		\end{cases}
-		\\ \op{E}_0(\var0_n) &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right].
+		\\ \op{E}(\var0_n)-\Emin &\leq \op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n), \qquad \vars2_0\in\left[0,\frac{\mu}{\Norm{\A^*\vec{\varphi}_n}_*}\right].
 	\end{align}
 	If these quantities are not analytically tractable, then we use the mesh $\F M^n$ corresponding to $\F{U}^n$ to decompose the bounds:
 	\begin{align}
@@ -783,7 +784,7 @@
 	
 	Finally, we process a dataset which represents a realistic application in biological microscopy, referred to as STORM microscopy. In essence, the task is to perform 2D Gaussian de-blurring/super-resolution and denoising to find the location of sparse spikes of signal.
 	
-	In this section, the main aim is to minimise the exact energy $\op{E}_0(\var0_n)$ and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
+	In this section, the main aim is to minimise $\op{E}_0(\var0_n) = \op{E}(\var0_n)-\op{E}(\var0^*)$, and so this will be our main metric for the success of an algorithm, referred to as the `continuous gap'. Lemma~\ref{thm: practical refinement criteria} only provides guarantees on the values of $\min_{n\leq N}\op{E}_0(\var0_n)$ so it is this monotone estimate which is plotted. As $\op{E}(\var0^*)$ is not known exactly, we always use the estimate $\min_{n\leq N}\op{E}_0(\var0_n) \approx \min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2_0\vec{\varphi}_{n'})$. Another quantity of interest is minimisation of the discrete energy $\min_{n\leq N}\op{E}(\var0_n) + \min_{n'\leq n}\op{E}^\dag(\vars2\vec{\varphi}_{n'})$ which will be referred to as the `discrete gap'. Note that for the adaptive schemes the discrete gap may not be monotonic as the discrete dual problem changes with $N$.
 	
 	The code to reproduce these examples can be found online\footnote{\href{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}{https://github.com/robtovey/2020SpatiallyAdaptiveFISTA}}.
 	
@@ -800,7 +801,7 @@
 	
 	Several variants of FISTA are compared for these examples but the key alternative shown here is the CBP discretisation. For this choice of $\op{f}$, we call \eqref{eq: Lasso energy} the continuous LASSO problem, for which there are many numerical methods (c.f. \cite{Bredies2013,Castro2016,Boyd2017,Catala2019}) however, most require the solution of a non-convex problem. We have focused on CBP because it approximates $\var0^*$ through a convex discrete optimisation problem which is asymptotically exact in the limit $\meshsize\to0$. It can also be optimised with FISTA which allows for direct comparison with the uniform and adaptive mesh approaches. The idea is that for a fixed mesh, the kernels of $\A$ are expanded to first order on each pixel and a particular first order basis is also chosen \cite{Ekanadham2011,Duval2017b}. If $\var0^*$ has only one Dirac spike in each pixel, then the zeroth order information should correspond to the mass of the spike, and additional first order information should determine the location.
 	
-	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\aU = \aE = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}_0(\var0_n)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}_0(\var0_{n_k-1})\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\F{U}^n$ to approximately enforce
+	As shown in Section~\ref{sec: Lasso definition}, in 1D we have $\aU = \aE = 2$. The estimates given in \eqref{eq: Lasso energy rate} and \eqref{eq: Lasso resolution rate} in dimension $d=1$ predict that the adaptive energy will decay at a rate of $\op{E}(\var0_n)-\op{E}(\var0^*)\lesssim\frac1n$ so long as the pixel size also decreases at a rate of $\meshsize\sim\frac1n$. To achieve these rates, we implement a refinement criterion from Lemma~\ref{thm: practical refinement criteria} with guarantee of $\op{E}(\var0_{n_k-1})-\op{E}(\var0^*)\lesssim 2^{-k}$ using the estimates made in Section~\ref{sec: Lasso gap and gradient}. We choose subspaces $\F{U}^n$ to approximately enforce
 	\begin{equation}\label{eq: less than double gap bound}
 		\op{E}(\var0_n) + \op{E}^\dag(\vars2_0\vec{\varphi}_n) \leq 2(\op{E}(\var0_n) + \op{E}^\dag(\vars2\vec{\varphi}_n)),
 	\end{equation}
@@ -826,18 +827,23 @@
 	It is not completely fair to judge CBP with the continuous gap because, although it generates a continuous representation, this continuous representation is not necessarily consistent with the discrete gap being optimised, unlike when discretised with finite element methods. On the other hand, this is still the intended interpretation of the algorithm and we have no more appropriate metric for success in this case.
 	
 	\begin{figure}\centering
-		\includegraphics[width=.86\textwidth]{lasso_ndofs_convergence}
+		\includegraphics[width=.9\textwidth]{lasso_ndofs_convergence}
 		\caption{Rates of continuous/discrete gap convergence for different LASSO algorithms with 128, 256, or 512 pixels. The `adaptive' method uses the proposed algorithm. Both `fixed' and `CBP' use standard FISTA with a uniform discretisation.}\label{fig: convergence with ndofs}
 		
 		\vspace*{\floatsep}
 		
-		\includegraphics[width=.86\textwidth]{lasso_convergence_short}
+		\includegraphics[width=.9\textwidth]{lasso_convergence_short}
 		\caption{Convergence plots for solving 1D problems with different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
+		
+		\vspace*{\floatsep}
+
+		\includegraphics[width=.9\textwidth]{lasso_1D_recons}
+		\caption{Example reconstruction from the algorithms considered in Fig.~\ref{fig: convergence with method}. Pixel boundaries are indicated on the $x$-axis and the filtering method of Section~\ref{sec: support detection} allows us to exclude the red shaded regions from $\op{supp}(u^*)$. Values on the $y$-axis are normalised to units of mass, i.e. a Dirac mass would have height 1.}\label{fig: example recon}
 	\end{figure}
 	
 	
 	\paragraph{Comparison of FISTA variants}
-	Fig.~\ref{fig: convergence with method} compares many methods with either fixed or adaptive discretisations. Each adaptive scheme is allowed up to 1024 pixels and each uniform discretisation uses exactly 1024. The `Greedy FISTA' implementation was proposed by in \cite{Liang2018} and we include the adaptive variant despite a lack of convergence proof. The remaining FISTA algorithms use a FISTA time step of $t_n = \frac{n+a-1}{a}$ for the given value of $a$, as proposed in \cite{Chambolle2015}. In this example CBP used the greedy FISTA implementation which gave faster observed convergence. Fig.~\ref{fig: convergence with method} compares the discrete gaps because it is the accurate metric for fixed discretisations, and for the adaptive discretisation it should also be an accurate predictor of the continuous gap. 
+	Fig.~\ref{fig: convergence with method} compares many methods with either fixed or adaptive discretisations. Each adaptive scheme is allowed up to 1024 pixels and each uniform discretisation uses exactly 1024. \edit{}{An example of each reconstruction method is shown in Fig.~\ref{fig: example recon}. The adaptive method better identifies the support of $u^*$ and clearly localises pixels on that support. The reconstruction with uniform grid fails to provably identify the support of $\var0^*$, despite having found a qualitatively accurate discrete minimiser.} The `Greedy FISTA' implementation was proposed by in \cite{Liang2018} and we include the adaptive variant despite a lack of convergence proof. The remaining FISTA algorithms use a FISTA time step of $t_n = \frac{n+a-1}{a}$ for the given value of $a$, as proposed in \cite{Chambolle2015}. In this example CBP used the greedy FISTA implementation which gave faster observed convergence. Fig.~\ref{fig: convergence with method} compares the discrete gaps because it is the accurate metric for fixed discretisations, and for the adaptive discretisation it should also be an accurate predictor of the continuous gap. 
 	The main observations are:
 	\begin{itemize}
 		\item Each algorithm displays very similar convergence properties. The main difference is that the reconstructions with fixed discretisations accelerate after $10^4$-$10^5$ iterations.
@@ -848,11 +854,11 @@
 	\end{itemize}
 	
 	\paragraph{Comparison of fixed and adaptive discretisation}
-	Motivated by the findings in Fig.~\ref{fig: convergence with method}, we now look more closely at the performance of the $a=20$ and the greedy FISTA schemes. We have convergence results for the former, but the latter typically performs the best for non-adaptive optimisation and is never worse than $a=20$ in the adaptive setting. The question is whether it is faster/more efficient to use the proposed adaptive scheme, or to use a classical scheme at sufficiently high uniform resolution. The fixed discretisations use 1024 pixels (i.e. constant pixel size of $2^{-10}$ in Fig.~\ref{fig: comparison with iteration}) and the adaptive discretisation starts with two pixels with an upper limit of 1024. As expected, the fixed discretisation starts with a smaller continuous gap before plateauing to a sub-optimal gap around $\op{E}_0=0.1$.
+	Motivated by the findings in Fig.~\ref{fig: convergence with method}, we now look more closely at the performance of the $a=20$ and the greedy FISTA schemes. We have convergence results for the former, but the latter typically performs the best for non-adaptive optimisation and is never worse than $a=20$ in the adaptive setting. The question is whether it is faster/more efficient to use the proposed adaptive scheme, or to use a classical scheme at sufficiently high uniform resolution. The fixed discretisations use 1024 pixels (i.e. constant pixel size of $2^{-10}$ in Fig.~\ref{fig: comparison with iteration}) and the adaptive discretisation starts with two pixels with an upper limit of 1024. As expected, the fixed discretisation starts with a smaller continuous gap before plateauing to a sub-optimal gap around $\op{E}=\op{E}(\var0^*) + 0.1$.
 	
 	Fig.~\ref{fig: comparison with iteration} shows convergence of pixel size and continuous gap with respect to number of iterations. Fig.~\ref{fig: comparison with time} shows the more practical attributes of continuous gap and number of pixels against execution time. We see that the adaptive discretisation is consistently capable of computing lower energies with fewer pixels and in less time than the uniform discretisation. The convergence behaviour is very consistent with respect to number of iterations.
 	
-	Suppose that the numerical aim is to find a function $\var0_n$ with $\op{E}_0(\var0_n)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms. For $n\in[10^3,10^4]$, in both problems, the adaptive schemes coincide with the fixed schemes in both energy and minimum pixel size. On the other hand, we also see that the adaptive scheme achieves this energy in almost an order of magnitude less time and fewer pixels.
+	Suppose that the numerical aim is to find a function $\var0_n$ with $\op{E}(\var0_n)-\op{E}(\var0^*)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms. For $n\in[10^3,10^4]$, in both problems, the adaptive schemes coincide with the fixed schemes in both energy and minimum pixel size. On the other hand, we also see that the adaptive scheme achieves this energy in almost an order of magnitude less time and fewer pixels.
 	
 	\begin{figure}\centering
 		\includegraphics[width=.86\textwidth]{lasso_reduced_convergence}

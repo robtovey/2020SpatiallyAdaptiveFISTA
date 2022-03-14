@@ -16,7 +16,7 @@ and plotting etc. within the mesh.
 A forward model of Gaussian bluring and tomography is also implemented.
 '''
 from numpy import (empty, array, zeros, isscalar, log, pi, sqrt, log10,
-    log2, arange, concatenate, linspace, prod)
+                   log2, arange, concatenate, linspace, prod)
 from scipy.sparse import csr_matrix
 from numpy.linalg import norm
 from matplotlib import pyplot as plt
@@ -24,7 +24,7 @@ from sparse_bin import jit, FTYPE, _blur_coarse
 from sparse_ops import func, kernelMap, op, ker2meshmat2, ker2meshfunc2, sparse_matvec
 from math import (exp as c_exp, erf as c_erf, sin as c_sin, cos as c_cos, sqrt as c_sqrt, floor)
 from algorithms import (stopping_criterion, faster_FISTA, _makeVid,
-    FB, shrink, shrink_vec, FISTA)
+                        FB, shrink, shrink_vec, FISTA)
 from adaptive_spaces import sparse_function as sparse_func, sparse_FS as sparse_mesh, adaptive_func as Array
 
 
@@ -266,10 +266,12 @@ class kernelMap2D(kernelMap):
             def base_eval(i, x, y): return EXP((x - X[i, 0]) * (x - X[i, 0]) + (y - X[i, 1]) * (y - X[i, 1]))
 
             @jit(nopython=True, fastmath=True)
-            def gradx(i, x, y): return -p[1] * (x - X[i, 0]) * EXP((x - X[i, 0]) * (x - X[i, 0]) + (y - X[i, 1]) * (y - X[i, 1]))
+            def gradx(i, x, y): return -p[1] * (x - X[i, 0]) * \
+                EXP((x - X[i, 0]) * (x - X[i, 0]) + (y - X[i, 1]) * (y - X[i, 1]))
 
             @jit(nopython=True, fastmath=True)
-            def grady(i, x, y): return -p[1] * (y - X[i, 1]) * EXP((x - X[i, 0]) * (x - X[i, 0]) + (y - X[i, 1]) * (y - X[i, 1]))
+            def grady(i, x, y): return -p[1] * (y - X[i, 1]) * \
+                EXP((x - X[i, 0]) * (x - X[i, 0]) + (y - X[i, 1]) * (y - X[i, 1]))
 
             @jit(nopython=True, fastmath=True)
             def base_int(i, x0, y0, x1, y1):
@@ -289,7 +291,8 @@ class kernelMap2D(kernelMap):
 #             assert abs(X[1:] - X[:-1]).ptp() < 1e-15
             c, R = sigma / abs(x[1] - x[0]), int(sigma / abs(x[1] - x[0])) + 1
             C = ((1, sqrt(1 + sqrt(pi) * c) ** 2, (1 + sqrt(2 * pi) * c) ** 2),
-                 (c_exp(-.5), sqrt(2 / c_exp(1) * R + sqrt(pi) * c + pi * c * c), 2 / c_exp(.5) * R + 4 * c + sqrt(2 * pi ** 3) * c * c),
+                 (c_exp(-.5), sqrt(2 / c_exp(1) * R + sqrt(pi) * c + pi * c * c),
+                  2 / c_exp(.5) * R + 4 * c + sqrt(2 * pi ** 3) * c * c),
                  (2 / c_exp(.5), sqrt(8 / c_exp(1) * R + 5.5 * sqrt(pi) * c + 5 * pi * c * c), 4 / c_exp(.5) + 4 * sqrt(2 * pi) * c + 6 * pi * c * c))
 
             def mat_norm(k):
@@ -373,12 +376,13 @@ class kernelMapMesh2D(op):
         @jit(nopython=True, fastmath=True)
         def IP(i0, i1, j0, j1):
             return p[4] * c_exp(-.25 * p[1] * ((X[i0] - X[j0]) * (X[i0] - X[j0])
-                                              +(X[i1] - X[j1]) * (X[i1] - X[j1])))
+                                               + (X[i1] - X[j1]) * (X[i1] - X[j1])))
 
 #             assert abs(X[1:] - X[:-1]).ptp() < 1e-15
         c, R = sigma / dx, int(sigma / dx) + 1
         C = ((1, sqrt(1 + sqrt(pi) * c) ** 2, (1 + sqrt(2 * pi) * c) ** 2),
-             (c_exp(-.5), sqrt(2 / c_exp(1) * R + sqrt(pi) * c + pi * c * c), 2 / c_exp(.5) * R + 4 * c + sqrt(2 * pi ** 3) * c * c),
+             (c_exp(-.5), sqrt(2 / c_exp(1) * R + sqrt(pi) * c + pi * c * c),
+              2 / c_exp(.5) * R + 4 * c + sqrt(2 * pi ** 3) * c * c),
              (2 / c_exp(.5), sqrt(8 / c_exp(1) * R + 5.5 * sqrt(pi) * c + 5 * pi * c * c), 4 / c_exp(.5) + 4 * sqrt(2 * pi) * c + 6 * pi * c * c))
 
         def mat_norm(k):
@@ -416,7 +420,7 @@ class kernelMapMesh2D(op):
                         vy -= p[1] * (pmidy - X[j1]) * scale
                 v[i] = abs(v0) + h * c_sqrt(vx * vx + vy * vy) + .5 * h * h * s
 
-        __params = {'sigma':sigma, 'p':p, 'C':C, 'dx':dx, 'r':r}
+        __params = {'sigma': sigma, 'p': p, 'C': C, 'dx': dx, 'r': r}
 
         op.__init__(self, self.fwrd, self.bwrd, out_sz=X.shape[0] ** 2, norm=Norm)
         self.x, self.dim = X, 2
@@ -424,8 +428,8 @@ class kernelMapMesh2D(op):
 
         self._bin = ker2meshmat2(base_eval, (gradx, grady), base_int, IP, dx, r)
         self._func_bin = ker2meshfunc2(base_eval, (gradx, grady), base_int, dx, r)
-        self._bin.update({'base_eval':base_eval, 'base_grad':(gradx, grady), 'base_int':base_int, 'norm':mat_norm})
-        self._func_bin.update({'norm':func_norm, 'max_abs':max_abs})
+        self._bin.update({'base_eval': base_eval, 'base_grad': (gradx, grady), 'base_int': base_int, 'norm': mat_norm})
+        self._func_bin.update({'norm': func_norm, 'max_abs': max_abs})
 
         if Norm < 0:
             tmp = empty((self.x.size,) * 4, dtype=FTYPE)
@@ -433,7 +437,7 @@ class kernelMapMesh2D(op):
             self._norm = norm(tmp.reshape(self.x.size ** 2, -1), 2) ** .5
             print('norm: ', self._norm)
         self.__gnorm = {}
-        self._buf = {'DM':None}
+        self._buf = {'DM': None}
         self._multicore_mat = _multicore_mat
 
     def _blur_coarse(self, coarse_map):
@@ -445,7 +449,7 @@ class kernelMapMesh2D(op):
 
     def _fat_dof_map(self, dof_map):
         fat_DM = dof_map.copy()
-        fat_DM[:,:-1] -= self.__params['r']
+        fat_DM[:, :-1] -= self.__params['r']
         fat_DM[:, -1] += 2 * self.__params['r']
         return fat_DM
 
@@ -586,12 +590,12 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
         w = w * scale
     elif scale:
         w = w * A.T(D).max_abs(fine_mesh.dof_map).max()  # w=1 corresponds to 0 exact solution
-    pms = {'eps_max':mesh.H.max(), 'eps_min':mesh.H.min(), 'i':0, 'dof':mesh.size,
-       'gap':0, 'gap0':0, 'residual':(0, 0), 'mass':0,
-       'E':0, 'F':0, 'F0':0, 'Emin':norm(D) ** 2 / 2, 'Fmax':0, 'F0max':0,
-       'gamma':1, 'delta':1, 'delta_crit':1, 'thresh':0, 'thresh0':0, 'max':1,
-       'supp_frac':1, 'supp_frac0':1, 'refineI':2, 'factor':1,
-       'FS':mesh, 'backstop_gap':norm(D) ** 2 / 2, 'backstop_eps':0.75}
+    pms = {'eps_max': mesh.H.max(), 'eps_min': mesh.H.min(), 'i': 0, 'dof': mesh.size,
+           'gap': 0, 'gap0': 0, 'residual': (0, 0), 'mass': 0,
+           'E': 0, 'F': 0, 'F0': 0, 'Emin': norm(D) ** 2 / 2, 'Fmax': 0, 'F0max': 0,
+           'gamma': 1, 'delta': 1, 'delta_crit': 1, 'thresh': 0, 'thresh0': 0, 'max': 1,
+           'supp_frac': 1, 'supp_frac0': 1, 'refineI': 2, 'factor': 1,
+           'FS': mesh, 'backstop_gap': norm(D) ** 2 / 2, 'backstop_eps': 0.75}
 
     def energy(u):
         refine(u, True)
@@ -633,10 +637,10 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
         # continuous gap and threshold estimates
         gap0 = toGap(extrema[0] - extrema[2])  # error to continuous dual
         err0 = min(toGap(E - extrema[2]),  # |r-r^*|
-                    # |r-r_{disc}| + |r_{disc}-r^*| = gap + sqrt(eps*|A^*r^*|_{C^1})
-                    toGap(E - extrema[1]) + (eps * (Av_norm[1] + A.gnorm(1) * toGap(E - extrema[1])) * E / w))
+                   # |r-r_{disc}| + |r_{disc}-r^*| = gap + sqrt(eps*|A^*r^*|_{C^1})
+                   toGap(E - extrema[1]) + (eps * (Av_norm[1] + A.gnorm(1) * toGap(E - extrema[1])) * E / w))
         threshold0 = max(w - A.gnorm(0) * err0,  # primal estimate
-                        (w - A.gnorm(0) * toGap(extrema[0] - Estar0)) / delta)  # dual estimate
+                         (w - A.gnorm(0) * toGap(extrema[0] - Estar0)) / delta)  # dual estimate
 
         # (E-Estar) + (1-delta/gamma)Estar < 2 (E-Estar)
         # delta/gamma > 1 - (2-1)(E-Estar)/Estar
@@ -675,7 +679,8 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
         pms['i'] += 1
         if pms['i'] >= pms['refineI']:
             refine(u)
-            pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.15)  # 20 refinements for each factor of 10 iterations
+            # 20 refinements for each factor of 10 iterations
+            pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.15)
 #             pms['refineI'] = max(pms['refineI'] + 1, pms['refineI'] * 1.30)  #  9 refinements for each factor of 10 iterations
 
         if u.dof_map is not u.FS.dof_map:
@@ -721,7 +726,8 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
                 pms['dual plot'][0] = ax.plot(array([0, 1]), [0] * 2, 'r:', [0, 1], [0] * 2, 'r:')
                 pms['dual plot'][1] = ax.plot(array([0, 1]), [0] * 2, 'r--', [0, 1], [0] * 2, 'r--')
                 pms['dual plot'][2] = ax.plot(array([0, 1]), [1] * 2, 'r-', [0, 1], [-1] * 2, 'r-')
-                pms['dual plot'][3] = ax.plot(fine_mesh.dof_map[:, 0] + .5 * fine_mesh.dof_map[:, 1], high, color='black')[0]
+                pms['dual plot'][3] = ax.plot(fine_mesh.dof_map[:, 0] + .5 *
+                                              fine_mesh.dof_map[:, 1], high, color='black')[0]
                 pms['dual plot'][4] = u.copy(low).plot(10, ax=ax, max_ticks=0, color='blue')
             else:
                 for j, s in enumerate(('thresh', 'thresh0')):
@@ -775,11 +781,14 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
             ax = pms['axes'][2]; plt.sca(ax)
             if pms.get('error plot', None) is None:
                 pms['error plot'] = (ax.plot(I, stop_crit.extras[:ii, 1], '-', color='tab:red', label='Discrete PD gap')[0],
-                                     ax.plot(I, stop_crit.extras[:ii, 0], '-', color='tab:blue', label='Continuous PD gap')[0],
-                                     ax.plot(I, 1 - stop_crit.extras[:ii, 8], '--', color='tab:red', label='Discrete threshold')[0],
-                                     ax.plot(I, 1 - stop_crit.extras[:ii, 7], '--', color='tab:blue', label='Continuous threshold')[0],
+                                     ax.plot(I, stop_crit.extras[:ii, 0], '-',
+                                             color='tab:blue', label='Continuous PD gap')[0],
+                                     ax.plot(I, 1 - stop_crit.extras[:ii, 8], '--',
+                                             color='tab:red', label='Discrete threshold')[0],
+                                     ax.plot(I, 1 - stop_crit.extras[:ii, 7], '--',
+                                             color='tab:blue', label='Continuous threshold')[0],
                                      ax.plot(I, stop_crit.extras[:ii, 6], '-', color='black', label='Pixels')[0])
-                ax.set_yscale('log');  ax.set_xscale('log')
+                ax.set_yscale('log'); ax.set_xscale('log')
                 ax.legend(loc='lower left')
                 ax.set_xlabel('Iterations')
             else:
@@ -796,9 +805,9 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
                 lims[0] = min(lims[0], L.get_ydata().min())
                 lims[1] = max(lims[1], L.get_ydata().max())
             ax.set_ylim(
-                    max(1e-6, 10. ** floor(log10(lims[0] + 1e-7))),
-                    min(1e8, 10. ** floor(log10(lims[1] + 1) + 1))
-                )
+                max(1e-6, 10. ** floor(log10(lims[0] + 1e-7))),
+                min(1e8, 10. ** floor(log10(lims[1] + 1) + 1))
+            )
 
             if i < 2:
                 fig.tight_layout()
@@ -806,23 +815,28 @@ def Lasso(A, data, w, adaptive=True, iters=None, prnt=True, plot=True,
     def custom_stop(i, *_, d=None, extras=None, **__): return ((extras[0 if adaptive[1] else 1] < stop) and i > 2)
 
     stop_crit = stopping_criterion(iters[0], custom_stop, frequency=iters[1], prnt=prnt, record=True,
-                              energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
-                              callback=doPlot if plot else lambda *args:None)
+                                   energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
+                                   callback=doPlot if plot else lambda *args: None)
 
     if type(algorithm) is str:
         algorithm = algorithm, {}
     if algorithm[0] is 'Greedy':
-        default = {'xi':0.95, 'S':1}
+        default = {'xi': 0.95, 'S': 1}
         default.update(algorithm[1])
         recon = faster_FISTA(recon, 1 / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FISTA':
-        default = {'a':10, 'restarting':False}
+        default = {'a': 10, 'restarting': False}
         default.update(algorithm[1])
         recon = FISTA(recon, 1 / A.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FB':
-        default = {'scale':2}
+        default = {'scale': 2}
         default.update(algorithm[1])
         recon = FB(recon, default['scale'] / A.norm ** 2, gradF, proxG, stop_crit)
+
+    # remove non-support pixels, even if not adaptive
+    adaptive = recon.size, True
+    refine(recon)
+    recon.update(FS=recon.FS)
 
     return recon, stop_crit
 
@@ -884,15 +898,20 @@ class CBPArray:
 
     def __neg__(self): return CBPArray([-xi for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
 
-    def __add__(self, other): return CBPArray([xi + other.x[i] for i, xi in enumerate(self.x)], original=self.original, dx=self.dx, scale=self.scale)
+    def __add__(self, other): return CBPArray(
+        [xi + other.x[i] for i, xi in enumerate(self.x)], original=self.original, dx=self.dx, scale=self.scale)
 
-    def __sub__(self, other): return CBPArray([xi - other.x[i] for i, xi in enumerate(self.x)], original=self.original, dx=self.dx, scale=self.scale)
+    def __sub__(self, other): return CBPArray(
+        [xi - other.x[i] for i, xi in enumerate(self.x)], original=self.original, dx=self.dx, scale=self.scale)
 
-    def __mul__(self, other): return CBPArray([xi * other for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
+    def __mul__(self, other): return CBPArray([xi * other for xi in self.x],
+                                              original=self.original, dx=self.dx, scale=self.scale)
 
-    def __truediv__(self, other): return CBPArray([xi / other for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
+    def __truediv__(self, other): return CBPArray(
+        [xi / other for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
 
-    def __rtruediv__(self, other): return CBPArray([other / xi for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
+    def __rtruediv__(self, other): return CBPArray(
+        [other / xi for xi in self.x], original=self.original, dx=self.dx, scale=self.scale)
 
     def __iadd__(self, other):
         for i, xi in enumerate(self.x):
@@ -1043,9 +1062,9 @@ def CBP(A, data, w, size=None, iters=None, prnt=True, plot=True, vid=None, stop=
     D = data.reshape(-1)
     w = w * A.T(D).max_abs(fine_mesh.dof_map).max()  # w=1 corresponds to 0 exact solution
 
-    pms = {'eps_max':mesh.H.max(), 'eps_min':mesh.H.min(), 'i':0, 'dof':mesh.size,
-       'gap':0, 'gap0':0, 'residual':(0, 0), 'E': 0, 'F': 0, 'F0': 0, 'Emin': 1e16, 'E0min': 1e16, 'Fmax':-1e16, 'Fmax_d':-1e16, 'F0max':-1e16,
-       'thresh':0, 'thresh0':0, 'FS':mesh}
+    pms = {'eps_max': mesh.H.max(), 'eps_min': mesh.H.min(), 'i': 0, 'dof': mesh.size,
+           'gap': 0, 'gap0': 0, 'residual': (0, 0), 'E': 0, 'F': 0, 'F0': 0, 'Emin': 1e16, 'E0min': 1e16, 'Fmax': -1e16, 'Fmax_d': -1e16, 'F0max': -1e16,
+           'thresh': 0, 'thresh0': 0, 'FS': mesh}
     dx = pms['eps_min']
 
     oldA = A
@@ -1129,9 +1148,9 @@ def CBP(A, data, w, size=None, iters=None, prnt=True, plot=True, vid=None, stop=
                         (w - oldA.gnorm(0) * toGap(extrema[0] - Estar)) / gamma)  # dual estimate
 
         err0 = min(toGap(E - extrema[2]),
-                    toGap(E - extrema[1]) + (eps * (Av_norm[1] + oldA.gnorm(1) * toGap(E - extrema[1])) * E / w))
+                   toGap(E - extrema[1]) + (eps * (Av_norm[1] + oldA.gnorm(1) * toGap(E - extrema[1])) * E / w))
         threshold0 = min(w - oldA.gnorm(0) * err0,  # primal estimate
-                        (w - oldA.gnorm(0) * toGap(extrema[0] - Estar0)) / delta)  # dual estimate
+                         (w - oldA.gnorm(0) * toGap(extrema[0] - Estar0)) / delta)  # dual estimate
 
         pms.update(gap0=extrema[0] - extrema[2],
                    residual=(n_r, abs(r).max()), E=E, F=Estar, F0=Estar0, delta=delta,
@@ -1183,7 +1202,8 @@ def CBP(A, data, w, size=None, iters=None, prnt=True, plot=True, vid=None, stop=
             pms['dual plot'][0] = ax.plot(array([0, 1]), [0] * 2, 'r:', [0, 1], [0] * 2, 'r:')
             pms['dual plot'][1] = ax.plot(array([0, 1]), [0] * 2, 'r--', [0, 1], [0] * 2, 'r--')
             pms['dual plot'][2] = ax.plot(array([0, 1]), [1] * 2, 'r-', [0, 1], [-1] * 2, 'r-')
-            pms['dual plot'][3] = ax.plot(arange(u.dx / 2, 1, u.dx), (abs(dual.x[0]) + (u.dx / 2) * abs(dual.x[2])) / w, color='black')[0]
+            pms['dual plot'][3] = ax.plot(arange(u.dx / 2, 1, u.dx), (abs(dual.x[0]) +
+                                                                      (u.dx / 2) * abs(dual.x[2])) / w, color='black')[0]
             pms['dual plot'][4] = ax.plot(mesh.dof_map[:, 0] + .5 * mesh.dof_map[:, 1], low, color='blue')[0]
             ax.set_xlim(0, 1)
         else:
@@ -1208,23 +1228,23 @@ def CBP(A, data, w, size=None, iters=None, prnt=True, plot=True, vid=None, stop=
     def custom_stop(i, *_, d=None, extras=None, **__): return ((extras[1] < stop) and i > 2)
 
     stop_crit = stopping_criterion(iters[0], custom_stop, frequency=iters[1], prnt=prnt, record=True,
-                              energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
-                              callback=(lambda *_: None) if plot is False else doPlot)
+                                   energy=energy, vid=vid, fig=None if plot is False else _makeVid(stage=0, record=vid),
+                                   callback=(lambda *_: None) if plot is False else doPlot)
 
     recon = CBPArray(zeros(size, dtype=float), zeros(size, dtype=float), zeros(size, dtype=float), dx=dx, scale=scale)
 
     if type(algorithm) is str:
         algorithm = algorithm, {}
     if algorithm[0] is 'Greedy':
-        default = {'xi':0.95, 'S':1}
+        default = {'xi': 0.95, 'S': 1}
         default.update(algorithm[1])
         recon = faster_FISTA(recon, 1 / myop.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FISTA':
-        default = {'a':10, 'restarting':False}
+        default = {'a': 10, 'restarting': False}
         default.update(algorithm[1])
         recon = FISTA(recon, 1 / myop.norm ** 2, gradF, proxG, stop_crit, **default)
     elif algorithm[0] is 'FB':
-        default = {'scale':2}
+        default = {'scale': 2}
         default.update(algorithm[1])
         recon = FB(recon, default['scale'] / myop.norm ** 2, gradF, proxG, stop_crit)
 
@@ -1238,7 +1258,7 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore", message='Data has no positive values, and therefore cannot be log-scaled.')
     from numpy import random
 
-    test = 3
+    test = 2
     if test == 1:  # check kernel maps
         from sparse_ops import _test_op
         sigma = .1
@@ -1289,7 +1309,7 @@ if __name__ == '__main__':
         random.seed(1)
         iters = (10000, 1.1)
         adaptive = 1000, True
-        vid = {'filename':'videos/lasso000', 'fps':5}
+        vid = {'filename': 'videos/lasso000', 'fps': 5}
 #         vid = None
 
         ker, peaks, sigma = 'Gaussian', 10, 0.12
@@ -1326,12 +1346,12 @@ if __name__ == '__main__':
         random.seed(1)
         iters = (1000, 1.2)
         adaptive = 10 ** 8, True
-        vid = {'filename':'videos/lasso2D_vid_%s%d' % ('adapt' if adaptive[1] else 'fixed', +round(log10(adaptive[0]))),
-           'fps':int(log(iters[0]) / log(iters[1]) / 60) + 1}
+        vid = {'filename': 'videos/lasso000', 'fps': int(log(iters[0]) / log(iters[1]) / 60) + 1}
         vid = None
 
         ker, peaks, sigma = 'Gaussian', 10, 0.12
-        gt_measure = array(concatenate([random.rand(peaks, 1), .1 + .8 * random.rand(peaks, 1), .1 + .8 * random.rand(peaks, 1)], axis=1))
+        gt_measure = array(concatenate([random.rand(peaks, 1), .1 + .8 *
+                                        random.rand(peaks, 1), .1 + .8 * random.rand(peaks, 1)], axis=1))
         points = linspace(0, 1, 16)
 
         A = kernelMap2D(ker=ker, x=points, sigma=sigma)
@@ -1358,16 +1378,16 @@ if __name__ == '__main__':
         exit()
 
     elif test == 4:  # storm data
-#         from run_STORM import merge_results
-#         merge_results(8, 'large_w')
-#         print('finished')
-#         exit()
+        #         from run_STORM import merge_results
+        #         merge_results(8, 'large_w')
+        #         print('finished')
+        #         exit()
         from skimage.io import imread
         iters = (1000, 1.2)
         adaptive = 10 ** 6, True
 
         A = kernelMapMesh2D(x=linspace(0, 1, 64 + 1)[:-1] + 1 / 128,
-                        sigma=2 / 64 / sqrt(2 * log(2)), Norm=64)
+                            sigma=2 / 64 / sqrt(2 * log(2)), Norm=64)
         data = imread('STORM_data/sequence-as-stack-MT4.N2.HD-2D-Exp.tif').astype(FTYPE) / 2000 - 0.07
 #         vid = {'filename':'videos/lasso2D_vid_slice', 'fps':5}
         vid = None
@@ -1377,4 +1397,3 @@ if __name__ == '__main__':
         recon, record = Lasso(A, data, .15, adaptive, iters, vid=vid, plot=True)
         if vid is None:
             plt.show()
-
