@@ -91,7 +91,7 @@
 			\fi%
 		}{\color{red}#2}\ %
 	}\fi{\color{darkgreen}#3}}
-%\renewcommand{\edit}[3][1]{#3}
+\renewcommand{\edit}[3][1]{#3}
 \newcommand{\todo}[1]{{\color{orange}#1}}
 
 \author{Antonin Chambolle \and Robert Tovey }
@@ -815,17 +815,6 @@
 	\end{equation}
 	is the maximum ratio of second vs. zeroth order Taylor approximations of $\A^*\vec{\varphi}_n$ on pixel $\domain_i^n$. This was found to be an efficient method of selecting pixels for refinement using quantities which had already been computed. Note briefly that this greedy strategy directly targets uncertainty, refinements also happen outside of the support of $u_n$ to guarantee that this is representative of $\var0^*$. Such refinement is necessary to avoid \edit{critical points}{discrete minimisers} of $\op{E}$ which are not global minimisers.
 	
-	\paragraph{Comparison of discretisation methods}
-	In Fig.~\ref{fig: convergence with ndofs} we compare the three core approaches: fixed uniform
-	discretisation, adaptive discretisation, and CBP. In particular, we wish to observe their convergence properties as the number of pixels is allowed to grow. In each case we use a FISTA stepsize of $t_n = \frac{n+19}{20}$. The adaptive discretisation is started with one pixel and limited to 128, 256, or 512 pixels while the fixed and CBP discretisations have uniform discretisations with the maximum number of pixels. The main observations are:
-	\begin{itemize}
-		\item The adaptive scheme is much more efficient, in both examples the adaptive scheme with 128 pixels is at least as good as both fixed discretisations with 512 pixels. In fact, only a maximum of 214 pixels were needed by the adaptive method in either example.
-		\item With Fourier kernels the uniform piecewise constant discretisation is more efficient than CBP but in the Gaussian case this is reversed. This suggests that the performance of CBP depends on the smoothness of $\A$.
-		\item The discrete gaps for non-adaptive optimisation behave as is common for FISTA, initial convergence is polynomial until a locally linear regime activates \cite{Tao2016}. CBP is always slower to converge than the piecewise constant discretisation.
-		\item The adaptive refinement criterion succeeds in keeping the continuous/discrete gaps close for all $n$\edit{}{, i.e. \eqref{eq: less than double gap bound}}.
-	\end{itemize}
-	It is not completely fair to judge CBP with the continuous gap because, although it generates a continuous representation, this continuous representation is not necessarily consistent with the discrete gap being optimised, unlike when discretised with finite element methods. On the other hand, this is still the intended interpretation of the algorithm and we have no more appropriate metric for success in this case.
-	
 	\begin{figure}\centering
 		\includegraphics[width=.9\textwidth]{lasso_ndofs_convergence}
 		\caption{Rates of continuous/discrete gap convergence for different LASSO algorithms with 128, 256, or 512 pixels. The `adaptive' method uses the proposed algorithm. Both `fixed' and `CBP' use standard FISTA with a uniform discretisation.}\label{fig: convergence with ndofs}
@@ -836,10 +825,21 @@
 		\caption{Convergence plots for solving 1D problems with different algorithms. `Adaptive' methods use Algorithm~\ref{alg: refining FISTA} with fewer than 1024 pixels and the remaining methods use a uniform discretisation of 1024 pixels.}\label{fig: convergence with method}
 		
 		\vspace*{\floatsep}
-
+		
 		\includegraphics[width=.9\textwidth]{lasso_1D_recons}
 		\caption{Example reconstruction from the algorithms considered in Fig.~\ref{fig: convergence with method}. Pixel boundaries are indicated on the $x$-axis and the filtering method of Section~\ref{sec: support detection} allows us to exclude the red shaded regions from $\op{supp}(u^*)$. Values on the $y$-axis are normalised to units of mass, i.e. a Dirac mass would have height 1.}\label{fig: example recon}
 	\end{figure}
+
+	\paragraph{Comparison of discretisation methods}
+	In Fig.~\ref{fig: convergence with ndofs} we compare the three core approaches: fixed uniform
+	discretisation, adaptive discretisation, and CBP. In particular, we wish to observe their convergence properties as the number of pixels is allowed to grow. In each case we use a FISTA stepsize of $t_n = \frac{n+19}{20}$. The adaptive discretisation is started with one pixel and limited to 128, 256, or 512 pixels while the fixed and CBP discretisations have uniform discretisations with the maximum number of pixels. The main observations are:
+	\begin{itemize}
+		\item The adaptive scheme is much more efficient, in both examples the adaptive scheme with 128 pixels is at least as good as both fixed discretisations with 512 pixels. In fact, only a maximum of 214 pixels were needed by the adaptive method in either example.
+		\item With Fourier kernels the uniform piecewise constant discretisation is more efficient than CBP but in the Gaussian case this is reversed. This suggests that the performance of CBP depends on the smoothness of $\A$.
+		\item The discrete gaps for non-adaptive optimisation behave as is common for FISTA, initial convergence is polynomial until a locally linear regime activates \cite{Tao2016}. CBP is always slower to converge than the piecewise constant discretisation.
+		\item The adaptive refinement criterion succeeds in keeping the continuous/discrete gaps close for all $n$\edit{}{, i.e. \eqref{eq: less than double gap bound}}.
+	\end{itemize}
+	It is not completely fair to judge CBP with the continuous gap because, although it generates a continuous representation, this continuous representation is not necessarily consistent with the discrete gap being optimised, unlike when discretised with finite element methods. On the other hand, this is still the intended interpretation of the algorithm and we have no more appropriate metric for success in this case.
 	
 	
 	\paragraph{Comparison of FISTA variants}
@@ -859,8 +859,8 @@
 	Fig.~\ref{fig: comparison with iteration} shows convergence of pixel size and continuous gap with respect to number of iterations. Fig.~\ref{fig: comparison with time} shows the more practical attributes of continuous gap and number of pixels against execution time. We see that the adaptive discretisation is consistently capable of computing lower energies with fewer pixels and in less time than the uniform discretisation. The convergence behaviour is very consistent with respect to number of iterations.
 	
 	Suppose that the numerical aim is to find a function $\var0_n$ with $\op{E}(\var0_n)-\op{E}(\var0^*)\leq 0.1$, all methods would converge after $O(10^3)$ iterations, demonstrating some equivalence between the two FISTA algorithms. For $n\in[10^3,10^4]$, in both problems, the adaptive schemes coincide with the fixed schemes in both energy and minimum pixel size. On the other hand, we also see that the adaptive scheme achieves this energy in almost an order of magnitude less time and fewer pixels.
-	
-	\begin{figure}\centering
+
+	\begin{figure}[H]\centering
 		\includegraphics[width=.86\textwidth]{lasso_reduced_convergence}
 		\caption{Continuous convergence of adaptive (coarse-to-fine pixel size) compared with uniform discretisation (constant pixel size) with respect to number of iterations. }\label{fig: comparison with iteration}
 		
@@ -895,6 +895,7 @@
 		\end{tikzpicture}\end{center}
 		\caption{Example tree representation of 1D wavelets. Left: nodes, leaves, and mesh of discretisation. Right: arrangement into a tree with index $(j,k)$ and corresponding support of wavelet $w_{j,k}$ underneath.}\label{fig: wavelet tree}
 	\end{figure}
+
 	
 	\subsection{2D robust sparse wavelet reconstruction}\label{sec: wavelet examples}
 	In this example we consider $\A$ to be a 2D Radon transform. In particular, the rows of $\A$ correspond to integrals over the sets $\F{X}^I_i$ where 
